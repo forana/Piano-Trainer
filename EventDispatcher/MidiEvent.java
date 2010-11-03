@@ -1,4 +1,4 @@
-package crescendo.base;
+package crescendo.base.EventDispatcher;
 
 /**
  * MidiEvent encapsulates a musical note, the action involved, and the velocity, as well as the time at which the event occurred.
@@ -15,7 +15,7 @@ public class MidiEvent
 	/**
 	 * The velocity of the note.
 	 */
-	private double velocity;
+	private int velocity;
 	
 	/**
 	 * The time in milliseconds at which this event occurred.
@@ -25,7 +25,7 @@ public class MidiEvent
 	/**
 	 * The action associated with this event.
 	 */
-	private NoteAction action;
+	private ActionType action;
 	
 	/**
 	 * Creates a new MidiEvent.
@@ -34,7 +34,7 @@ public class MidiEvent
 	 * @param velocity The velocity of the note.
 	 * @param action The action associated with this event.
 	 */
-	public MidiEvent(int note,double velocity,NoteAction action)
+	public MidiEvent(int note,int velocity,ActionType action)
 	{
 		this.note=note;
 		this.velocity=velocity;
@@ -57,7 +57,7 @@ public class MidiEvent
 	 * 
 	 * @return The velocity at which the note was played.
 	 */
-	public double getVelocity()
+	public int getVelocity()
 	{
 		return this.velocity;
 	}
@@ -77,7 +77,7 @@ public class MidiEvent
 	 * 
 	 * @return The action associated with this event.
 	 */
-	public NoteAction getAction()
+	public ActionType getAction()
 	{
 		return this.action;
 	}

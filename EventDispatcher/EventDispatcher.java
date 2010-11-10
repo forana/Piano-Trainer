@@ -3,7 +3,15 @@ package crescendo.base.EventDispatcher;
 import java.awt.Component;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
+import java.util.List;
 import java.util.ArrayList;
+
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.Transmitter;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiUnavailableException;
 
 /**
  * EventDispatcher
@@ -21,8 +29,11 @@ import java.util.ArrayList;
 public class EventDispatcher implements KeyListener,MouseListener {
 
 	private EventDispatcher dispatcher=null;
-	private ArrayList<MidiEventListener> midiListeners;
-	private ArrayList<InputEventListener> inputListeners;
+	private List<MidiEventListener> midiListeners;
+	private List<InputEventListener> inputListeners;
+	private MidiReceiver midiReceiver;
+	private MidiDevice midiDevice;
+	private List<MidiDevice> transmitterDevices;
 	
 	
 	/**
@@ -34,8 +45,15 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	{
 		midiListeners = new ArrayList<MidiEventListener>();
 		inputListeners = new ArrayList<InputEventListener>();
+		
+		// instantiate the receiver object
+		this.midiReceiver=new MidiReceiver();
+		// load the device list
+		this.loadTransmitterDevices();
+		// default to the first device's transmitter
+		this.midiDevice=null;
+		this.setTransmitterDevice(this.transmitterDevices.get(0));
 	}
-	
 	
 	/**
 	 * getInstance
@@ -52,6 +70,68 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		return dispatcher;
 	}
 	
+	/**
+	 * Analyzes all midi devices attached to this system, and stores a list
+	 * of the devices that support transmitters.
+	 */
+	public void loadTransmitterDevices()
+	{
+		MidiDevice.Info[] devices=MidiSystem.getMidiDeviceInfo();
+		List<MidiDevice> deviceList=new ArrayList<MidiDevice>();
+		
+		for (int i=0; i<devices.length; i++)
+		{
+			try
+			{
+				MidiDevice device=MidiSystem.getMidiDevice(devices[i]);
+				
+				// check how many transmitters this device supports.
+				// -1 signifies unlimited receivers, so really  0
+				// is the value we care about.
+				if (device.getMaxTransmitters()!=0)
+				{
+					deviceList.add(device);
+				}
+			}
+			catch (MidiUnavailableException e)
+			{
+				System.err.println("MidiDevice \""+devices[i].getName()+"\" could not be found.");
+			}
+		}
+	}
+	
+	/**
+	 * Returns a list of all MidiDevices that support transmitters. This list
+	 * is updated when loadTransmitterDevices is called.
+	 * 
+	 * @return A list of all MidiDevices that support transmitters. This list
+	 * is updated when loadTransmitterDevices is called.
+	 */
+	public List<MidiDevice> getTransmitterDevices()
+	{
+		return this.transmitterDevices;
+	}
+	
+	/**
+	 * Sets the transmitter to be listened on for midi events, and closes any
+	 * existing transmitter.
+	 * 
+	 * @param device The device to use for the new transmitter.
+	 */
+	public void setTransmitterDevice(MidiDevice device)
+	{
+		if (this.midiDevice!=null)
+		{
+			this.midiDevice.close();
+		}
+		
+		this.midiDevice=device;
+		
+		this.midiDevice.open();
+		
+		Transmitter transmitter=this.midiDevice.getTransmitter();
+		transmitter.setReceiver(this.midiReceiver);
+	}
 	
 	/**
 	 * registerComponent
@@ -140,7 +220,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	 * 
 	 * @param midiEvent
 	 */
-	public void dispatchMidiEvent(MidiEvent midiEvent)
+	private void dispatchMidiEvent(MidiEvent midiEvent)
 	{
 		for(MidiEventListener listeners:midiListeners)
 		{
@@ -162,6 +242,58 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		for(InputEventListener listeners:inputListeners)
 		{
 			listeners.handleInputEvent(inputEvent);
+		}
+	}
+	
+	/**
+	 * Internal class to be attached to a transmitter device. Feeds midi events
+	 * back into the EventDispatcher.
+	 * 
+	 * @author forana
+	 */
+	private class MidiReceiver implements Receiver
+	{
+		private static final int OPCODE_MASK = 0xF0;
+		private static final int OPCODE_OFF = 0x80;
+		private static final int OPCODE_ON = 0x90;
+		
+		public MidiReceiver()
+		{
+		}
+		
+		public void close()
+		{
+		}
+		
+		public void send(MidiMessage midiMessage,long timestamp)
+		{
+			byte[] message=midiMessage.getMessage();
+			
+			int opcode=message[0] & OPCODE_MASK;
+			
+			// If the code is note off or note on, handle it. we don't care about anything else.
+			if (opcode == OPCODE_OFF || opcode == OPCODE_ON)
+			{
+				int note=message[1];
+				int velocity=message[2];
+				ActionType action;
+				// determine whether the note is being pressed 
+				// an alternate method of specifying off is using the on code with a velocity of zero
+				if (opcode == OPCODE_OFF || velocity ==0)
+				{
+					action=ActionType.RELEASE;
+				}
+				else
+				{
+					action=ActionType.PRESS;
+				}
+				
+				// create event object
+				MidiEvent event=new MidiEvent(note,velocity,action);
+				
+				// dispatch event
+				dispatchMidiEvent(event);
+			}
 		}
 	}
 }

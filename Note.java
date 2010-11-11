@@ -22,8 +22,9 @@ public class Note
 	private double dynamic;
 	
 	/**
-	 * The dynamic of the note.
+	 * The track that contains the note.
 	 */
+	private Track track;
 	
 	/**
 	 * Creates a Note.
@@ -31,10 +32,12 @@ public class Note
 	 * @param pitch The MIDI pitch of the note.
 	 * @param duration The duration of the note, in milliseconds.
 	 * @param dynamic The dynamic of the note.
+	 * @param track The track which contains the note.
 	 */
-	public Note(int pitch,double duration,double dynamic)
+	public Note(int pitch,double duration,double dynamic,Track track)
 	{
 		this.pitch=pitch;
+		this.track=track;
 	}
 	
 	/**
@@ -55,5 +58,15 @@ public class Note
 	public double getDynamic()
 	{
 		return this.dynamic;
+	}
+	
+	/**
+	 * The track that contains this note.
+	 * 
+	 * @return The track that contains this note.
+	 */
+	public Track getTrack()
+	{
+		return this.track;
 	}
 }

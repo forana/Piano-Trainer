@@ -47,7 +47,6 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
 		
-		//TODO handle potential IndexOutOfBounds here
 		for (int i=0; i<songModel.getNumTracks(); i++)
 		{
 			// hey remember, don't add the active track
@@ -55,7 +54,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			if (track!=activeTrack)
 			{
 				// grab the instrument out of the array
-				Instrument instrument=instruments[track.getVoice()];
+				Instrument instrument=instruments[track.getVoice()]; //TODO handle potential IndexOutOfBounds here
 				// get the channel object
 				MidiChannel channel=channels[currentChannel];
 				// wrap it
@@ -129,7 +128,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	
 	public void suspend()
 	{
-		// this is the beauty of this... do absolutely nothing.
+		// don't need to do anything here because the timing is external,
+		// so notes will just keep playing
+		// (inherited from FlowController)
 	}
 	
 	public void stop()

@@ -28,7 +28,8 @@ import javax.sound.midi.MidiUnavailableException;
 
 public class EventDispatcher implements KeyListener,MouseListener {
 
-	private EventDispatcher dispatcher=null;
+	private static EventDispatcher dispatcher=null;
+	
 	private List<MidiEventListener> midiListeners;
 	private List<InputEventListener> inputListeners;
 	private MidiReceiver midiReceiver;
@@ -60,11 +61,17 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	 * 
 	 * @return dispatcher - singleton EventDispatcher
 	 */
-	public EventDispatcher getInstance()
+	public static EventDispatcher getInstance()
 	{
 		if(dispatcher==null)
 		{
-			dispatcher = new EventDispatcher();
+			synchronized (EventDispatcher.class)
+			{
+				if (dispatcher==null)
+				{
+					dispatcher = new EventDispatcher();
+				}
+			}
 		}
 		
 		return dispatcher;
@@ -237,7 +244,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	 * 
 	 * @param inputEvent
 	 */
-	public void dispatchInputEvent(InputEvent inputEvent)
+	private void dispatchInputEvent(InputEvent inputEvent)
 	{
 		for(InputEventListener listeners:inputListeners)
 		{
@@ -251,7 +258,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	 * 
 	 * @author forana
 	 */
-	private class MidiReceiver implements Receiver
+	private class MidiReceiver implements Receiver // javax.sound.midi.Receiver
 	{
 		private static final int OPCODE_MASK = 0xF0;
 		private static final int OPCODE_OFF = 0x80;
@@ -261,6 +268,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		{
 		}
 		
+		// is needed for the interface, but it's empty LOL
 		public void close()
 		{
 		}

@@ -1,13 +1,16 @@
 package crescendo.base;
 
 import java.util.Map;
-import java.util.HashMap;
 import java.util.TreeMap;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Iterator;
 
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.Synthesizer;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Instrument;
+import javax.sound.midi.MidiUnavailableException;
 
 /**
  * Plays notes through the software synthesizer, as encapsulated in a NoteEvent object.
@@ -35,10 +38,31 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// initialize relation map... thing
 		this.channelMap=new TreeMap<Track,AudioPlayerChannel>();
 		
-		// get synthesizer object
-		this.synth=MidiSystem.getSynthesizer();
-		// open it so we can get, well, anything out of it
-		this.synth.open();
+		boolean retry=false;
+		do
+		{
+			try
+			{
+				// get synthesizer object
+				this.synth=MidiSystem.getSynthesizer();
+				// open it so we can get, well, anything out of it
+				this.synth.open();
+				retry=false;
+			}
+			catch (MidiUnavailableException e)
+			{
+				String title="MIDI Unavailable";
+				String message="A MIDI system could not be found. The program will now exit.";
+				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.RETRY)
+				{
+					retry=true;
+				}
+				else
+				{
+					System.exit(1);
+				}
+			}
+		} while (retry);
 		
 		// get channels and instruments
 		MidiChannel[] channels=this.synth.getChannels();
@@ -53,11 +77,19 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			Track track=songModel.getTrack(i);
 			if (track!=activeTrack)
 			{
-				// grab the instrument out of the array
-				Instrument instrument=instruments[track.getVoice()]; //TODO handle potential IndexOutOfBounds here
-				// get the channel object
+				Instrument instrument;
+				try
+				{
+					instrument=instruments[track.getVoice()];
+				}
+				catch (ArrayIndexOutOfBoundsException e)
+				{
+					instrument=instruments[0];
+				}
+				
 				MidiChannel channel=channels[currentChannel];
-				// wrap it
+				channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
+				
 				AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
 				
 				// add it to the map
@@ -156,12 +188,12 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		/**
 		 * Contains a list of active notes and their current velocities.
 		 */
-		private Map<Integer,Integer> activeNotes;
+		private List<Note> activeNotes;
 		
 		public AudioPlayerChannel(MidiChannel channel)
 		{
 			this.channel=channel;
-			this.activeNotes=new HashMap<Integer,Integer>();
+			this.activeNotes=new LinkedList<Note>();
 		}
 		
 		public void playNote(Note note)
@@ -170,9 +202,13 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			int velocity=(int)(127*note.getDynamic());
 			this.channel.noteOn(pitch,velocity);
 			
-			if (!this.activeNotes.keySet().contains(pitch))
+			for (Iterator<Note> iter=this.activeNotes.iterator(); iter.hasNext();)
 			{
-				this.activeNotes.put(pitch,velocity);
+				Note iterNote=iter.next();
+				if (note.getPitch() == iterNote.getPitch())
+				{
+					iter.remove();
+				}
 			}
 		}
 		
@@ -181,7 +217,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			int pitch=note.getPitch();
 			this.channel.noteOff(pitch);
 			
-			this.activeNotes.remove(pitch);
+			this.activeNotes.remove(note);
 		}
 		
 		public void pauseNotes()
@@ -191,9 +227,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		public void resumeNotes()
 		{
-			for (Integer pitch : this.activeNotes.keySet())
+			for (Note note : this.activeNotes)
 			{
-				int velocity=this.activeNotes.get(pitch);
+				int pitch=note.getPitch();
+				int velocity=(int)(note.getDynamic()*127);
 				
 				this.channel.noteOn(pitch,velocity);
 			}
@@ -202,7 +239,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		public void stopAllNotes()
 		{
 			this.channel.allNotesOff();
-			this.activeNotes=new HashMap<Integer,Integer>();
+			this.activeNotes=new LinkedList<Note>();
 		}
 	}
 }

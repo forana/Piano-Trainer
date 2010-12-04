@@ -13,6 +13,8 @@ import javax.sound.midi.Transmitter;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
 
+import crescendo.base.ErrorHandler;
+
 /**
  * EventDispatcher
  * 
@@ -103,6 +105,13 @@ public class EventDispatcher implements KeyListener,MouseListener {
 			catch (MidiUnavailableException e)
 			{
 				System.err.println("MidiDevice \""+devices[i].getName()+"\" could not be found.");
+				String title="MIDI Device in use";
+				String message="The device \""+devices[i].getName()+"\" is in use by another program.";
+				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.RETRY)
+				{
+					// try this device again
+					i--;
+				}
 			}
 		}
 	}
@@ -124,8 +133,9 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	 * existing transmitter.
 	 * 
 	 * @param device The device to use for the new transmitter.
+	 * @return Whether or not the device was successfully set.
 	 */
-	public void setTransmitterDevice(MidiDevice device)
+	public boolean setTransmitterDevice(MidiDevice device)
 	{
 		if (this.midiDevice!=null)
 		{
@@ -134,10 +144,30 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		
 		this.midiDevice=device;
 		
-		this.midiDevice.open();
+		boolean success=true;
 		
-		Transmitter transmitter=this.midiDevice.getTransmitter();
-		transmitter.setReceiver(this.midiReceiver);
+		try
+		{
+			this.midiDevice.open();
+			
+			Transmitter transmitter=this.midiDevice.getTransmitter();
+			transmitter.setReceiver(this.midiReceiver);
+		}
+		catch (MidiUnavailableException e)
+		{
+			String title="MIDI Device in use";
+			String message="The specified device is in use by another program.";
+			if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.RETRY)
+			{
+				return this.setTransmitterDevice(device);
+			}
+			else
+			{
+				success=false;
+			}
+		}
+		
+		return success;
 	}
 	
 	/**

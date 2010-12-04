@@ -52,7 +52,7 @@ public class ErrorHandler
 	 */
 	public static int showRetryFail(String title,String message)
 	{
-		Object[] options={"Retry","Exit"};
+		Object[] options={"Retry","Fail"};
 		int option=JOptionPane.showOptionDialog(null,message,title,JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE,null,options,options[0]);
 		if (option!=1)
 		{

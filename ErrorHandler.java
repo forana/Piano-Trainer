@@ -24,8 +24,6 @@ public class ErrorHandler
 	 */
 	public static int showYesNo(String title,String message)
 	{
-		System.out.println(JOptionPane.CLOSED_OPTION);
-		System.out.println(JOptionPane.YES_OPTION);
 		int option;
 		do
 		{

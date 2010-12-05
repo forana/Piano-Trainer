@@ -1,8 +1,9 @@
 package crescendo.base.parsing;
 
-import crescendo.base.SongModel;
 import java.io.File;
 import java.io.IOException;
+
+import crescendo.base.song.SongModel;
 
 public interface SongFileParser
 {

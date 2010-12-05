@@ -1,5 +1,7 @@
 package crescendo.base;
 
+import crescendo.base.song.Note;
+
 /**
  * A NoteEvent encapsulates a note and its timestamp in the song, 
  * 

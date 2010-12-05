@@ -1,17 +1,17 @@
 package crescendo.base.parsing;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import crescendo.base.ErrorHandler;
-import crescendo.base.Note;
-import crescendo.base.SongModel;
-import crescendo.base.Track;
+import crescendo.base.song.Note;
+import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
 
 public class MidiParser implements SongFileParser
 {

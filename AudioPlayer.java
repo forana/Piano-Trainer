@@ -1,16 +1,20 @@
 package crescendo.base;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Iterator;
 
-import javax.sound.midi.MidiChannel;
-import javax.sound.midi.Synthesizer;
-import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Instrument;
+import javax.sound.midi.MidiChannel;
+import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Synthesizer;
+
+import crescendo.base.song.Note;
+import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
 
 /**
  * Plays notes through the software synthesizer, as encapsulated in a NoteEvent object.

@@ -1,4 +1,4 @@
-package crescendo.base;
+package crescendo.base.song;
 
 import java.util.List;
 

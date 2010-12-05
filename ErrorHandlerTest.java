@@ -33,7 +33,7 @@ public class ErrorHandlerTest
 	@Test
 	public void close()
 	{
-		Assert.assertEquals(ErrorHandler.showRetryFail("Please","Click close"),ErrorHandler.FAIL);
+		Assert.assertEquals(ErrorHandler.showRetryFail("Please","Click fail"),ErrorHandler.FAIL);
 	}
 	
 	@Test

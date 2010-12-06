@@ -1,4 +1,4 @@
-package crescendo.base;
+package crescendo.base.song;
 
 import java.util.List;
 
@@ -14,12 +14,15 @@ public class SongModel
 	 */
 	private List<Track> tracks;
 	
+	/** Artists who worked on this particular song */
+	private List<Creator> creators;
+	
 	/**
 	 * Creates a SongModel.
 	 * 
 	 * @param tracks
 	 * @param title
-	 * @param author
+	 * @param creators
 	 * @param email
 	 * @param website
 	 * @param license
@@ -27,9 +30,10 @@ public class SongModel
 	 * 
 	 * TODO Finish this comment.
 	 */
-	public SongModel(List<Track> tracks,String title,String author,String email,String website,String license,int beatsPerMinute)
+	public SongModel(List<Track> tracks,String title,List<Creator> creators,String email,String website,String license,int beatsPerMinute)
 	{
 		this.tracks=tracks;
+		this.creators=creators;
 	}
 	
 	/**
@@ -55,5 +59,13 @@ public class SongModel
 		return this.tracks.get(track);
 	}
 	
+	/**
+	 * getter for the list of creators
+	 * @return list of creators of the song
+	 */
+	public List<Creator> getCreators()
+	{
+		return this.creators;
+	}
 	// TODO Implement metadata functions.
 }

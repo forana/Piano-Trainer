@@ -1,4 +1,4 @@
-package crescendo.base;
+package crescendo.base.song;
 
 /**
  * A note represents a single musical note.

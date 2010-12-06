@@ -1,5 +1,7 @@
 package crescendo.base;
 
+import crescendo.base.song.SongModel;
+
 /**
  * A SongPlayer does the actual running through the song and propagation of events.
  * 

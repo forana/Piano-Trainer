@@ -1,17 +1,18 @@
 package crescendo.base.parsing;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import crescendo.base.ErrorHandler;
-import crescendo.base.Note;
-import crescendo.base.SongModel;
-import crescendo.base.Track;
+import crescendo.base.song.Note;
+import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
+import crescendo.base.song.Creator;
 
 public class MidiParser implements SongFileParser
 {
@@ -198,7 +199,9 @@ public class MidiParser implements SongFileParser
 			tracks.add(track);
 		}
 		
-		SongModel model=new SongModel(tracks,title,author,email,website,license,bpm);
+		List<Creator> creators=new LinkedList<Creator>();
+		creators.add(new Creator(author,"Sequencer"));
+		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm);
 		return model;
 	}
 	

@@ -14,6 +14,8 @@ public class MidiParserTest
 	public void properLoad() throws IOException
 	{
 		SongModel model=SongFactory.generateSongFromFile("resources/morrowind.mid");
+		System.out.println("Loaded title: "+model.getTitle());
+		System.out.println("Loaded license: "+model.getLicense());
 		Assert.assertNotNull(model);
 	}
 }

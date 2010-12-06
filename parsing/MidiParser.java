@@ -28,7 +28,7 @@ public class MidiParser implements SongFileParser
 		String[] trackNames;
 		int[] trackVoices;
 		// unfortunately this is the best we can do for these
-		String title="Untitled";
+		String title=file.getName();
 		String author=null;
 		String email=null;
 		String website=null;
@@ -89,7 +89,6 @@ public class MidiParser implements SongFileParser
 				int opcode=stream.read();
 				int channel=opcode & 0x0F;
 				bytesRead++;
-				System.out.println("I WAS READING "+opcode);
 				switch (opcode>>4)
 				{
 					case 0x8: // Note off
@@ -135,42 +134,69 @@ public class MidiParser implements SongFileParser
 							bytesRead++;
 							int metaLength=readVariableWidth(stream);
 							bytesRead+=lastVariableLength;
-							readBytes(stream,metaLength);
+							// this should probably not be done here (rather in each branch), but lazyness
 							bytesRead+=metaLength;
 							switch (metaCode)
 							{
 								case 0x00: // Sequence number
+									int sequenceNumber=readBytes(stream,2);
 									break;
 								case 0x01: // Text event
+									String eventText=readString(stream,metaLength);
 									break;
 								case 0x02: // Copyright notice
+									String copyright=readString(stream,metaLength);
+									license=copyright;
 									break;
 								case 0x03: // Sequence / track name
+									String trackName=readString(stream,metaLength);
+									trackNames[i]=trackName;
 									break;
 								case 0x04: // Instrument name
+									String instrumentName=readString(stream,metaLength);
 									break;
 								case 0x05: // Lyrics
+									String lyrics=readString(stream,metaLength);
 									break;
 								case 0x06: // Marker
+									// TODO Actually use markers?
+									String markerName=readString(stream,metaLength);
 									break;
 								case 0x07: // Cue point
+									String cueName=readString(stream,metaLength);
 									break;
 								case 0x20: // Midi channel prefix
-									break;
 								case 0x21: // Midi port prefix
 									       // found at http://www.omega-art.com/midi/mfiles.html
+									int prefixChannel=stream.read();
 									break;
 								case 0x2F: // End of track
+									// TODO handle this
 									break;
 								case 0x51: // Set tempo
+									int microSecondsPerQuarterNote=readBytes(stream,3);
+									int microSecondsPerMinute=60000000;
+									bpm=microSecondsPerMinute/microSecondsPerQuarterNote;
 									break;
 								case 0x54: // SMPTE offset
+									int hours=stream.read();
+									int minutes=stream.read();
+									int seconds=stream.read();
+									int frames=stream.read();
+									int subFrames=stream.read();
 									break;
 								case 0x58: // Time signature
+									int numerator=stream.read();
+									int denominator=(int)Math.pow(2,stream.read());
+									int clockCyclesPerMetronomeTick=stream.read();
+									int thirtySecondNotesPerQuarterNote=stream.read();
 									break;
 								case 0x59: // Key signature
+									int keySignature=stream.read()-7;
+									int scale=stream.read();
 									break;
 								case 0x7F: // Sequencer-specific event
+									String miscData=readString(stream,metaLength);
 									break;
 								default:
 									throw new IOException("Unrecognized meta event code '"+Integer.toHexString(metaCode)+"' @ track "+(i+1)+" offset "+bytesRead);
@@ -201,6 +227,7 @@ public class MidiParser implements SongFileParser
 		
 		List<Creator> creators=new LinkedList<Creator>();
 		creators.add(new Creator(author,"Sequencer"));
+		
 		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm);
 		return model;
 	}
@@ -208,7 +235,7 @@ public class MidiParser implements SongFileParser
 	/** Reads a variable-width value from a stream. */
 	// side note: variable-width values are reportedly never more than 4 bytes
 	// java int = 32-bit, so int should theoretically be fine for storage
-	private int readVariableWidth(InputStream stream) throws IOException
+	private static int readVariableWidth(InputStream stream) throws IOException
 	{
 		int value=0;
 		int msig;
@@ -229,7 +256,7 @@ public class MidiParser implements SongFileParser
 	}
 	
 	/** Reads an n-byte value from the stream. */
-	private int readBytes(InputStream stream,int num) throws IOException
+	private static int readBytes(InputStream stream,int num) throws IOException
 	{
 		int result=0;
 		for (int i=0; i<num; i++)
@@ -241,7 +268,7 @@ public class MidiParser implements SongFileParser
 	}
 	
 	/** Reads a string of length n from the stream. */
-	private String readString(InputStream stream,int n) throws IOException
+	private static String readString(InputStream stream,int n) throws IOException
 	{
 		StringBuilder res=new StringBuilder();
 		for (int i=0; i<n; i++)

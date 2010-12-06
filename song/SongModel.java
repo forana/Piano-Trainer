@@ -17,6 +17,12 @@ public class SongModel
 	/** Artists who worked on this particular song */
 	private List<Creator> creators;
 	
+	private String title;
+	private String email;
+	private String website;
+	private String license;
+	private int bpm;
+	
 	/**
 	 * Creates a SongModel.
 	 * 
@@ -34,6 +40,11 @@ public class SongModel
 	{
 		this.tracks=tracks;
 		this.creators=creators;
+		this.title=title;
+		this.email=email;
+		this.website=website;
+		this.license=license;
+		this.bpm=beatsPerMinute;
 	}
 	
 	/**
@@ -67,5 +78,29 @@ public class SongModel
 	{
 		return this.creators;
 	}
-	// TODO Implement metadata functions.
+	
+	public String getTitle()
+	{
+		return this.title;
+	}
+	
+	public String getEmail()
+	{
+		return this.email;
+	}
+	
+	public String getWebsite()
+	{
+		return this.website;
+	}
+	
+	public String getLicense()
+	{
+		return this.license;
+	}
+	
+	public int getBPM()
+	{
+		return this.bpm;
+	}
 }

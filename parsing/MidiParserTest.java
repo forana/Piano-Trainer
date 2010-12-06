@@ -13,7 +13,7 @@ public class MidiParserTest
 	@Test
 	public void properLoad() throws IOException
 	{
-		SongModel model=SongFactory.generateSongFromFile("D:/downloads/morrowind.mid");
+		SongModel model=SongFactory.generateSongFromFile("resources/morrowind.mid");
 		Assert.assertNotNull(model);
 	}
 }

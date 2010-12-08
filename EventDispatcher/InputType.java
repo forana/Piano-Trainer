@@ -3,7 +3,7 @@ package crescendo.base.EventDispatcher;
 /**
  * InputType
  * 
- * Used by InputEvent, not sure if it is needed.
+ * Used by InputEvent
  * 
  * 
  * @author groszc

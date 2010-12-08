@@ -10,9 +10,8 @@ package crescendo.base.EventDispatcher;
  *
  */
 public enum InputType {
-	ACTIONTYPE_CLICK,
-	ACTIONTYPE_KEYBOARD,
-	ACTIONTYPE_MIDI,
-	ACTIONTYPE_MOUSEMOVE,
-	ACTIONTYPE_SCROLL
+	CLICK,
+	KEYBOARD,
+	MOUSEMOVE,
+	SCROLL
 }

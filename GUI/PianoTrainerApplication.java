@@ -39,7 +39,14 @@ public class PianoTrainerApplication {
 	
 	/** The ProfileManager of the application **/
 	private ProfileManager profileManager;
-
+	
+	/** The Help Menu of the application */
+	private JMenu helpMenu;
+	
+	private JMenuItem helpAbout;
+	private JMenuItem helpItem;
+	private MenuFrame mainFrame;
+	
 	/**
 	 * @param args
 	 */
@@ -62,7 +69,7 @@ public class PianoTrainerApplication {
 		mainWindow.setSize(1024, 768);
 		mainWindow.setVisible(true);
 		menuBar = new JMenuBar();
-		
+		mainWindow.setTitle("Piano Trainer");
 		//boolean profilesLoaded=false;
 		//TODO: try to load ProfileManager from file
 		//if(!profilesLoaded)
@@ -76,10 +83,22 @@ public class PianoTrainerApplication {
 		
 		profileMenu = new JMenu(profileManager.getActiveProfile().getName());
 		updateProfileMenu();
-		
 		menuBar.add(profileMenu);
 		
+		helpMenu=new JMenu("Help");
+		helpAbout = new JMenuItem("About");
+		helpItem = new JMenuItem("Help");
+		helpMenu.add(helpAbout);
+		helpMenu.add(helpItem);
+		helpAbout.addActionListener(al);
+		helpItem.addActionListener(al);
+		
+		menuBar.add(helpMenu);
+		
 		mainWindow.setJMenuBar(menuBar);
+		
+		mainFrame = new MenuFrame(1024, 768);
+		mainWindow.add(mainFrame);
 		
 	}
 	
@@ -137,7 +156,9 @@ public class PianoTrainerApplication {
 		profileMenu.add(addProfileButton);
 	}
 
-
+	private void switchModules(){
+		
+	}
 	
 	
 	/**
@@ -165,7 +186,9 @@ public class PianoTrainerApplication {
 				}
 			}
 			
-			
+			if(e.getSource().equals(helpAbout)){
+				JOptionPane.showMessageDialog(null, "Infinite Crescendo \n 2010 \n Insert Names");
+			}
 			
 			
 			//
@@ -176,4 +199,5 @@ public class PianoTrainerApplication {
 			
 		}
 	};
+	
 }

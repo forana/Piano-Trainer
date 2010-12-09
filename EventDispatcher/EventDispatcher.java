@@ -1,7 +1,9 @@
 package crescendo.base.EventDispatcher;
 
 import java.awt.Component;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	private MidiDevice midiDevice;
 	private List<MidiDevice> transmitterDevices;
 	
+	private Modifier currentModifer;
+	
 	
 	/**
 	 * EventDispatcher
@@ -56,6 +60,8 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		// default to the first device's transmitter
 		this.midiDevice=null;
 		this.setTransmitterDevice(this.transmitterDevices.get(0));
+		
+		currentModifer = new Modifier(false,false,false);
 	}
 	
 	/**
@@ -333,5 +339,71 @@ public class EventDispatcher implements KeyListener,MouseListener {
 				dispatchMidiEvent(event);
 			}
 		}
+	}
+
+	@Override
+	public void keyPressed(KeyEvent arg0) {
+		
+		if(arg0.getKeyCode()==KeyEvent.VK_SHIFT)currentModifer.setShift(true);
+		if(arg0.getKeyCode()==KeyEvent.VK_ALT)currentModifer.setAlt(true);
+		if(arg0.getKeyCode()==KeyEvent.VK_CONTROL)currentModifer.setCtrl(true);
+		
+		KeyboardEvent event = new KeyboardEvent(ActionType.PRESS, System.currentTimeMillis(), 
+				InputType.KEYBOARD, arg0.getKeyCode(), currentModifer);
+		
+		dispatchInputEvent(event);
+		
+	}
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+		if(arg0.getKeyCode()==KeyEvent.VK_SHIFT)currentModifer.setShift(false);
+		else if(arg0.getKeyCode()==KeyEvent.VK_ALT)currentModifer.setAlt(false);
+		else if(arg0.getKeyCode()==KeyEvent.VK_CONTROL)currentModifer.setCtrl(false);
+		
+		KeyboardEvent event = new KeyboardEvent(ActionType.RELEASE, System.currentTimeMillis(), 
+				InputType.KEYBOARD, arg0.getKeyCode(), currentModifer);
+		
+		dispatchInputEvent(event);
+	}
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+		//nothing	
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+		//nothing	
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		//nothing	
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		//nothing	
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		crescendo.base.EventDispatcher.MouseEvent event = new crescendo.base.EventDispatcher.MouseEvent(ActionType.PRESS, System.currentTimeMillis(), 
+				InputType.CLICK, arg0.getButton(),arg0.getX(),arg0.getY(), currentModifer);
+		
+		dispatchInputEvent(event);
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		crescendo.base.EventDispatcher.MouseEvent event = new crescendo.base.EventDispatcher.MouseEvent(ActionType.RELEASE, System.currentTimeMillis(), 
+				InputType.CLICK, arg0.getButton(),arg0.getX(),arg0.getY(), currentModifer);
+		
+		dispatchInputEvent(event);
+		
 	}
 }

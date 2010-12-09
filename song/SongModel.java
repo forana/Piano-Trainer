@@ -17,6 +17,9 @@ public class SongModel
 	/** Artists who worked on this particular song */
 	private List<Creator> creators;
 	
+	/** time signature of this song */
+	private TimeSignature timeSignature;
+	
 	/**
 	 * Creates a SongModel.
 	 * 
@@ -27,13 +30,13 @@ public class SongModel
 	 * @param website
 	 * @param license
 	 * @param beatsPerMinute
-	 * 
+	 * @param timeSignature
 	 * TODO Finish this comment.
 	 */
-	public SongModel(List<Track> tracks,String title,List<Creator> creators,String email,String website,String license,int beatsPerMinute)
-	{
+	public SongModel(List<Track> tracks,String title,List<Creator> creators,String email,String website,String license,int beatsPerMinute, TimeSignature timeSignature) {
 		this.tracks=tracks;
 		this.creators=creators;
+		this.timeSignature = timeSignature;
 	}
 	
 	/**

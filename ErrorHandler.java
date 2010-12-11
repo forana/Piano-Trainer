@@ -4,17 +4,16 @@ import javax.swing.JOptionPane;
 
 public class ErrorHandler
 {
-	public static final int OKAY=1;
-	public static final int YES=1;
-	public static final int NO=2;
-	public static final int RETRY=3;
-	public static final int FAIL=4;
+	public static enum Response
+	{
+		OKAY,YES,NO,RETRY,FAIL
+	}
 	
 	/** This should always return OKAY. **/
-	public static int showNotification(String title,String message)
+	public static Response showNotification(String title,String message)
 	{
 		JOptionPane.showMessageDialog(null,message,title,JOptionPane.INFORMATION_MESSAGE);
-		return OKAY;
+		return Response.OKAY;
 	}
 	
 	/**
@@ -22,7 +21,7 @@ public class ErrorHandler
 	 * If the user doesn't choose either (closes the dialog), it will be shown again
 	 * until one of the buttons is clicked.
 	 */
-	public static int showYesNo(String title,String message)
+	public static Response showYesNo(String title,String message)
 	{
 		int option;
 		do
@@ -31,11 +30,11 @@ public class ErrorHandler
 		} while (option==JOptionPane.CLOSED_OPTION);
 		if (option==JOptionPane.YES_OPTION)
 		{
-			return YES;
+			return Response.YES;
 		}
 		else
 		{
-			return NO;
+			return Response.NO;
 		}
 	}
 	
@@ -48,17 +47,17 @@ public class ErrorHandler
 	 * 
 	 * If the user closes the dialog, RETRY is returned.
 	 */
-	public static int showRetryFail(String title,String message)
+	public static Response showRetryFail(String title,String message)
 	{
 		Object[] options={"Retry","Fail"};
 		int option=JOptionPane.showOptionDialog(null,message,title,JOptionPane.DEFAULT_OPTION,JOptionPane.ERROR_MESSAGE,null,options,options[0]);
-		if (option!=1)
+		if (option==0)
 		{
-			return RETRY;
+			return Response.RETRY;
 		}
 		else
 		{
-			return FAIL;
+			return Response.FAIL;
 		}
 	}
 }

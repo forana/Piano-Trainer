@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.HashMap;
 
 import javax.sound.midi.Instrument;
 import javax.sound.midi.MidiChannel;
@@ -40,7 +40,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	public AudioPlayer(SongModel songModel,Track activeTrack)
 	{
 		// initialize relation map... thing
-		this.channelMap=new TreeMap<Track,AudioPlayerChannel>();
+		this.channelMap=new HashMap<Track,AudioPlayerChannel>();
 		
 		boolean retry=false;
 		do
@@ -57,7 +57,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			{
 				String title="MIDI Unavailable";
 				String message="A MIDI system could not be found. The program will now exit.";
-				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.RETRY)
+				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
 				{
 					retry=true;
 				}
@@ -132,17 +132,19 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		Track track=note.getTrack();
 		
 		// match the track to the proper channel object
-		//TODO null checking here
 		AudioPlayerChannel channel=this.channelMap.get(track);
 		
-		// execute the proper action
-		if (action==NoteAction.BEGIN)
+		if (channel!=null)
 		{
-			channel.playNote(note);
-		}
-		else
-		{
-			channel.stopNote(note);
+			// execute the proper action
+			if (action==NoteAction.BEGIN)
+			{
+				channel.playNote(note);
+			}
+			else
+			{
+				channel.stopNote(note);
+			}
 		}
 	}
 	
@@ -214,6 +216,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 					iter.remove();
 				}
 			}
+			this.activeNotes.add(note);
 		}
 		
 		public void stopNote(Note note)
@@ -231,8 +234,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		public void resumeNotes()
 		{
+			System.out.println("HEY HEY HEY");
 			for (Note note : this.activeNotes)
 			{
+				System.out.println(note.getPitch());
 				int pitch=note.getPitch();
 				int velocity=(int)(note.getDynamic()*127);
 				

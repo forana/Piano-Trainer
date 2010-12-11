@@ -37,6 +37,7 @@ public class Note
 	public Note(int pitch,double duration,double dynamic,Track track)
 	{
 		this.pitch=pitch;
+		this.dynamic=dynamic;
 		this.track=track;
 	}
 	

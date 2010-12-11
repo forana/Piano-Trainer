@@ -227,7 +227,7 @@ public class MidiParser implements SongFileParser
 		List<Creator> creators=new LinkedList<Creator>();
 		creators.add(new Creator(author,"Sequencer"));
 		
-		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm);
+		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,null);
 		return model;
 	}
 	

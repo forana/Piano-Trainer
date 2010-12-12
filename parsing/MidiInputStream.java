@@ -21,7 +21,9 @@ public class MidiInputStream
 	
 	public int read() throws IOException
 	{
-		return stream.read();
+		int value=stream.read();
+		//System.out.print(Integer.toHexString(value)+" ");
+		return value;
 	}
 	
 	public void close() throws IOException
@@ -41,7 +43,7 @@ public class MidiInputStream
 		
 		do
 		{
-			int b=stream.read();
+			int b=this.read();
 			msig=b & 0x80;
 			res=b & 0x7F;
 			value=value<<7;
@@ -65,7 +67,7 @@ public class MidiInputStream
 		for (int i=0; i<num; i++)
 		{
 			result=result<<8;
-			result+=stream.read();
+			result+=this.read();
 		}
 		return result;
 	}
@@ -76,7 +78,7 @@ public class MidiInputStream
 		StringBuilder res=new StringBuilder();
 		for (int i=0; i<n; i++)
 		{
-			res.append((char)stream.read());
+			res.append((char)this.read());
 		}
 		return res.toString();
 	}

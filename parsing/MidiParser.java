@@ -61,14 +61,14 @@ public class MidiParser implements SongFileParser
 		// mode zero means that the divisor is ticks per beat (time is always 4/4)
 		// mode one means that the divisor's top 7 bits is the number of frames per second
 		//  and the bottom 8 bits are the number of ticks per frame (subdivisions)
-		int timeMode=((timeDivisor & 0x8000) == 0 ? 0 : 1);
+		int timeMode=((timeDivisor & 0x8000) == 0 ? 0 : 1); // stupid conversion but it works
 		int ticksPerBeat=timeDivisor & 0x7FFF;
 		double framesPerSecond=timeDivisor>>8 & 0x7F;
 		if (framesPerSecond==29)
 		{
 			framesPerSecond=29.97;
 		}
-		int frameSubdivisions=timeDivisor & 0x00FF;
+		int ticksPerFrame=timeDivisor & 0x00FF;
 		// each track header
 		for (int i=0; i<numTracks; i++)
 		{
@@ -94,10 +94,12 @@ public class MidiParser implements SongFileParser
 				int opcode=stream.read();
 				int channel=opcode & 0x0F;
 				bytesRead++;
+				boolean dontReadInStop=false;
+				int notePitch=0;
 				switch (opcode>>4)
 				{
 					case 0x9: // Note on
-						int noteOnPitch=stream.read();
+						notePitch=stream.read();
 						int noteOnVelocity=stream.read();
 						bytesRead+=2;
 						if (noteOnVelocity>0)
@@ -106,7 +108,7 @@ public class MidiParser implements SongFileParser
 							// don't add a note if there's already a note there
 							for (SkeletalNote note:activeNotes)
 							{
-								if (note.getPitch()==noteOnPitch)
+								if (note.getPitch()==notePitch)
 								{
 									found=true;
 									break;
@@ -115,19 +117,26 @@ public class MidiParser implements SongFileParser
 							if (!found)
 							{
 								// use 0 for duration and null for track for now; these will be added later
-								activeNotes.add(new SkeletalNote(noteOnPitch,noteOnVelocity,currentDelta));
+								activeNotes.add(new SkeletalNote(notePitch,noteOnVelocity,currentDelta));
 							}
-							break;
 						}
+						else
+						{
+							dontReadInStop=true;
+						}
+						break;
 					case 0x8: // Note off
-						int noteOffPitch=stream.read();
-						/*int noteOffVelocity=*/stream.read(); // this should always be zero, but if it isn't, we don't really care
-						bytesRead+=2;
+						if (!dontReadInStop)
+						{
+							notePitch=stream.read();
+							/*int noteOffVelocity=*/stream.read(); // this should always be zero, but if it isn't, we don't really care
+							bytesRead+=2;
+						}
 						// if this pitch is held by a note, well golly, let's add that sucker
 						for (Iterator<SkeletalNote> iter=activeNotes.iterator(); iter.hasNext();)
 						{
 							SkeletalNote note=iter.next();
-							if (note.getPitch()==noteOffPitch)
+							if (note.getPitch()==notePitch)
 							{
 								iter.remove();
 								trackNotes.get(i).add(note);
@@ -140,6 +149,7 @@ public class MidiParser implements SongFileParser
 						bytesRead+=2;
 						break;
 					case 0xB: // Controller event
+						// http://wiki.cockos.com/wiki/index.php/MIDI_Specification
 						int controllerType=stream.read();
 						int controllerValue=stream.read();
 						bytesRead+=2;
@@ -245,7 +255,7 @@ public class MidiParser implements SongFileParser
 						}
 						break;
 					default:
-						throw new IOException("Unrecognized opcode '"+Integer.toHexString(opcode>>4)+"'");
+						throw new IOException("Unrecognized opcode '"+Integer.toHexString(opcode>>4)+"' @ track "+(i+1)+" offset 0x"+Integer.toHexString(bytesRead));
 				}
 			}
 		}
@@ -258,7 +268,20 @@ public class MidiParser implements SongFileParser
 			List<Note> notes=new LinkedList<Note>();
 			for (Iterator<SkeletalNote> iter=trackNotes.get(i).iterator(); iter.hasNext();)
 			{
-				SkeletalNote note=iter.next();
+				SkeletalNote snote=iter.next();
+				double numbeats;
+				if (timeMode==0)
+				{
+					numbeats=1.0*snote.getDuration()/ticksPerBeat;
+					System.out.println("Ticks: "+snote.getDuration()+"\t / "+ticksPerBeat);
+				}
+				else
+				{
+					double frames=snote.getDuration()/ticksPerFrame;
+					double seconds=frames/framesPerSecond;
+					numbeats=seconds*bpm/60;
+				}
+				System.out.println("Beats: "+numbeats);
 			}
 			tracks.add(track);
 		}

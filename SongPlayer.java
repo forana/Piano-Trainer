@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 
 import crescendo.base.song.SongModel;
 
@@ -21,7 +22,9 @@ public class SongPlayer
 	 * The songed that is being played.
 	 */
 	private SongModel songModel;
+	/** map of listeners and the number of milliseconds early to send their note events */
 	private Map<NoteEventListener,Integer> listeners;
+	/** list of notes which are currently in the queue */
 	private List<NoteEvent> activeNotes;
 	/**
 	 * TODO This
@@ -53,14 +56,30 @@ public class SongPlayer
 		listeners.put(listener, time);
 	}
 
+	/**
+	 * Remove listener from the listeners who are receiving note events from the player.
+	 * @param listener - NoteEventLIstener instance to remove from the observer list
+	 */
 	public void detach(NoteEventListener listener) {
 		listeners.remove(listener);
 	}
 
 
+	/**
+	 * Sends out notes to the listeners. Only sends them out if it is
+	 * within the requested time frame. This method also removes old notes 
+	 * from the list of active notes.
+	 */
 	private void update() {
 		long now = System.currentTimeMillis();
-		for(NoteEvent event : activeNotes) {
+		NoteEvent event = null;
+		for(Iterator<NoteEvent> i = activeNotes.iterator(); i.hasNext();) {
+			event = i.next();
+			if(now > event.getTimestamp())
+			{
+				i.remove();
+				continue;
+			}
 			for(NoteEventListener listener : listeners.keySet()) {
 				if(now >= (event.getTimestamp()-listeners.get(listener))) {
 					listener.handleNoteEvent(event);

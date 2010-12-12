@@ -7,10 +7,6 @@ package crescendo.base.song;
  */
 public class Note
 {
-	// TODO Comment this and implement the rest of these
-	// although mezzoforte is the best dynamic ever
-	public static final double MEZZOFORTE = 0.6;
-	
 	/**
 	 * The pitch of the note, using MIDI pitch (e.g. 60 is middle C).
 	 */
@@ -19,12 +15,17 @@ public class Note
 	/**
 	 * The dynamic of the note, aka the softness/hardness.
 	 */
-	private double dynamic;
+	private int dynamic;
 	
 	/**
 	 * The track that contains the note.
 	 */
 	private Track track;
+	
+	/**
+	 * The duration of this note, in beats.
+	 */
+	private double duration;
 	
 	/**
 	 * Creates a Note.
@@ -34,7 +35,7 @@ public class Note
 	 * @param dynamic The dynamic of the note.
 	 * @param track The track which contains the note.
 	 */
-	public Note(int pitch,double duration,double dynamic,Track track)
+	public Note(int pitch,double duration,int dynamic,Track track)
 	{
 		this.pitch=pitch;
 		this.dynamic=dynamic;
@@ -56,7 +57,7 @@ public class Note
 	 * 
 	 * @return The dynamic of the note.
 	 */
-	public double getDynamic()
+	public int getDynamic()
 	{
 		return this.dynamic;
 	}
@@ -78,6 +79,6 @@ public class Note
 	 */
 	public double getDuration()
 	{
-		return this.duration.
+		return this.duration;
 	}
 }

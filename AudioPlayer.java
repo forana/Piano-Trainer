@@ -205,7 +205,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		public void playNote(Note note)
 		{
 			int pitch=note.getPitch();
-			int velocity=(int)(127*note.getDynamic());
+			int velocity=note.getDynamic();
 			this.channel.noteOn(pitch,velocity);
 			
 			for (Iterator<Note> iter=this.activeNotes.iterator(); iter.hasNext();)

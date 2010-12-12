@@ -37,7 +37,7 @@ public class AudioPlayerTest
 	public void testPlaySingleNoteFiveTimesWhileStopping()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note middleC=new Note(60,1000,1,this.track);
+		Note middleC=new Note(60,1000,100,this.track);
 		for (int i=0; i<5; i++)
 		{
 			NoteEvent startEvent=new NoteEvent(middleC,NoteAction.BEGIN,0);
@@ -58,7 +58,7 @@ public class AudioPlayerTest
 	public void testPlaySingleNoteFiveTimesWithoutStopping()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note c=new Note(73,1000,1,this.track);
+		Note c=new Note(73,1000,100,this.track);
 		NoteEvent startEvent=new NoteEvent(c,NoteAction.BEGIN,0);
 		NoteEvent endEvent=new NoteEvent(c,NoteAction.END,0);
 		for (int i=0; i<5; i++)
@@ -80,11 +80,11 @@ public class AudioPlayerTest
 	public void testMultipleSimultaneousNotes()
 	{	
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note[] notes={new Note(58,1000,1,this.track),
-		              new Note(60,1000,1,this.track),
-		              new Note(62,1000,1,this.track),
-		              new Note(63,1000,1,this.track),
-		              new Note(65,1000,1,this.track)};
+		Note[] notes={new Note(58,1000,100,this.track),
+		              new Note(60,1000,100,this.track),
+		              new Note(62,1000,100,this.track),
+		              new Note(63,1000,100,this.track),
+		              new Note(65,1000,100,this.track)};
 		for (int i=0; i<5; i++)
 		{
 			NoteEvent startEvent=new NoteEvent(notes[i],NoteAction.BEGIN,0);
@@ -122,11 +122,11 @@ public class AudioPlayerTest
 	public void testPauseResume()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note[] notes={new Note(58,1000,1,this.track),
-		              new Note(60,1000,1,this.track),
-		              new Note(62,1000,1,this.track),
-		              new Note(63,1000,1,this.track),
-		              new Note(65,1000,1,this.track)};
+		Note[] notes={new Note(58,1000,100,this.track),
+		              new Note(60,1000,100,this.track),
+		              new Note(62,1000,100,this.track),
+		              new Note(63,1000,100,this.track),
+		              new Note(65,1000,100,this.track)};
 		for (int i=0; i<5; i++)
 		{
 			NoteEvent startEvent=new NoteEvent(notes[i],NoteAction.BEGIN,0);
@@ -173,11 +173,11 @@ public class AudioPlayerTest
 	public void testStop()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note[] notes={new Note(71,1000,1,this.track),
-		              new Note(73,1000,1,this.track),
-		              new Note(75,1000,1,this.track),
-		              new Note(76,1000,1,this.track),
-		              new Note(78,1000,1,this.track)};
+		Note[] notes={new Note(71,1000,100,this.track),
+		              new Note(73,1000,100,this.track),
+		              new Note(75,1000,100,this.track),
+		              new Note(76,1000,100,this.track),
+		              new Note(78,1000,100,this.track)};
 		for (int i=0; i<5; i++)
 		{
 			NoteEvent startEvent=new NoteEvent(notes[i],NoteAction.BEGIN,0);
@@ -210,22 +210,22 @@ public class AudioPlayerTest
 		trackList.add(track2);
 		SongModel twoModel=new SongModel(trackList,null,null,null,null,null,0,null);
 		AudioPlayer player=new AudioPlayer(twoModel,null);
-		Note[] notes1={new Note(73,1,1,track1),
-		               new Note(60,1,1,track1),
-		               new Note(73,1,1,track1),
-		               new Note(60,1,1,track1),
-		               new Note(73,1,1,track1),
-		               new Note(60,1,1,track1),
-		               new Note(73,1,1,track1),
-		               new Note(60,1,1,track1)};
-		Note[] notes2={new Note(34,1,1,track2),
-		               new Note(36,1,1,track2),
-		               new Note(38,1,1,track2),
-		               new Note(39,1,1,track2),
-		               new Note(41,1,1,track2),
-		               new Note(39,1,1,track2),
-		               new Note(38,1,1,track2),
-		               new Note(36,1,1,track2)};
+		Note[] notes1={new Note(73,1,100,track1),
+		               new Note(60,1,100,track1),
+		               new Note(73,1,100,track1),
+		               new Note(60,1,100,track1),
+		               new Note(73,1,100,track1),
+		               new Note(60,1,100,track1),
+		               new Note(73,1,100,track1),
+		               new Note(60,1,100,track1)};
+		Note[] notes2={new Note(34,1,100,track2),
+		               new Note(36,1,100,track2),
+		               new Note(38,1,100,track2),
+		               new Note(39,1,100,track2),
+		               new Note(41,1,100,track2),
+		               new Note(39,1,100,track2),
+		               new Note(38,1,100,track2),
+		               new Note(36,1,100,track2)};
 		for (int i=0; i<8; i++)
 		{
 			NoteEvent event1=new NoteEvent(notes1[i],NoteAction.BEGIN,0);
@@ -271,11 +271,11 @@ public class AudioPlayerTest
 	public void testDynamic()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note[] notes={new Note(60,1000,0.2,this.track),
-		              new Note(60,1000,0.4,this.track),
-		              new Note(60,1000,0.6,this.track),
-		              new Note(60,1000,0.8,this.track),
-		              new Note(60,1000,1.0,this.track)};
+		Note[] notes={new Note(60,1000,20,this.track),
+		              new Note(60,1000,40,this.track),
+		              new Note(60,1000,60,this.track),
+		              new Note(60,1000,80,this.track),
+		              new Note(60,1000,100,this.track)};
 		for (int i=0; i<5; i++)
 		{
 			NoteEvent startEvent=new NoteEvent(notes[i],NoteAction.BEGIN,0);
@@ -304,7 +304,7 @@ public class AudioPlayerTest
 	public void testActiveTrack()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,this.track);
-		Note c=new Note(73,1000,1,this.track);
+		Note c=new Note(73,1000,100,this.track);
 		NoteEvent startEvent=new NoteEvent(c,NoteAction.BEGIN,0);
 		NoteEvent endEvent=new NoteEvent(c,NoteAction.END,0);
 		for (int i=0; i<5; i++)

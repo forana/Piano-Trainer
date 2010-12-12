@@ -113,7 +113,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 				System.err.println("MidiDevice \""+devices[i].getName()+"\" could not be found.");
 				String title="MIDI Device in use";
 				String message="The device \""+devices[i].getName()+"\" is in use by another program.";
-				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.RETRY)
+				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
 				{
 					// try this device again
 					i--;
@@ -163,7 +163,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		{
 			String title="MIDI Device in use";
 			String message="The specified device is in use by another program.";
-			if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.RETRY)
+			if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
 			{
 				return this.setTransmitterDevice(device);
 			}

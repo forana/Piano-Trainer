@@ -30,7 +30,7 @@ public class Note
 	 * Creates a Note.
 	 * 
 	 * @param pitch The MIDI pitch of the note.
-	 * @param duration The duration of the note, in milliseconds.
+	 * @param duration The duration of the note, in beats.
 	 * @param dynamic The dynamic of the note.
 	 * @param track The track which contains the note.
 	 */
@@ -69,5 +69,15 @@ public class Note
 	public Track getTrack()
 	{
 		return this.track;
+	}
+	
+	/**
+	 * The duration of the note.
+	 * 
+	 * @return The duration of the note, in beats.
+	 */
+	public double getDuration()
+	{
+		return this.duration.
 	}
 }

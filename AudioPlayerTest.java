@@ -20,8 +20,7 @@ public class AudioPlayerTest
 	public void setupSong()
 	{
 		LinkedList<Track> trackList=new LinkedList<Track>();
-		LinkedList<Note> noteList=new LinkedList<Note>();
-		this.track=new Track("Track 1",57,noteList); // trumpet
+		this.track=new Track("Track 1",57); // trumpet
 		trackList.add(this.track);
 		this.model=new SongModel(trackList,null,null,null,null,null,120,null);
 	}
@@ -203,8 +202,8 @@ public class AudioPlayerTest
 	@Test
 	public void testMultipleSimultaneousTracks()
 	{
-		Track track1=new Track("Aah",53,null);
-		Track track2=new Track("Tuba",59,null);
+		Track track1=new Track("Aah",53);
+		Track track2=new Track("Tuba",59);
 		LinkedList<Track> trackList=new LinkedList<Track>();
 		trackList.add(track1);
 		trackList.add(track2);

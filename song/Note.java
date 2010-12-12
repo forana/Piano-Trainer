@@ -1,5 +1,9 @@
 package crescendo.base.song;
 
+import crescendo.base.song.modifier.NoteModifier;
+import java.util.List;
+import java.util.LinkedList;
+
 /**
  * A note represents a single musical note.
  * 
@@ -28,6 +32,11 @@ public class Note
 	private double duration;
 	
 	/**
+	 * This note's modifiers.
+	 */
+	private List<NoteModifier> modifiers;
+	
+	/**
 	 * Creates a Note.
 	 * 
 	 * @param pitch The MIDI pitch of the note.
@@ -40,6 +49,7 @@ public class Note
 		this.pitch=pitch;
 		this.dynamic=dynamic;
 		this.track=track;
+		this.modifiers=new LinkedList<NoteModifier>();
 	}
 	
 	/**
@@ -80,5 +90,15 @@ public class Note
 	public double getDuration()
 	{
 		return this.duration;
+	}
+	
+	public void addModifier(NoteModifier modifier)
+	{
+		this.modifiers.add(modifier);
+	}
+	
+	public List<NoteModifier> getModifiers()
+	{
+		return this.modifiers;
 	}
 }

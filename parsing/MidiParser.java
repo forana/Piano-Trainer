@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Iterator;
 
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
@@ -19,7 +20,7 @@ public class MidiParser implements SongFileParser
 		MidiInputStream stream=new MidiInputStream(new FileInputStream(file));
 		
 		// initialize track items - these cannot be track objects yet as they need to be built
-		List<List<Note>> trackNotes; // this should REALLY be an array, but java can't do that
+		List<List<SkeletalNote>> trackNotes; // this should REALLY be an array, but java can't do that
 		String[] trackNames;
 		int[] trackVoices;
 		// unfortunately this is the best we can do for these
@@ -47,12 +48,12 @@ public class MidiParser implements SongFileParser
 			throw new IOException("MIDI type not accepted in this application");
 		}
 		int numTracks=stream.readBytes(2);
-		trackNotes=new ArrayList<List<Note>>(numTracks);
+		trackNotes=new ArrayList<List<SkeletalNote>>(numTracks);
 		trackNames=new String[numTracks];
 		trackVoices=new int[numTracks];
 		for (int i=0; i<numTracks; i++)
 		{
-			trackNotes.add(new LinkedList<Note>());
+			trackNotes.add(new LinkedList<SkeletalNote>());
 			trackNames[i]="";
 			trackVoices[i]=0;
 		}
@@ -75,26 +76,63 @@ public class MidiParser implements SongFileParser
 			{
 				throw new IOException("Track header not found");
 			}
+			// this map will contain all active notes, apply modifiers to them, etc
+			List<SkeletalNote> activeNotes=new LinkedList<SkeletalNote>();
 			int trackLength=stream.readBytes(4);
 			int bytesRead=0;
+			long currentDelta=0;
 			while (bytesRead<trackLength)
 			{
 				int deltaTime=stream.readVariableWidth();
 				bytesRead+=stream.lastVariableLength();
+				// add to the time of all active notes
+				for (SkeletalNote note:activeNotes)
+				{
+					note.addDuration(deltaTime);
+				}
+				currentDelta+=deltaTime;
 				int opcode=stream.read();
 				int channel=opcode & 0x0F;
 				bytesRead++;
 				switch (opcode>>4)
 				{
-					case 0x8: // Note off
-						int noteOffPitch=stream.read();
-						int noteOffVelocity=stream.read();
-						bytesRead+=2;
-						break;
 					case 0x9: // Note on
 						int noteOnPitch=stream.read();
 						int noteOnVelocity=stream.read();
 						bytesRead+=2;
+						if (noteOnVelocity>0)
+						{
+							boolean found=false;
+							// don't add a note if there's already a note there
+							for (SkeletalNote note:activeNotes)
+							{
+								if (note.getPitch()==noteOnPitch)
+								{
+									found=true;
+									break;
+								}
+							}
+							if (!found)
+							{
+								// use 0 for duration and null for track for now; these will be added later
+								activeNotes.add(new SkeletalNote(noteOnPitch,noteOnVelocity,currentDelta));
+							}
+							break;
+						}
+					case 0x8: // Note off
+						int noteOffPitch=stream.read();
+						/*int noteOffVelocity=*/stream.read(); // this should always be zero, but if it isn't, we don't really care
+						bytesRead+=2;
+						// if this pitch is held by a note, well golly, let's add that sucker
+						for (Iterator<SkeletalNote> iter=activeNotes.iterator(); iter.hasNext();)
+						{
+							SkeletalNote note=iter.next();
+							if (note.getPitch()==noteOffPitch)
+							{
+								iter.remove();
+								trackNotes.get(i).add(note);
+							}
+						}
 						break;
 					case 0xA: // Note aftertouch
 						int noteAftertouchPitch=stream.read();
@@ -216,7 +254,12 @@ public class MidiParser implements SongFileParser
 		List<Track> tracks=new ArrayList<Track>();
 		for (int i=0; i<numTracks; i++)
 		{
-			Track track=new Track(trackNames[i],trackVoices[i],trackNotes.get(i));
+			Track track=new Track(trackNames[i],trackVoices[i]);
+			List<Note> notes=new LinkedList<Note>();
+			for (Iterator<SkeletalNote> iter=trackNotes.get(i).iterator(); iter.hasNext();)
+			{
+				SkeletalNote note=iter.next();
+			}
 			tracks.add(track);
 		}
 		
@@ -225,5 +268,41 @@ public class MidiParser implements SongFileParser
 		
 		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,null);
 		return model;
+	}
+	
+	private class SkeletalNote
+	{
+		private int pitch;
+		private int velocity;
+		private int duration;
+		private long offset;
+		
+		public SkeletalNote(int pitch,int velocity,long currentDelta)
+		{
+			this.pitch=pitch;
+			this.velocity=velocity;
+			this.duration=0;
+			this.offset=currentDelta;
+		}
+		
+		public int getPitch()
+		{
+			return this.pitch;
+		}
+		
+		public int getVelocity()
+		{
+			return this.velocity;
+		}
+		
+		public int getDuration()
+		{
+			return this.duration;
+		}
+		
+		public void addDuration(int delta)
+		{
+			this.duration+=delta;
+		}
 	}
 }

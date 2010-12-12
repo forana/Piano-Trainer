@@ -234,12 +234,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		public void resumeNotes()
 		{
-			System.out.println("HEY HEY HEY");
 			for (Note note : this.activeNotes)
 			{
-				System.out.println(note.getPitch());
 				int pitch=note.getPitch();
-				int velocity=(int)(note.getDynamic()*127);
+				int velocity=note.getDynamic();
 				
 				this.channel.noteOn(pitch,velocity);
 			}

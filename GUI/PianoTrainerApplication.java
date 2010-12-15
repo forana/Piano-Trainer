@@ -1,7 +1,9 @@
 package crescendo.base.GUI;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import javax.swing.JComponent;
@@ -83,9 +85,11 @@ public class PianoTrainerApplication {
 		
 		profileMenu = new JMenu(profileManager.getActiveProfile().getName());
 		updateProfileMenu();
-		menuBar.add(profileMenu);
+		menuBar.setLayout(new BorderLayout());
+		menuBar.add(profileMenu, BorderLayout.WEST);
 		
-		helpMenu=new JMenu("Help");
+		helpMenu=new JMenu("?");
+		
 		helpAbout = new JMenuItem("About");
 		helpItem = new JMenuItem("Help");
 		helpMenu.add(helpAbout);
@@ -93,7 +97,8 @@ public class PianoTrainerApplication {
 		helpAbout.addActionListener(al);
 		helpItem.addActionListener(al);
 		
-		menuBar.add(helpMenu);
+		menuBar.add(helpMenu,BorderLayout.EAST);
+		helpMenu.setAlignmentX((float) 500);
 		
 		mainWindow.setJMenuBar(menuBar);
 		
@@ -155,8 +160,11 @@ public class PianoTrainerApplication {
 		}
 		profileMenu.add(addProfileButton);
 	}
-
-	private void switchModules(){
+	
+	/**
+	 * Handles the switching between two different modules
+	 */
+	public static void switchModules(Module m){
 		
 	}
 	
@@ -189,6 +197,45 @@ public class PianoTrainerApplication {
 			if(e.getSource().equals(helpAbout)){
 				JOptionPane.showMessageDialog(null, "Infinite Crescendo \n 2010 \n Insert Names");
 			}
+			//Launching HTML pages in the default browser.
+			//TODO change the system.out.JOptionPanes.
+			if(e.getSource().equals(helpItem)){
+				if( !java.awt.Desktop.isDesktopSupported() ) {
+
+		            System.err.println( "Desktop is not supported (fatal)" );
+		            System.exit( 1 );
+		        }
+
+		        
+
+		        java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+
+		        if( !desktop.isSupported( java.awt.Desktop.Action.BROWSE ) ) {
+
+		            System.err.println( "Desktop doesn't support the browse action (fatal)" );
+		            System.exit( 1 );
+		        }
+
+		        
+				java.net.URI uri;
+				try {
+					uri = new java.net.URI( "http://johnbokma.com/mexit/2008/08/19/java-open-url-default-browser.html" );
+				 
+                desktop.browse( uri );
+                
+				}catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		    }
+
+				
+				
+				
+				
+				
+
+			
 			
 			
 			//

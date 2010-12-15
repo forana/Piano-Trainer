@@ -50,26 +50,13 @@ public class SongModel
 	}
 	
 	/**
-	 * The number of tracks in the model.
+	 * The tracks in the model.
 	 * 
-	 * @return The number of tracks in the model.
+	 * @return The tracks.
 	 */
-	public int getNumTracks()
+	public List<Track> getTracks()
 	{
-		return this.tracks.size();
-	}
-	
-	/**
-	 * Returns an indexed track in the model.
-	 * 
-	 * @param track The index of the track. This value ranges from 0 to n-1, where n is the number of tracks in the model.
-	 * 
-	 * @return The track at the provided index, or null if the index is out of bounds.
-	 */
-	public Track getTrack(int track)
-	{
-		// TODO Implement null condition, or convert this to use an exception
-		return this.tracks.get(track);
+		return this.tracks;
 	}
 	
 	/**
@@ -104,5 +91,10 @@ public class SongModel
 	public int getBPM()
 	{
 		return this.bpm;
+	}
+	
+	public TimeSignature getTimeSignature()
+	{
+		return this.timeSignature;
 	}
 }

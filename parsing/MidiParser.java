@@ -12,6 +12,9 @@ import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.base.song.Creator;
+import crescendo.base.song.TimeSignature;
+///import crescendo.base.song.modifier.Tie;
+import crescendo.base.song.modifier.Chord;
 
 public class MidiParser implements SongFileParser
 {
@@ -24,13 +27,14 @@ public class MidiParser implements SongFileParser
 		String[] trackNames;
 		int[] trackVoices;
 		// unfortunately this is the best we can do for these
-		String title=file.getName();
 		String author=null;
 		String email=null;
 		String website=null;
 		String license=null;
 		// bpm defaults to 120
 		int bpm=120;
+		// time signature defaults to 4/4
+		TimeSignature timeSignature=new TimeSignature(4,4);
 		
 		// according to specification at http://www.sonicspot.com/guide/midifiles.html
 		// main header
@@ -53,7 +57,7 @@ public class MidiParser implements SongFileParser
 		trackVoices=new int[numTracks];
 		for (int i=0; i<numTracks; i++)
 		{
-			trackNotes.add(new LinkedList<SkeletalNote>());
+			trackNotes.add(new ArrayList<SkeletalNote>()); // arraylist to make it faster to access via index
 			trackNames[i]="";
 			trackVoices[i]=0;
 		}
@@ -105,7 +109,6 @@ public class MidiParser implements SongFileParser
 					{
 						case 0x9: // Note on
 							notePitch=stream.read();
-							System.out.println("\nNote on "+notePitch);
 							int noteOnVelocity=stream.read();
 							bytesRead+=2;
 							if (noteOnVelocity>0)
@@ -144,20 +147,34 @@ public class MidiParser implements SongFileParser
 								SkeletalNote note=iter.next();
 								if (note.getPitch()==notePitch)
 								{
+									double numbeats;
+									if (timeMode==0)
+									{
+										numbeats=1.0*note.getDuration()/ticksPerBeat;
+									}
+									else
+									{
+										double frames=note.getDuration()/ticksPerFrame;
+										double seconds=frames/framesPerSecond;
+										numbeats=seconds*bpm/60;
+									}
+									note.setNumBeats(numbeats);
 									iter.remove();
 									trackNotes.get(i).add(note);
 								}
 							}
 							break;
 						case 0xA: // Note aftertouch
-							int noteAftertouchPitch=stream.read();
-							int noteAftertouchAmount=stream.read();
+							// TODO handle aftertouch w/ modifier
+							/*int noteAftertouchPitch=*/stream.read();
+							/*int noteAftertouchAmount=*/stream.read();
 							bytesRead+=2;
 							break;
 						case 0xB: // Controller event
 							// http://wiki.cockos.com/wiki/index.php/MIDI_Specification
-							int controllerType=stream.read();
-							int controllerValue=stream.read();
+							// TODO handle this?
+							/*int controllerType=*/stream.read();
+							/*int controllerValue=*/stream.read();
 							bytesRead+=2;
 							break;
 						case 0xC: // Program change
@@ -167,13 +184,14 @@ public class MidiParser implements SongFileParser
 							trackVoices[i]=programNumber;
 							break;
 						case 0xD: // Channel aftertouch
-							int aftertouchAmount=stream.read();
+							// TODO if we handle aftertouch we need to handle this as well
+							/*int aftertouchAmount=*/stream.read();
 							bytesRead++;
 							break;
 						case 0xE: // Pitch bend
-							int bendLSB=stream.read();
-							int bendMSB=stream.read();
-							int bendAmount=bendMSB<<7+bendLSB;
+							/*int bendLSB=*/stream.read();
+							/*int bendMSB=*/stream.read();
+							/*int bendAmount=(bendMSB<<7)+bendLSB;*/
 							bytesRead+=2;
 							break;
 						case 0xF: // Meta event
@@ -188,10 +206,12 @@ public class MidiParser implements SongFileParser
 								switch (metaCode)
 								{
 									case 0x00: // Sequence number
-										int sequenceNumber=stream.readBytes(2);
+										// not handling - sequence number is irrelevant
+										/*int sequenceNumber=*/stream.readBytes(2);
 										break;
 									case 0x01: // Text event
-										String eventText=stream.readString(metaLength);
+										// not handling
+										/*String eventText=*/stream.readString(metaLength);
 										break;
 									case 0x02: // Copyright notice
 										String copyright=stream.readString(metaLength);
@@ -202,22 +222,25 @@ public class MidiParser implements SongFileParser
 										trackNames[i]=trackName;
 										break;
 									case 0x04: // Instrument name
-										String instrumentName=stream.readString(metaLength);
+										// TODO should handle this so that user has an idea of what instrument the track is
+										/*String instrumentName=*/stream.readString(metaLength);
 										break;
 									case 0x05: // Lyrics
-										String lyrics=stream.readString(metaLength);
+										// not handling
+										/*String lyrics=*/stream.readString(metaLength);
 										break;
 									case 0x06: // Marker
 										// TODO Actually use markers?
-										String markerName=stream.readString(metaLength);
+										/*String markerName=*/stream.readString(metaLength);
 										break;
 									case 0x07: // Cue point
-										String cueName=stream.readString(metaLength);
+										// same as marker?
+										/*String cueName=*/stream.readString(metaLength);
 										break;
 									case 0x20: // Midi channel prefix
 									case 0x21: // Midi port prefix
 										       // found at http://www.omega-art.com/midi/mfiles.html
-										int prefixChannel=stream.read();
+										/*int prefixChannel=*/stream.read();
 										break;
 									case 0x2F: // End of track
 										// TODO handle this
@@ -233,20 +256,21 @@ public class MidiParser implements SongFileParser
 										int seconds=stream.read();
 										int frames=stream.read();
 										int subFrames=stream.read();
+										// TODO handle this
 										break;
 									case 0x58: // Time signature
 										int numerator=stream.read();
 										int denominator=(int)Math.pow(2,stream.read());
-										System.out.println("set time to "+numerator+"/"+denominator);
-										int clockCyclesPerMetronomeTick=stream.read();
-										int thirtySecondNotesPerQuarterNote=stream.read();
+										/*int clockCyclesPerMetronomeTick=*/stream.read();
+										/*int thirtySecondNotesPerQuarterNote=*/stream.read(); // for sanity's sake, not using this
+										timeSignature=new TimeSignature(numerator,denominator);
 										break;
 									case 0x59: // Key signature
-										int keySignature=stream.read()-7;
-										int scale=stream.read();
+										/*int keySignature=*/stream.read();//-7;
+										/*int scale=*/stream.read();
 										break;
 									case 0x7F: // Sequencer-specific event
-										String miscData=stream.readString(metaLength);
+										/*String miscData=*/stream.readString(metaLength);
 										break;
 									default:
 										throw new IOException("Unrecognized meta event code '"+Integer.toHexString(metaCode)+"' @ track "+(i+1)+" offset "+bytesRead);
@@ -265,8 +289,9 @@ public class MidiParser implements SongFileParser
 							// stupid note repetition
 							if (opcode==0x0A) // start repetition mode?
 							{
-								stream.read(); // no idea what this parameter is, but it's usually 0x3F
+								stream.read(); // no idea what this parameter is
 								bytesRead++;
+								break;
 							}
 							else//if (lastOpcode>>4==0x9) // was our last non-repetition opcode note on?
 							{
@@ -274,20 +299,8 @@ public class MidiParser implements SongFileParser
 								stream.push(lastOpcode); // just do the same thing again
 								repeatOpcode=true;
 								bytesRead-=2;
-								continue;
+								continue; // don't set lastOpcode
 							}
-							//else 
-							/*else if (opcode==0x00) // stop repetition mode?
-							{
-								stream.push(opcode); // this is actually the next event's delta
-								bytesRead--;
-								break;
-							}*/
-							/*else
-							{
-								System.out.println("\n"+Integer.toHexString(lastOpcode));
-								throw new IOException("Unrecognized opcode '"+Integer.toHexString(opcode>>4)+"' @ track "+(i+1)+" offset 0x"+Integer.toHexString(bytesRead));
-							}*/
 					}
 					lastOpcode=opcode;	
 				} while (repeatOpcode);
@@ -298,36 +311,97 @@ public class MidiParser implements SongFileParser
 		List<Track> tracks=new ArrayList<Track>();
 		for (int i=0; i<numTracks; i++)
 		{
-			Track track=new Track(trackNames[i],trackVoices[i]);
-			List<Note> notes=new LinkedList<Note>();
-			System.out.println("Track "+(i+1)+" - "+trackNames[i]);
-			for (Iterator<SkeletalNote> iter=trackNotes.get(i).iterator(); iter.hasNext();)
+			/*if (trackNotes.get(i).size()==0)
 			{
-				SkeletalNote snote=iter.next();
-				double numbeats;
-				if (timeMode==0)
+				continue;
+			}*/
+			Track track=new Track(trackNames[i],trackVoices[i]);
+			int j=0;
+			List<SkeletalNote> snotes=trackNotes.get(i);
+			long currentTime=0;
+			while (j<snotes.size())
+			{
+				SkeletalNote current=snotes.get(j);
+				// if there's a difference, a rest needs to be added
+				if (current.getOffset()!=currentTime)
 				{
-					numbeats=1.0*snote.getDuration()/ticksPerBeat;
-					//System.out.println("Ticks: "+snote.getDuration()+"\t / "+ticksPerBeat);
+					long difference=current.getOffset()-currentTime;
+					double restBeats;
+					if (timeMode==0)
+					{
+						restBeats=1.0*difference/ticksPerBeat;
+					}
+					else
+					{
+						double frames=difference/ticksPerFrame;
+						double seconds=frames/framesPerSecond;
+						restBeats=seconds*bpm/60;
+					}
+					// a rest's pitch and velocity don't matter, but it isn't playable
+					Note rest=new Note(0,restBeats,0,track,false);
+					track.addNote(rest);
+				}
+				//find all notes that start at the same time
+				List<SkeletalNote> simultaneousNotes=new LinkedList<SkeletalNote>();
+				while (j+1<snotes.size() && snotes.get(j+1).getOffset()==current.getOffset())
+				{
+					simultaneousNotes.add(snotes.get(j+1));
+					j++;
+				}
+				if (simultaneousNotes.size()>0)
+				{
+					//if they all end at the same time, it's a chord, otherwise it's a bunch of ties
+					//boolean chord=true;
+					/*for (SkeletalNote individual:simultaneousNotes)
+					{
+						if (individual.getDuration()!=current.getDuration())
+						{
+							chord=false;
+							break;
+						}
+					}*/
+					//if (chord)
+					//{
+						Note note=current.getNote(track);
+						List<Note> chordNotes=new LinkedList<Note>();
+						chordNotes.add(note);
+						for (SkeletalNote skel:simultaneousNotes)
+						{
+							chordNotes.add(skel.getNote(track));
+						}
+						note.addModifier(new Chord(chordNotes));
+						track.addNote(note);
+					//}
+					/*else
+					{
+						simultaneousNotes.add(current);
+						// tie each note to the start note
+						for (SkeletalNote skel:simultaneousNotes)
+						{
+							//note.addModifier(new Tie(note,skel.getNote(track)));
+						}
+					}*/
 				}
 				else
 				{
-					double frames=snote.getDuration()/ticksPerFrame;
-					double seconds=frames/framesPerSecond;
-					numbeats=seconds*bpm/60;
+					track.addNote(current.getNote(track));
 				}
-				System.out.println("\tDelta: "+snote.getOffset());
-				System.out.println("\tBeats: "+numbeats+" ("+snote.getDuration()+")");
+				currentTime=current.getOffset()+current.getDuration();
+				j++;
 			}
 			tracks.add(track);
 		}
-		System.out.println(bpm);
-		System.out.println(ticksPerBeat);
 		
 		List<Creator> creators=new LinkedList<Creator>();
 		creators.add(new Creator(author,"Sequencer"));
 		
-		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,null);
+		String title=file.getName();
+		if (tracks.size()>0 && tracks.get(0).getName()!="")
+		{
+			title=tracks.get(0).getName()+" ("+title+")";
+		}
+		
+		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,timeSignature);
 		return model;
 	}
 	
@@ -337,6 +411,7 @@ public class MidiParser implements SongFileParser
 		private int velocity;
 		private int duration;
 		private long offset;
+		private double numBeats;
 		
 		public SkeletalNote(int pitch,int velocity,long currentDelta)
 		{
@@ -344,16 +419,12 @@ public class MidiParser implements SongFileParser
 			this.velocity=velocity;
 			this.duration=0;
 			this.offset=currentDelta;
+			this.numBeats=-1;
 		}
 		
 		public int getPitch()
 		{
 			return this.pitch;
-		}
-		
-		public int getVelocity()
-		{
-			return this.velocity;
 		}
 		
 		public int getDuration()
@@ -369,6 +440,16 @@ public class MidiParser implements SongFileParser
 		public long getOffset()
 		{
 			return this.offset;
+		}
+		
+		public void setNumBeats(double numBeats)
+		{
+			this.numBeats=numBeats;
+		}
+		
+		public Note getNote(Track track)
+		{
+			return new Note(this.pitch,this.numBeats,this.velocity,track);
 		}
 	}
 }

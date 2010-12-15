@@ -33,7 +33,6 @@ public class MidiInputStream
 		{
 			value=stream.read();
 		}
-		System.out.print(Integer.toHexString(value)+" ");
 		return value;
 	}
 	

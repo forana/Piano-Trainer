@@ -2,6 +2,7 @@ package crescendo.base.parsing;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Stack;
 
 /**
  * Provides an InputStream wrapper that provides a few extra methods used in
@@ -12,23 +13,38 @@ public class MidiInputStream
 {
 	private InputStream stream;
 	private int lastVariableLength;
+	private Stack<Integer> pushedBytes;
 	
 	public MidiInputStream(InputStream stream)
 	{
 		this.stream=stream;
 		this.lastVariableLength=0;
+		this.pushedBytes=new Stack<Integer>();
 	}
 	
 	public int read() throws IOException
 	{
-		int value=stream.read();
-		//System.out.print(Integer.toHexString(value)+" ");
+		int value;
+		if (this.pushedBytes.size()>0)
+		{
+			value=pushedBytes.pop();
+		}
+		else
+		{
+			value=stream.read();
+		}
+		System.out.print(Integer.toHexString(value)+" ");
 		return value;
 	}
 	
 	public void close() throws IOException
 	{
 		stream.close();
+	}
+	
+	public void push(int data)
+	{
+		this.pushedBytes.push(data);
 	}
 	
 	/** Reads a variable-width value from a stream. */

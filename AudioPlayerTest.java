@@ -36,9 +36,9 @@ public class AudioPlayerTest
 	public void testPlaySingleNoteFiveTimesWhileStopping()
 	{
 		AudioPlayer player=new AudioPlayer(this.model,null);
-		Note middleC=new Note(60,1000,100,this.track);
 		for (int i=0; i<5; i++)
 		{
+			Note middleC=new Note(60,1000,100,this.track);
 			NoteEvent startEvent=new NoteEvent(middleC,NoteAction.BEGIN,0);
 			NoteEvent endEvent=new NoteEvent(middleC,NoteAction.END,0);
 			player.handleNoteEvent(startEvent);

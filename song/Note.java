@@ -36,6 +36,8 @@ public class Note
 	 */
 	private List<NoteModifier> modifiers;
 	
+	private boolean playable;
+	
 	/**
 	 * Creates a Note.
 	 * 
@@ -46,10 +48,16 @@ public class Note
 	 */
 	public Note(int pitch,double duration,int dynamic,Track track)
 	{
+		this(pitch,duration,dynamic,track,true);
+	}
+	
+	public Note(int pitch,double duration,int dynamic,Track track,boolean playable)
+	{
 		this.pitch=pitch;
 		this.dynamic=dynamic;
 		this.track=track;
 		this.modifiers=new LinkedList<NoteModifier>();
+		this.playable=playable;
 	}
 	
 	/**
@@ -100,5 +108,10 @@ public class Note
 	public List<NoteModifier> getModifiers()
 	{
 		return this.modifiers;
+	}
+	
+	public boolean isPlayable()
+	{
+		return this.playable;
 	}
 }

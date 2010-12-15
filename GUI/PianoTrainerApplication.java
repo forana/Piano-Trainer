@@ -198,8 +198,25 @@ public class PianoTrainerApplication {
 				JOptionPane.showMessageDialog(null, "Infinite Crescendo \n 2010 \n Insert Names");
 			}
 			//Launching HTML pages in the default browser.
+			//TODO change the system.out.JOptionPanes.
 			if(e.getSource().equals(helpItem)){
-				java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+				if( !java.awt.Desktop.isDesktopSupported() ) {
+
+		            System.err.println( "Desktop is not supported (fatal)" );
+		            System.exit( 1 );
+		        }
+
+		        
+
+		        java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+
+		        if( !desktop.isSupported( java.awt.Desktop.Action.BROWSE ) ) {
+
+		            System.err.println( "Desktop doesn't support the browse action (fatal)" );
+		            System.exit( 1 );
+		        }
+
+		        
 				java.net.URI uri;
 				try {
 					uri = new java.net.URI( "http://johnbokma.com/mexit/2008/08/19/java-open-url-default-browser.html" );
@@ -210,8 +227,15 @@ public class PianoTrainerApplication {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+		    }
 
-			}
+				
+				
+				
+				
+				
+
+			
 			
 			
 			//

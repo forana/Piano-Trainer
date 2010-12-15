@@ -75,10 +75,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
 		
-		for (int i=0; i<songModel.getNumTracks(); i++)
+		for (Track track : songModel.getTracks())
 		{
 			// hey remember, don't add the active track
-			Track track=songModel.getTrack(i);
 			if (track!=activeTrack)
 			{
 				Instrument instrument;

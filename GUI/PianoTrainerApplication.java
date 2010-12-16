@@ -1,17 +1,24 @@
 package crescendo.base.GUI;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
@@ -49,6 +56,17 @@ public class PianoTrainerApplication {
 	private JMenuItem helpItem;
 	private MenuFrame mainFrame;
 	
+	private Container buttonContainer;
+	private Container moduleButtonContainer;
+	private Container spacingContainer;
+	
+	
+	private JButton preferencesButton;
+	
+	private JButton GameButton;
+	private JButton LessonButton;
+	private JButton SheetMusicButton;
+	
 	/**
 	 * @param args
 	 */
@@ -72,21 +90,55 @@ public class PianoTrainerApplication {
 		mainWindow.setVisible(true);
 		menuBar = new JMenuBar();
 		mainWindow.setTitle("Piano Trainer");
-		//boolean profilesLoaded=false;
-		//TODO: try to load ProfileManager from file
-		//if(!profilesLoaded)
-		//{
-			profileManager = ProfileManager.getInstance();
-			
-					
+
+		profileManager = ProfileManager.getInstance();
+
 		
 		
-		//}
 		
 		profileMenu = new JMenu(profileManager.getActiveProfile().getName());
 		updateProfileMenu();
 		menuBar.setLayout(new BorderLayout());
-		menuBar.add(profileMenu, BorderLayout.WEST);
+		menuBar.add(profileMenu, BorderLayout.BEFORE_LINE_BEGINS);
+		
+		
+		buttonContainer = new Container();
+		buttonContainer.setLayout(new BorderLayout());
+		
+		
+		preferencesButton = new JButton("***");
+		preferencesButton.addActionListener(al);
+		preferencesButton.setSize(50, -1);
+		
+		buttonContainer.add(preferencesButton, BorderLayout.WEST);
+		
+		
+		moduleButtonContainer = new Container();
+		moduleButtonContainer.setLayout(new BorderLayout());
+		
+		GameButton = new JButton("Game");
+		LessonButton = new JButton("Lesson");
+		SheetMusicButton = new JButton("Sheet Music");
+		
+		moduleButtonContainer.add(GameButton,BorderLayout.WEST);
+		moduleButtonContainer.add(LessonButton,BorderLayout.CENTER);
+		moduleButtonContainer.add(SheetMusicButton,BorderLayout.EAST);
+		
+		buttonContainer.add(moduleButtonContainer,BorderLayout.EAST);
+		
+		Container spacing = new Container();
+		spacing.setPreferredSize(new Dimension(300,0));
+		//buttonContainer.add(spacing,BorderLayout.CENTER);
+		
+		
+		spacingContainer = new Container();
+		spacingContainer.setLayout(new BoxLayout(spacingContainer,BoxLayout.X_AXIS));
+		
+		spacingContainer.add(buttonContainer);
+		spacingContainer.add(spacing);
+		
+		
+		menuBar.add(spacingContainer, BorderLayout.CENTER);
 		
 		helpMenu=new JMenu("?");
 		
@@ -104,6 +156,18 @@ public class PianoTrainerApplication {
 		
 		mainFrame = new MenuFrame(1024, 768);
 		mainWindow.add(mainFrame);
+		
+		
+		
+		boolean profilesLoaded=profileManager.loadFromFile("pianoData.PT");
+		if(!profilesLoaded)
+		{
+			String profileName = JOptionPane.showInputDialog("Welcome to PianoTrainer! Please enter a name for your profile.");
+			
+			if(profileName!=null)profileManager.getActiveProfile().setName(profileName);
+			updateProfileMenu();
+		}
+		
 		
 	}
 	
@@ -175,6 +239,15 @@ public class PianoTrainerApplication {
 	private ActionListener al = new ActionListener(){
 		public void actionPerformed(ActionEvent e) {
 			
+			//if they chose to go to profile preferences
+			if(e.getSource().equals(preferencesButton))
+			{
+				//TODO: go to preferences module
+				JOptionPane.showMessageDialog(null, "SHOW PREFERENCES MODULE NAO!");
+			}
+			
+			
+			
 			//if they chose to add a new profile
 			if(e.getSource().equals(addProfileButton))
 			{
@@ -182,9 +255,11 @@ public class PianoTrainerApplication {
 				
 				Profile newProfile = new Profile(name);
 				profileManager.addProfile(newProfile);	
+			
+				profileManager.switchProfile(newProfile);	
 			}
 			
-			//if they selected a differant profile
+			//if they selected a different profile
 			for(JMenuItem p:profiles)
 			{
 				if(e.getSource().equals(p))

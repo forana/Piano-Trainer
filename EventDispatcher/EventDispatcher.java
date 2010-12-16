@@ -32,14 +32,25 @@ import crescendo.base.ErrorHandler;
 
 public class EventDispatcher implements KeyListener,MouseListener {
 
+	/** singleton EevntDispatcher **/
 	private static EventDispatcher dispatcher=null;
 	
+	/** list of MidiEventListeners to send MidiEvents to **/
 	private List<MidiEventListener> midiListeners;
+	
+	/** list of InputEventListeners to send InputEvents to **/
 	private List<InputEventListener> inputListeners;
+	
+	/** the current midi receiver **/
 	private MidiReceiver midiReceiver;
+	
+	/** the current midi device **/
 	private MidiDevice midiDevice;
+	
+	/** a list of devices **/
 	private List<MidiDevice> transmitterDevices;
 	
+	/** holds the current event modifiers (if any) **/
 	private Modifier currentModifer;
 	
 	
@@ -86,6 +97,8 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	}
 	
 	/**
+	 * loadTransmitterDevices
+	 * 
 	 * Analyzes all midi devices attached to this system, and stores a list
 	 * of the devices that support transmitters.
 	 */
@@ -123,6 +136,9 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	}
 	
 	/**
+	 * getTransmitterDevices
+	 * 
+	 * 
 	 * Returns a list of all MidiDevices that support transmitters. This list
 	 * is updated when loadTransmitterDevices is called.
 	 * 
@@ -343,27 +359,32 @@ public class EventDispatcher implements KeyListener,MouseListener {
 
 	@Override
 	public void keyPressed(KeyEvent arg0) {
-		
+		//update the currentModifier if a modifier has been pressed
 		if(arg0.getKeyCode()==KeyEvent.VK_SHIFT)currentModifer.setShift(true);
 		if(arg0.getKeyCode()==KeyEvent.VK_ALT)currentModifer.setAlt(true);
 		if(arg0.getKeyCode()==KeyEvent.VK_CONTROL)currentModifer.setCtrl(true);
 		
+		//create a new keyboard event
 		KeyboardEvent event = new KeyboardEvent(ActionType.PRESS, System.currentTimeMillis(), 
 				InputType.KEYBOARD, arg0.getKeyCode(), currentModifer);
 		
+		//send out the keyboard event!
 		dispatchInputEvent(event);
 		
 	}
 
 	@Override
 	public void keyReleased(KeyEvent arg0) {
+		//update the currentModifier if a modifier has been removed
 		if(arg0.getKeyCode()==KeyEvent.VK_SHIFT)currentModifer.setShift(false);
 		else if(arg0.getKeyCode()==KeyEvent.VK_ALT)currentModifer.setAlt(false);
 		else if(arg0.getKeyCode()==KeyEvent.VK_CONTROL)currentModifer.setCtrl(false);
 		
+		//create a new keyboard event
 		KeyboardEvent event = new KeyboardEvent(ActionType.RELEASE, System.currentTimeMillis(), 
 				InputType.KEYBOARD, arg0.getKeyCode(), currentModifer);
 		
+		//send out the keyboard event!
 		dispatchInputEvent(event);
 	}
 
@@ -392,17 +413,21 @@ public class EventDispatcher implements KeyListener,MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
+		//create a new mouse event
 		crescendo.base.EventDispatcher.MouseEvent event = new crescendo.base.EventDispatcher.MouseEvent(ActionType.PRESS, System.currentTimeMillis(), 
 				InputType.CLICK, arg0.getButton(),arg0.getX(),arg0.getY(), currentModifer);
 		
+		//send out the mouse event!
 		dispatchInputEvent(event);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
+		//create a new mouse event
 		crescendo.base.EventDispatcher.MouseEvent event = new crescendo.base.EventDispatcher.MouseEvent(ActionType.RELEASE, System.currentTimeMillis(), 
 				InputType.CLICK, arg0.getButton(),arg0.getX(),arg0.getY(), currentModifer);
 		
+		//send out the mouse event!
 		dispatchInputEvent(event);
 		
 	}

@@ -3,8 +3,7 @@ package crescendo.base.EventDispatcher;
 /**
  * InputType
  * 
- * Used by InputEvent
- * 
+ * Used by InputEvent to check what kind of event it is.
  * 
  * @author groszc
  *

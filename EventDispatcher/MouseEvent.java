@@ -5,8 +5,8 @@ package crescendo.base.EventDispatcher;
 /**
  * MouseEvent
  * 
- * 
- * 
+ * This InputEvent type caters to the mouse, holding information
+ * such as the button clicked and any modifier with the event.
  * 
  * @author groszc
  *

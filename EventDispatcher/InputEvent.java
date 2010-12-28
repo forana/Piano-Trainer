@@ -4,8 +4,9 @@ package crescendo.base.EventDispatcher;
 /**
  * InputEvent
  * 
- * 
- * 
+ * The InputEvent abstract class represents a non-midi event and
+ * documents some of the similarities between like events such as
+ * mouse and keyboard.
  * 
  * @author groszc
  *

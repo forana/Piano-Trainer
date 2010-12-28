@@ -4,7 +4,8 @@ package crescendo.base.EventDispatcher;
 /**
  * KeyboardEvent
  * 
- * 
+ * This InputEvent type caters to the keyboard, holding information
+ * such as the key pressed and any modifier with the event.
  * 
  * @author groszc
  *

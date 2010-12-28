@@ -200,6 +200,58 @@ public class AudioPlayerTest
 	}
 	
 	@Test
+	public void testSuspendResume()
+	{
+		AudioPlayer player=new AudioPlayer(this.model,null);
+		Note[] notes={new Note(58,1000,100,this.track),
+		              new Note(60,1000,100,this.track),
+		              new Note(62,1000,100,this.track),
+		              new Note(63,1000,100,this.track),
+		              new Note(65,1000,100,this.track)};
+		for (int i=0; i<5; i++)
+		{
+			NoteEvent startEvent=new NoteEvent(notes[i],NoteAction.BEGIN,0);
+			player.handleNoteEvent(startEvent);
+			try
+			{
+				Thread.sleep(200);
+			}
+			catch (InterruptedException e)
+			{
+			}
+		}
+		try
+		{
+			Thread.sleep(400);
+		}
+		catch (InterruptedException e)
+		{
+		}
+		System.out.println("suspending");
+		player.suspend();
+		try
+		{
+			Thread.sleep(1000);
+		}
+		catch (InterruptedException e)
+		{
+		}
+		player.resume();
+		try
+		{
+			Thread.sleep(1000);
+		}
+		catch (InterruptedException e)
+		{
+		}
+		for (int i=0; i<5; i++)
+		{
+			NoteEvent event=new NoteEvent(notes[i],NoteAction.END,0);
+			player.handleNoteEvent(event);
+		}
+	}
+	
+	@Test
 	public void testMultipleSimultaneousTracks()
 	{
 		Track track1=new Track("Aah",53);

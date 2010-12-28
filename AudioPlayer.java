@@ -32,6 +32,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	private Synthesizer synth;
 	
 	/**
+	 * Signifies whether or not the audio is currently being suspended.
+	 */
+	private boolean suspended;
+	
+	/**
 	 * Creates a new AudioPlayer, contructed around a specific song.
 	 * 
 	 * @param songModel The song to tailor the AudioPlayer to.
@@ -74,6 +79,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
+		
+		// start off assuming we arent't suspended
+		this.suspended=false;
 		
 		for (Track track : songModel.getTracks())
 		{
@@ -149,6 +157,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	
 	public void pause()
 	{
+		this.suspended=false;
 		for (AudioPlayerChannel channel : this.channelMap.values())
 		{
 			channel.pauseNotes();
@@ -157,21 +166,25 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	
 	public void resume()
 	{
-		for (AudioPlayerChannel channel : this.channelMap.values())
+		if (!this.suspended)
 		{
-			channel.resumeNotes();
+			for (AudioPlayerChannel channel : this.channelMap.values())
+			{
+				channel.resumeNotes();
+			}
 		}
+		this.suspended=false;
 	}
 	
 	public void suspend()
 	{
-		// don't need to do anything here because the timing is external,
-		// so notes will just keep playing
-		// (inherited from FlowController)
+		// trip flag so we don't blast out new notes
+		this.suspended=true;
 	}
 	
 	public void stop()
 	{
+		this.suspended=false;
 		for (AudioPlayerChannel channel : this.channelMap.values())
 		{
 			channel.stopAllNotes();

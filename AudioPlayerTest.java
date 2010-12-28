@@ -26,6 +26,13 @@ public class AudioPlayerTest
 	}
 	
 	@Test
+	public void testLatency()
+	{
+		AudioPlayer player=new AudioPlayer(this.model,null);
+		Assert.assertFalse(player.getLatency()==0);
+	}
+	
+	@Test
 	public void testSetup()
 	{
 		Assert.assertNotNull(this.model);

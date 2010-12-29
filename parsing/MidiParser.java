@@ -251,11 +251,11 @@ public class MidiParser implements SongFileParser
 										bpm=microSecondsPerMinute/microSecondsPerQuarterNote;
 										break;
 									case 0x54: // SMPTE offset
-										int hours=stream.read();
-										int minutes=stream.read();
-										int seconds=stream.read();
-										int frames=stream.read();
-										int subFrames=stream.read();
+										/*int hours=*/stream.read();
+										/*int minutes=*/stream.read();
+										/*int seconds=*/stream.read();
+										/*int frames=*/stream.read();
+										/*int subFrames=*/stream.read();
 										// TODO handle this
 										break;
 									case 0x58: // Time signature
@@ -316,8 +316,11 @@ public class MidiParser implements SongFileParser
 				continue;
 			}*/
 			Track track=new Track(trackNames[i],trackVoices[i]);
+			System.out.println(trackNames[i]);
 			int j=0;
 			List<SkeletalNote> snotes=trackNotes.get(i);
+			// normalize note lengths
+			this.normalize(snotes);
 			long currentTime=0;
 			while (j<snotes.size())
 			{
@@ -405,6 +408,40 @@ public class MidiParser implements SongFileParser
 		return model;
 	}
 	
+	/**
+	 * Normalizes the note lengths in a list of skeletal notes so that they correspond to normal note lengths.
+	 * @param notes
+	 */
+	private void normalize(List<SkeletalNote> notes)
+	{
+		// this means getting to the closest precision we can
+		for (SkeletalNote note : notes)
+		{
+			// for the purposes of getting most things right we're going to assume that if something wants 32nd notes
+			//    it will have specified them precisely, and otherwise we're rounding to the nearest 16th
+			// one 31nd beat is an 8th of a beat
+			double testNum=note.getNumBeats()*8;
+			if ((int)testNum==testNum)
+			{
+				// brief step back here:
+				// what this is doing is saying that if the number of beats * 8 is an integer,
+				// then this note needs no adjusting. the side effect of this is that notes with
+				// factors of 8 as the beat divider (half, eighth, sixteenth, quarter, whole) also
+				// get skipped in this test, and that's ok
+				continue;
+			}
+			// do the same thing for triplets (only quarter note triplets)
+			testNum=note.getNumBeats()*3;
+			if ((int)testNum==testNum)
+			{
+				continue;
+			}
+			// round to the nearest 16th (or 4th of a quarter), the fun way
+			double newLength=Math.round(4*note.getNumBeats())/4.0;
+			note.setNumBeats(newLength);
+		}
+	}
+	
 	private class SkeletalNote
 	{
 		private int pitch;
@@ -442,6 +479,11 @@ public class MidiParser implements SongFileParser
 			return this.offset;
 		}
 		
+		public double getNumBeats()
+		{
+			return this.numBeats;
+		}
+		
 		public void setNumBeats(double numBeats)
 		{
 			this.numBeats=numBeats;
@@ -449,6 +491,7 @@ public class MidiParser implements SongFileParser
 		
 		public Note getNote(Track track)
 		{
+			System.out.println("Beats: "+this.numBeats);
 			return new Note(this.pitch,this.numBeats,this.velocity,track);
 		}
 	}

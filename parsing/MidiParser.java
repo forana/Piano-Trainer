@@ -7,13 +7,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
 
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.base.song.Creator;
 import crescendo.base.song.TimeSignature;
-///import crescendo.base.song.modifier.Tie;
+import crescendo.base.song.modifier.Tie;
 import crescendo.base.song.modifier.Chord;
 
 public class MidiParser implements SongFileParser
@@ -147,18 +150,7 @@ public class MidiParser implements SongFileParser
 								SkeletalNote note=iter.next();
 								if (note.getPitch()==notePitch)
 								{
-									double numbeats;
-									if (timeMode==0)
-									{
-										numbeats=1.0*note.getDuration()/ticksPerBeat;
-									}
-									else
-									{
-										double frames=note.getDuration()/ticksPerFrame;
-										double seconds=frames/framesPerSecond;
-										numbeats=seconds*bpm/60;
-									}
-									note.setNumBeats(numbeats);
+									note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 									iter.remove();
 									trackNotes.get(i).add(note);
 								}
@@ -311,17 +303,20 @@ public class MidiParser implements SongFileParser
 		List<Track> tracks=new ArrayList<Track>();
 		for (int i=0; i<numTracks; i++)
 		{
+			// skip empty tracks?
 			/*if (trackNotes.get(i).size()==0)
 			{
 				continue;
 			}*/
 			Track track=new Track(trackNames[i],trackVoices[i]);
-			System.out.println(trackNames[i]);
 			int j=0;
 			List<SkeletalNote> snotes=trackNotes.get(i);
-			// normalize note lengths
-			this.normalize(snotes);
 			long currentTime=0;
+			// normalize the lengths of all notes (that is, make them more recognizable)
+			for (SkeletalNote note : snotes)
+			{
+				note.normalize();
+			}
 			while (j<snotes.size())
 			{
 				SkeletalNote current=snotes.get(j);
@@ -344,6 +339,24 @@ public class MidiParser implements SongFileParser
 					Note rest=new Note(0,restBeats,0,track,false);
 					track.addNote(rest);
 				}
+				// perform a bit of a look-ahead to see if any of this note needs to be turned into a tie
+				int k=j+1;
+				while (k<snotes.size())
+				{
+					SkeletalNote pnote=snotes.get(k);
+					// if the note is too far ahead, stop looking ahead
+					if (pnote.getOffset()-current.getOffset()>=current.getDuration())
+					{
+						break;
+					}
+					// make a division at the start and end of the other note
+					current.addDivision(pnote.getOffset());
+					current.addDivision(pnote.getOffset()+pnote.getDuration());
+					// make a division in the other note at the end of this note - covers the S-block issue (think tetris)
+					pnote.addDivision(current.getOffset()+current.getDuration());
+					// the rest will be handled by the note itself
+					k++;
+				}
 				//find all notes that start at the same time
 				List<SkeletalNote> simultaneousNotes=new LinkedList<SkeletalNote>();
 				while (j+1<snotes.size() && snotes.get(j+1).getOffset()==current.getOffset())
@@ -353,37 +366,15 @@ public class MidiParser implements SongFileParser
 				}
 				if (simultaneousNotes.size()>0)
 				{
-					//if they all end at the same time, it's a chord, otherwise it's a bunch of ties
-					//boolean chord=true;
-					/*for (SkeletalNote individual:simultaneousNotes)
+					Note note=current.getNote(track);
+					List<Note> chordNotes=new LinkedList<Note>();
+					chordNotes.add(note);
+					for (SkeletalNote skel:simultaneousNotes)
 					{
-						if (individual.getDuration()!=current.getDuration())
-						{
-							chord=false;
-							break;
-						}
-					}*/
-					//if (chord)
-					//{
-						Note note=current.getNote(track);
-						List<Note> chordNotes=new LinkedList<Note>();
-						chordNotes.add(note);
-						for (SkeletalNote skel:simultaneousNotes)
-						{
-							chordNotes.add(skel.getNote(track));
-						}
-						note.addModifier(new Chord(chordNotes));
-						track.addNote(note);
-					//}
-					/*else
-					{
-						simultaneousNotes.add(current);
-						// tie each note to the start note
-						for (SkeletalNote skel:simultaneousNotes)
-						{
-							//note.addModifier(new Tie(note,skel.getNote(track)));
-						}
-					}*/
+						chordNotes.add(skel.getNote(track));
+					}
+					note.addModifier(new Chord(chordNotes));
+					track.addNote(note);
 				}
 				else
 				{
@@ -408,40 +399,6 @@ public class MidiParser implements SongFileParser
 		return model;
 	}
 	
-	/**
-	 * Normalizes the note lengths in a list of skeletal notes so that they correspond to normal note lengths.
-	 * @param notes
-	 */
-	private void normalize(List<SkeletalNote> notes)
-	{
-		// this means getting to the closest precision we can
-		for (SkeletalNote note : notes)
-		{
-			// for the purposes of getting most things right we're going to assume that if something wants 32nd notes
-			//    it will have specified them precisely, and otherwise we're rounding to the nearest 16th
-			// one 31nd beat is an 8th of a beat
-			double testNum=note.getNumBeats()*8;
-			if ((int)testNum==testNum)
-			{
-				// brief step back here:
-				// what this is doing is saying that if the number of beats * 8 is an integer,
-				// then this note needs no adjusting. the side effect of this is that notes with
-				// factors of 8 as the beat divider (half, eighth, sixteenth, quarter, whole) also
-				// get skipped in this test, and that's ok
-				continue;
-			}
-			// do the same thing for triplets (only quarter note triplets)
-			testNum=note.getNumBeats()*3;
-			if ((int)testNum==testNum)
-			{
-				continue;
-			}
-			// round to the nearest 16th (or 4th of a quarter), the fun way
-			double newLength=Math.round(4*note.getNumBeats())/4.0;
-			note.setNumBeats(newLength);
-		}
-	}
-	
 	private class SkeletalNote
 	{
 		private int pitch;
@@ -449,6 +406,7 @@ public class MidiParser implements SongFileParser
 		private int duration;
 		private long offset;
 		private double numBeats;
+		private Set<Long> divisions;
 		
 		public SkeletalNote(int pitch,int velocity,long currentDelta)
 		{
@@ -457,6 +415,7 @@ public class MidiParser implements SongFileParser
 			this.duration=0;
 			this.offset=currentDelta;
 			this.numBeats=-1;
+			this.divisions=new HashSet<Long>();
 		}
 		
 		public int getPitch()
@@ -479,20 +438,105 @@ public class MidiParser implements SongFileParser
 			return this.offset;
 		}
 		
-		public double getNumBeats()
+		// set it for the first time (can't be set in constructor because the timing isn't initally known)
+		public void setNumBeats(int timeMode,int ticksPerBeat,int ticksPerFrame,double framesPerSecond,int bpm)
 		{
-			return this.numBeats;
+			double numbeats;
+			if (timeMode==0)
+			{
+				numbeats=1.0*this.getDuration()/ticksPerBeat;
+			}
+			else
+			{
+				double frames=this.getDuration()/ticksPerFrame;
+				double seconds=frames/framesPerSecond;
+				numbeats=seconds*bpm/60;
+			}
+			this.numBeats=numbeats;
 		}
 		
-		public void setNumBeats(double numBeats)
+		public void normalize()
 		{
-			this.numBeats=numBeats;
+			double testNum=this.numBeats*8;
+			if ((int)testNum==testNum)
+			{
+				// brief step back here:
+				// what this is doing is saying that if the number of beats * 8 is an integer,
+				// then this note needs no adjusting. the side effect of this is that notes with
+				// factors of 8 as the beat divider (half, eighth, sixteenth, quarter, whole) also
+				// get skipped in this test, and that's ok
+				return;
+			}
+			// do the same thing for triplets (only quarter note triplets)
+			testNum=this.numBeats*3;
+			if ((int)testNum==testNum)
+			{
+				return;
+			}
+			// round to the nearest 16th (or 4th of a quarter), the fun way
+			double newLength=Math.round(4*this.numBeats)/4.0;
+			// make sure it updates the duration (in cycles) too
+			double ratio=newLength/numBeats;
+			this.duration*=ratio;
+			this.numBeats=newLength;
+		}
+		
+		// adds a division at an arbitrary point along this note's life
+		// at this point we don't care if it's within the range of the note or not
+		public void addDivision(long offset)
+		{
+			this.divisions.add(offset);
 		}
 		
 		public Note getNote(Track track)
 		{
-			System.out.println("Beats: "+this.numBeats);
-			return new Note(this.pitch,this.numBeats,this.velocity,track);
+			// remove divisions that are outside of this note or coincide with a boundary
+			for (Iterator<Long> iter=this.divisions.iterator(); iter.hasNext();)
+			{
+				Long division=iter.next();
+				if (division<=this.getOffset() || division>=this.getOffset()+this.getDuration())
+				{
+					System.out.println("I am "+this.getOffset()+" - "+(this.getOffset()+this.getDuration())+"; booting "+division);
+					iter.remove();
+				}
+			}
+			if (this.divisions.size()>0)
+			{
+				// sort it so everything isn't ruined - has to be a list for this to happen though
+				List<Long> sortedDivisions=new ArrayList<Long>(this.divisions);
+				Collections.sort(sortedDivisions);
+				Note[] notes=new Note[sortedDivisions.size()+1];
+				// define notes for ties before trying to tie them
+				for (int i=0; i<notes.length; i++)
+				{
+					// define number of beats as a fraction of the original length
+					double cycles;
+					if (i==0)
+					{
+						cycles=sortedDivisions.get(0)-this.getOffset();
+					}
+					else if (i==notes.length-1)
+					{
+						cycles=this.getDuration()-(sortedDivisions.get(i-1)-this.getOffset());
+					}
+					else
+					{
+						cycles=sortedDivisions.get(i)-sortedDivisions.get(i-1);
+					}
+					notes[i]=new Note(this.pitch,this.numBeats*(cycles/this.getDuration()),this.velocity,track);
+				}
+				// make ties
+				for (int i=0; i<notes.length-1; i++)
+				{
+					Tie tie=new Tie(notes[i],notes[i+1]);
+					notes[i].addModifier(tie);
+				}
+				return notes[0];
+			}
+			else
+			{
+				return new Note(this.pitch,this.numBeats,this.velocity,track);
+			}
 		}
 	}
 }

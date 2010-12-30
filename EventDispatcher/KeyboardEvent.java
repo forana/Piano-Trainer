@@ -36,5 +36,9 @@ public class KeyboardEvent extends InputEvent{
 		key = k;
 		modifier = m;
 	}
-
+	
+	public int getKey()
+	{
+		return this.key;
+	}
 }

@@ -47,4 +47,19 @@ public class MouseEvent extends InputEvent{
 		this.y = y;
 		modifier = m;
 	}
+	
+	public int getButton()
+	{
+		return this.button;
+	}
+	
+	public int getX()
+	{
+		return this.x;
+	}
+	
+	public int getY()
+	{
+		return this.y;
+	}
 }

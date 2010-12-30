@@ -34,11 +34,25 @@ public abstract class InputEvent {
 	 * @param t - timestamp
 	 * @param i - input type
 	 */
-	InputEvent(ActionType a, long t, InputType i)
+	public InputEvent(ActionType a, long t, InputType i)
 	{
 		action = a;
 		timestamp = t;
 		type = i;
 	}
 	
+	public ActionType getActionType()
+	{
+		return this.action;
+	}
+	
+	public InputType getInputType()
+	{
+		return this.type;
+	}
+	
+	public long getTimestamp()
+	{
+		return this.timestamp;
+	}
 }

@@ -342,8 +342,8 @@ public class EventDispatcher implements KeyListener,MouseListener {
 			// If the code is note off or note on, handle it. we don't care about anything else.
 			if (opcode == OPCODE_OFF || opcode == OPCODE_ON)
 			{
-				int note=message[1];
-				int velocity=message[2];
+				int note=message[1]&0x7F;
+				int velocity=message[2]&0x7F;
 				ActionType action;
 				// determine whether the note is being pressed 
 				// an alternate method of specifying off is using the on code with a velocity of zero

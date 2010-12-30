@@ -6,7 +6,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiDevice;
@@ -61,8 +61,8 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	 */
 	private EventDispatcher()
 	{
-		midiListeners = new ArrayList<MidiEventListener>();
-		inputListeners = new ArrayList<InputEventListener>();
+		midiListeners = new LinkedList<MidiEventListener>();
+		inputListeners = new LinkedList<InputEventListener>();
 		
 		// instantiate the receiver object
 		this.midiReceiver=new MidiReceiver();
@@ -105,7 +105,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	public void loadTransmitterDevices()
 	{
 		MidiDevice.Info[] devices=MidiSystem.getMidiDeviceInfo();
-		List<MidiDevice> deviceList=new ArrayList<MidiDevice>();
+		this.transmitterDevices=new LinkedList<MidiDevice>();
 		
 		for (int i=0; i<devices.length; i++)
 		{
@@ -118,7 +118,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 				// is the value we care about.
 				if (device.getMaxTransmitters()!=0)
 				{
-					deviceList.add(device);
+					this.transmitterDevices.add(device);
 				}
 			}
 			catch (MidiUnavailableException e)
@@ -161,6 +161,11 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	{
 		if (this.midiDevice!=null)
 		{
+			for (Transmitter transmitter : this.midiDevice.getTransmitters())
+			{
+				transmitter.getReceiver().close();
+				transmitter.close();
+			}
 			this.midiDevice.close();
 		}
 		
@@ -168,24 +173,27 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		
 		boolean success=true;
 		
-		try
+		if (this.midiDevice!=null)
 		{
-			this.midiDevice.open();
-			
-			Transmitter transmitter=this.midiDevice.getTransmitter();
-			transmitter.setReceiver(this.midiReceiver);
-		}
-		catch (MidiUnavailableException e)
-		{
-			String title="MIDI Device in use";
-			String message="The specified device is in use by another program.";
-			if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
+			try
 			{
-				return this.setTransmitterDevice(device);
+				this.midiDevice.open();
+				
+				Transmitter transmitter=this.midiDevice.getTransmitter();
+				transmitter.setReceiver(this.midiReceiver);
 			}
-			else
+			catch (MidiUnavailableException e)
 			{
-				success=false;
+				String title="MIDI Device in use";
+				String message="The specified device is in use by another program.";
+				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
+				{
+					return this.setTransmitterDevice(device);
+				}
+				else
+				{
+					success=false;
+				}
 			}
 		}
 		
@@ -430,5 +438,94 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		//send out the mouse event!
 		dispatchInputEvent(event);
 		
+	}
+	
+	/**
+	 * Detects a midi device, by setting the first device to respond as the new transmitter device.
+	 * This is a blocking call; it will block until either a device is detected or a specified
+	 * amount of time has passed.
+	 * 
+	 * @param timeout The amount of time for which to detect (in seconds).
+	 */
+	public void detectMidiDevice(int timeout)
+	{
+		int cycles=timeout*10;
+		// clear out the current so we don't run into usage issues
+		this.setTransmitterDevice(null);
+		
+		// get em all listening
+		for (MidiDevice device : this.transmitterDevices)
+		{
+			try
+			{
+				device.open();
+				
+				Transmitter transmitter=device.getTransmitter();
+				transmitter.setReceiver(new MidiAutodetectionReceiver(this,device));
+			}
+			catch (MidiUnavailableException e)
+			{
+				System.err.println("Device '"+device.getDeviceInfo().getName()+"' could not be opened!");
+			}
+		}
+		
+		// try to time out
+		int timesRun=0;
+		while (this.midiDevice==null && timesRun<cycles)
+		{
+			try
+			{
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e)
+			{
+				// this should never happen, but don't panic if it does
+			}
+			timesRun++;
+		}
+		
+		// regardless of whether we timed out or not, need to remove all of these receivers we just added
+		for (MidiDevice device : this.transmitterDevices)
+		{
+			// don't close the active one, that was the point of all of thise
+			if (device!=this.midiDevice)
+			{
+				for (Transmitter transmitter : device.getTransmitters())
+				{
+					transmitter.getReceiver().close();
+					transmitter.close();
+				}
+				device.close();
+			}
+		}
+	}
+	
+	// sets the current transmitter
+	private class MidiAutodetectionReceiver implements Receiver
+	{
+		private EventDispatcher dispatcher;
+		private MidiDevice responsibleDevice;
+		private boolean sent;
+		
+		public MidiAutodetectionReceiver(EventDispatcher dispatcher,MidiDevice device)
+		{
+			this.dispatcher=dispatcher;
+			this.responsibleDevice=device;
+			this.sent=false;
+		}
+		
+		public void close()
+		{
+		}
+		
+		public void send(MidiMessage message,long timestamp)
+		{
+			if (!this.sent)
+			{
+				// this will remove this listener as a byproduct
+				this.dispatcher.setTransmitterDevice(this.responsibleDevice);
+				this.sent=true;
+			}
+		}
 	}
 }

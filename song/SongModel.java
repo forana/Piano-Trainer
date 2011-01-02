@@ -24,6 +24,7 @@ public class SongModel
 	private String website;
 	private String license;
 	private int bpm;
+	private int keySignature;
 	
 	/**
 	 * Creates a SongModel.
@@ -38,7 +39,7 @@ public class SongModel
 	 * @param timeSignature
 	 * TODO Finish this comment.
 	 */
-	public SongModel(List<Track> tracks,String title,List<Creator> creators,String email,String website,String license,int beatsPerMinute, TimeSignature timeSignature) {
+	public SongModel(List<Track> tracks,String title,List<Creator> creators,String email,String website,String license,int beatsPerMinute, TimeSignature timeSignature, int keySignature) {
 		this.tracks=tracks;
 		this.creators=creators;
 		this.timeSignature = timeSignature;
@@ -47,6 +48,7 @@ public class SongModel
 		this.website=website;
 		this.license=license;
 		this.bpm=beatsPerMinute;
+		this.keySignature = keySignature;
 	}
 	
 	/**
@@ -96,5 +98,9 @@ public class SongModel
 	public TimeSignature getTimeSignature()
 	{
 		return this.timeSignature;
+	}
+	
+	public int getKeySignature(){
+		return this.keySignature;
 	}
 }

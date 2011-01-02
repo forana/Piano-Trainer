@@ -58,6 +58,7 @@ public class Note
 		this.track=track;
 		this.modifiers=new LinkedList<NoteModifier>();
 		this.playable=playable;
+		this.duration = duration;
 	}
 	
 	/**

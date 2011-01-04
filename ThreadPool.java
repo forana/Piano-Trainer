@@ -2,6 +2,7 @@ package crescendo.base;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,22 @@ public class ThreadPool {
 			}
 		}
 		return available;
+	}
+	
+	/**
+	 * Grabs only the busy expirators.
+	 */
+	public List<Expirator> getBusyExpirators()
+	{
+		List<Expirator> busy=new LinkedList<Expirator>();
+		for (Expirator current : this.expirators)
+		{
+			if (current.isBusy())
+			{
+				busy.add(current);
+			}
+		}
+		return busy;
 	}
 	
 	/**

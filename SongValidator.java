@@ -17,6 +17,11 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	private int timeout;
 	private List<ProcessedNoteEventListener> processedListeners;
 	
+	// this constructor is kludge for ThreadPoolTest until we figure out something better
+	public SongValidator()
+	{
+	}
+	
 	public SongValidator(Track activeTrack,int timeout)
 	{
 		this.activeTrack=activeTrack;

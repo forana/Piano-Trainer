@@ -16,6 +16,7 @@ public class Expirator implements Runnable{
 	private boolean isPaused;
 	private long initialMilliseconds; //Timestamp of when we started expiring the note
 	private NoteEvent currentEvent;
+	private boolean isFlagged;
 	
 	/**
 	 * Constructor
@@ -31,6 +32,7 @@ public class Expirator implements Runnable{
 		currentTimeout = timeout;
 		doContinue = true;
 		isBusy = false;
+		isFlagged=false;
 		initialMilliseconds = 0;
 	}
 	
@@ -49,6 +51,7 @@ public class Expirator implements Runnable{
 		currentEvent = noteEvent;
 		initialMilliseconds = System.currentTimeMillis();
 		isBusy = true;
+		isFlagged=false;
 	}
 	
 	/**
@@ -59,6 +62,7 @@ public class Expirator implements Runnable{
 		// We can just set isBusy to false because then
 		// the expirator thinks it already expired the note 
 		isBusy = false;
+		isFlagged=false;
 	}
 	
 	/**
@@ -77,6 +81,24 @@ public class Expirator implements Runnable{
 	public boolean isBusy()
 	{
 		return isBusy;
+	}
+	
+	/**
+	 * Checks if the expirator has been flagged.
+	 * @return true if it has, false otherwise.
+	 */
+	public boolean isFlagged()
+	{
+		return this.isFlagged();
+	}
+	
+	/**
+	 * Flags this expirator, denoting that an event has been processed but it should
+	 * still keep going.
+	 */
+	public void flag()
+	{
+		this.isFlagged=true;
 	}
 	
 	/**

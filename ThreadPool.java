@@ -157,7 +157,10 @@ public class ThreadPool {
 		public void uncaughtException(Thread t, Throwable e) {
 			if(e instanceof NoteExpiredException) {
 				Expirator ex = threadMap.get(t);
-				validator.noteExpired(ex.getNoteEvent());
+				if (!ex.isFlagged())
+				{
+					validator.noteExpired(ex.getNoteEvent());
+				}
 			}
 		}
 	}

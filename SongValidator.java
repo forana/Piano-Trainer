@@ -116,6 +116,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		//   distance:   + 750 - (|distance|/(timeout/2) * 750)
 		//  velocity:
 		//   not currently taken into account for score
+		int noteThreshold=1250;
 		int aPitch=midiEvent.getNote();
 		long aTime=midiEvent.getTimestamp();
 		for (Expirator current : busy)
@@ -154,7 +155,14 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		if (matched!=null)
 		{
 			matchedEvent=matched.getNoteEvent();
-			matched.resolveNote();
+			if (matchedScore>=noteThreshold)
+			{
+				matched.resolveNote();
+			}
+			else
+			{
+				matched.flag();
+			}
 		}
 		ProcessedNoteEvent processed=new ProcessedNoteEvent(matchedEvent,playedEvent);
 		for (ProcessedNoteEventListener listener : this.processedListeners)

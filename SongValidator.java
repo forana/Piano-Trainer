@@ -4,7 +4,6 @@ import crescendo.base.EventDispatcher.MidiEvent;
 import crescendo.base.EventDispatcher.MidiEventListener;
 import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Track;
-import crescendo.base.song.Note;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -148,10 +147,6 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		}
 		
 		NoteEvent matchedEvent=null;
-		NoteEvent playedEvent=new NoteEvent(
-			new Note(midiEvent.getNote(),0,midiEvent.getVelocity(),this.activeTrack),
-			(midiEvent.getAction()==ActionType.PRESS?NoteAction.BEGIN:NoteAction.END),
-			midiEvent.getTimestamp());
 		if (matched!=null)
 		{
 			matchedEvent=matched.getNoteEvent();
@@ -164,7 +159,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 				matched.flag();
 			}
 		}
-		ProcessedNoteEvent processed=new ProcessedNoteEvent(matchedEvent,playedEvent);
+		ProcessedNoteEvent processed=new ProcessedNoteEvent(matchedEvent,midiEvent);
 		for (ProcessedNoteEventListener listener : this.processedListeners)
 		{
 			listener.handleProcessedNoteEvent(processed);

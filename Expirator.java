@@ -89,7 +89,7 @@ public class Expirator implements Runnable{
 	 */
 	public boolean isFlagged()
 	{
-		return this.isFlagged();
+		return this.isFlagged;
 	}
 	
 	/**
@@ -181,5 +181,6 @@ public class Expirator implements Runnable{
 	 *
 	 */
 	public class ExpiratorBusyException extends Exception {
+		private static final long serialVersionUID = 1L;
 	}
 }

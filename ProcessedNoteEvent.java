@@ -1,17 +1,19 @@
 package crescendo.base;
 
+import crescendo.base.EventDispatcher.MidiEvent;
+
 public class ProcessedNoteEvent
 {
-	private NoteEvent playedNote;
+	private MidiEvent playedNote;
 	private NoteEvent expectedNote;
 	
-	public ProcessedNoteEvent(NoteEvent expectedNote,NoteEvent playedNote)
+	public ProcessedNoteEvent(NoteEvent expectedNote,MidiEvent playedNote)
 	{
 		this.playedNote=playedNote;
 		this.expectedNote=expectedNote;
 	}
 	
-	public NoteEvent getPlayedNote()
+	public MidiEvent getPlayedNote()
 	{
 		return this.playedNote;
 	}

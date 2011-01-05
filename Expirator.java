@@ -111,6 +111,7 @@ public class Expirator implements Runnable{
 	public void stop()
 	{
 		doContinue=false;
+		isBusy=false;
 	}
 	
 	/**

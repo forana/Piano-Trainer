@@ -106,6 +106,15 @@ public class ThreadPool {
 			e.resume();
 		}
 	}
+	
+	/**
+	 * Stops all expiring notes.
+	 */
+	public void stop() {
+		for (Expirator e : expirators) {
+			e.stop();
+		}
+	}
 
 	/**
 	 * Stops the execution of all of the threads in the pool

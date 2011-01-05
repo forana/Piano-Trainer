@@ -10,7 +10,7 @@ import java.util.LinkedList;
 
 public class SongValidator implements NoteEventListener,FlowController,MidiEventListener
 {
-	private static final int POOL_SIZE = 15; // theoretically more than 10 notes should ever happen
+	private static final int POOL_SIZE = 15; // theoretically more than 10 notes should never happen
 	
 	private Track activeTrack;
 	private ThreadPool pool;
@@ -85,13 +85,12 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	
 	public void stop()
 	{
-		this.pool.shutdown();
-		this.pool=new ThreadPool(this,POOL_SIZE,this.timeout);
+		this.pool.stop();
 	}
 	
 	public void suspend()
 	{
-		// technically we don't have to do anything here; pausing the pool doesn't do anything useful
+		this.pool.pause();
 	}
 	
 	public void attach(ProcessedNoteEventListener l)

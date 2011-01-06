@@ -31,6 +31,7 @@ public class MusicXmlParser implements SongFileParser{
 	private Map<String,Track> tracks;
 	private int bpm;
 	private TimeSignature timeSignature;
+	private int keySignature;
 	
 	private int currentMeasure = -1;	//Counts the current measure, useful for determining if directives are global or not
 	private int currentDynamic = 90;	//The midi dynamic for the notes currently being parsed. MusicXML default is 90 (about forte)
@@ -51,6 +52,7 @@ public class MusicXmlParser implements SongFileParser{
 		creators = new ArrayList<Creator>();
 		bpm = -1;
 		timeSignature = null;
+		keySignature = 0;
 	}
 	
 	/**
@@ -77,7 +79,7 @@ public class MusicXmlParser implements SongFileParser{
 		{
 			parseNode(document.getChildNodes().item(i));
 		}		
-		return new SongModel(new ArrayList<Track>(tracks.values()), workTitle, creators, "", "", copyright, bpm, timeSignature);
+		return new SongModel(new ArrayList<Track>(tracks.values()), workTitle, creators, "", "", copyright, bpm, timeSignature,keySignature);
 	}
 	
 	/**

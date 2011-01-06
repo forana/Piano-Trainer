@@ -23,7 +23,7 @@ public class SongPlayerTest implements NoteEventListener{
 	
 	
 	public SongPlayerTest() throws IOException {
-		testModel = SongFactory.generateSongFromFile("/resources/morrowind.midi");
+		testModel = SongFactory.generateSongFromFile("resources/middlec.mxl");
 		testPlayer = new SongPlayer(testModel);
 		receivedNotes = new ArrayList<NoteEvent>();
 	}

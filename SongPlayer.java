@@ -1,8 +1,7 @@
 package crescendo.base;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -20,27 +19,29 @@ import crescendo.base.song.SongModel;
 public class SongPlayer
 {
 
-	
+
 	/** The song that is being played.*/
 	private SongModel songModel;
 	/** map of listeners and the number of milliseconds early to send their note events */
 	private Map<NoteEventListener,Integer> listeners;
 	/** list of notes which are currently in the queue */
 	private Map<NoteEvent,List<NoteEventListener>> activeNotes;
-	
+
 	/** list of flow controllers (objects that get told about flow events such as pause and resume) */
 	private Set<FlowController> controllers;
+	
+	
 	/** Runnable which does timing */
 	private PlayerTimer timer;
 	/** Thread which holds our timer runnable */
 	private Thread timerContainer;
-	
+
 	private boolean isPaused;
 	private boolean doContinue;
-	
-	/** The number of millisections the song has been paused */
+
+	/** The number of milliseconds the song has been paused */
 	private long pauseOffset;
-	
+
 	/**
 	 * Create a song player for the given song model. 
 	 * Initializes the lists of controllers and listeners, and creates the timer
@@ -55,7 +56,7 @@ public class SongPlayer
 		timer = new PlayerTimer();
 		timerContainer = new Thread(timer);
 	}
-	
+
 	/**
 	 * Begin playing the song
 	 * This resets all of the state variables, <b>DO NOT</b> resume the song after pausing, use the resume function. 
@@ -68,14 +69,14 @@ public class SongPlayer
 		timerContainer.start();
 		//get a new iterator from the song model
 	}
-	
+
 	public void pause() {
 		isPaused = true;
 		for(FlowController controller : controllers) {
 			controller.pause();
 		}
 	}
-	
+
 	public void resume() {
 		isPaused = false;
 		for(NoteEvent event : activeNotes.keySet()) {
@@ -86,7 +87,7 @@ public class SongPlayer
 			controller.resume();
 		}
 	}
-	
+
 	public void stop() {
 		for(FlowController controller : controllers) {
 			controller.stop();
@@ -130,7 +131,7 @@ public class SongPlayer
 
 	/**
 	 * Remove controller from the controllers who are receiving control calls from the player
-	 * @param controller instacne of FlowController to remove from the list
+	 * @param controller instance of FlowController to remove from the list
 	 */
 	public void detach(FlowController controller) {
 		controllers.remove(controller);
@@ -154,14 +155,14 @@ public class SongPlayer
 			if(now > event.getTimestamp())
 			{
 				i.remove(); //This removes the note from the map
-				continue;
-			}
-			for(NoteEventListener listener : listeners.keySet()) {
-				//Only send the note if it is within the correct range, and the listener has not received it yet
-				if(now >= (event.getTimestamp()-listeners.get(listener))
-						&& !activeNotes.get(event).contains(listener)) {
-					listener.handleNoteEvent(event);
-					activeNotes.get(event).add(listener);
+			}else{
+				for(NoteEventListener listener : listeners.keySet()) {
+					//Only send the note if it is within the correct range, and the listener has not received it yet
+					if(now >= (event.getTimestamp()-listeners.get(listener))
+							&& !activeNotes.get(event).contains(listener)) {
+						listener.handleNoteEvent(event);
+						activeNotes.get(event).add(listener);
+					}
 				}
 			}
 		}
@@ -176,7 +177,7 @@ public class SongPlayer
 		private final int FRAMES_PER_SECOND = 100;
 		/** number of milliseconds from the epoch of when the last frame started */
 		private long lastFrame = 0;
-		
+
 		/**
 		 * Method which get called by the thread, this is running while the song is playing or paused
 		 */
@@ -190,7 +191,7 @@ public class SongPlayer
 					}else{
 						try {
 							Thread.sleep(1); // Dont eat up all the processor
-							} 
+						} 
 						catch (InterruptedException e) {}
 					}
 				}else{

@@ -1,7 +1,9 @@
 package crescendo.base.song;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * A Track is a set of notes, all under one instrument. This is analogous to one part
@@ -75,5 +77,51 @@ public class Track
 		this.notes.add(note);
 	}
 	
-	// TODO implement TrackIterator functionality
+	private class TrackIterator implements Iterator<Note> {
+		private ListIterator<Note> iter;
+		
+		public TrackIterator() {
+			iter = notes.listIterator();
+		}
+		
+		@Override
+		public boolean hasNext() {
+			return iter.hasNext();
+		}
+		
+		/**
+		 * Test if the track has enough notes to fill the given number of beats
+		 * @param beats the number of beats to fill
+		 * @return if the track has enough notes to fill the requested number of beats
+		 */
+		public boolean hasNext(double beats) {
+			double beatCount = 0;
+			int iterCount = 0;
+			while(iter.hasNext() && beatCount<beats){
+				beatCount+=iter.next().getDuration();
+				iterCount++;
+			}
+			for(;iterCount>0;iterCount--){
+				iter.previous();
+			}
+			return beatCount>=beats;
+		}
+
+		@Override
+		public Note next() {
+			
+			return null;
+		}
+		
+		public List<Note> next(int beats) {
+			return notes;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
 }

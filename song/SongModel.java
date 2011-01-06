@@ -1,7 +1,12 @@
 package crescendo.base.song;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import crescendo.base.song.Track.TrackIterator;
 
 /**
  * A SongModel represents one entire piece of piece, including all of its tracks and metadata.
@@ -111,23 +116,48 @@ public class SongModel
 	
 	private class SongIterator implements Iterator<Note> {
 		
+		private int currentTrack;
+		private Map<Track,TrackIterator> iterators;
+		
 		public SongIterator() {
-			
+			currentTrack = 0;
+			iterators = new HashMap<Track,TrackIterator>();
+			for(Track track : tracks){
+				iterators.put(track, track.iterator());
+			}
 		}
 		
 		@Override
 		public boolean hasNext() {	
-			return false;
+			boolean hasNext = false;
+			for(int i=0;i<tracks.size() && !hasNext; i++){
+				hasNext = iterators.get(tracks.get(i)).hasNext();
+			}
+			return hasNext;
 		}
 
 		@Override
 		public Note next() {
-			return null;
+			Note returnNote = iterators.get(tracks.get(currentTrack)).next();
+			if(currentTrack>=tracks.size()-1){
+				currentTrack=0;
+			}else{
+				currentTrack++;
+			}
+			return returnNote;
+		}
+		
+		public List<Note> next(int beats){
+			List<Note> notes = new LinkedList<Note>();
+			for(TrackIterator iter : iterators.values()){
+				notes.addAll(iter.next(beats));
+			}
+			return notes;
 		}
 
 		@Override
 		public void remove() {	
-			
+			throw new UnsupportedOperationException();
 		}
 	}
 }

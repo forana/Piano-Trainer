@@ -1,14 +1,18 @@
 package crescendo.base;
 
-import java.util.HashMap;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
+import crescendo.base.song.Track.TrackIterator;
 
 /**
  * A SongPlayer does the actual running through the song and propagation of events.
@@ -29,8 +33,8 @@ public class SongPlayer
 
 	/** list of flow controllers (objects that get told about flow events such as pause and resume) */
 	private Set<FlowController> controllers;
-	
-	
+
+
 	/** Runnable which does timing */
 	private PlayerTimer timer;
 	/** Thread which holds our timer runnable */
@@ -42,6 +46,10 @@ public class SongPlayer
 	/** The number of milliseconds the song has been paused */
 	private long pauseOffset;
 
+	private int longestListener = 0;
+
+	private Map<Track,TrackIterator> iterators;
+	private long nextPoll;
 	/**
 	 * Create a song player for the given song model. 
 	 * Initializes the lists of controllers and listeners, and creates the timer
@@ -55,6 +63,11 @@ public class SongPlayer
 		controllers = Collections.synchronizedSet(new HashSet<FlowController>());
 		timer = new PlayerTimer();
 		timerContainer = new Thread(timer);
+		List<Track> tracks = songModel.getTracks();
+		iterators = new HashMap<Track,TrackIterator>();
+		for(Track track : tracks){
+			iterators.put(track, track.iterator());
+		}
 	}
 
 	/**
@@ -63,11 +76,13 @@ public class SongPlayer
 	 */
 	public void play() {
 		activeNotes = new HashMap<NoteEvent,List<NoteEventListener>>();
+		nextPoll = System.currentTimeMillis();
 		isPaused = false;
 		doContinue = true;
 		pauseOffset = 0;
 		timerContainer.start();
 		//get a new iterator from the song model
+
 	}
 
 	public void pause() {
@@ -119,6 +134,9 @@ public class SongPlayer
 	 */	
 	public void attach(NoteEventListener listener, int time) {
 		listeners.put(listener, time);
+		if(time>this.longestListener){
+			longestListener = time;
+		}
 	}
 
 	/**
@@ -145,13 +163,29 @@ public class SongPlayer
 	private void update() {
 		long now = System.currentTimeMillis();
 
-
-
+		double bpms = (double)songModel.getBPM()/(double)60000;
+		if(now>=nextPoll){
+			for(TrackIterator iter : iterators.values()){
+				double offset = iter.getOffset() * bpms;
+				List<Note> notes = iter.next(this.longestListener/1000f/60f * songModel.getBPM());
+				for(Note note : notes){
+					if(note.getDynamic()>0){
+						NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) (offset+now));
+						NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) (offset+now+(note.getDuration()/(int)songModel.getBPM())*60*1000));
+						activeNotes.put(ne, new LinkedList<NoteEventListener>());
+						activeNotes.put(neEnd, new LinkedList<NoteEventListener>());
+						offset+=note.getDuration();
+					}
+				}
+			}
+			nextPoll = now+longestListener;
+		}
 
 		//Pump out note events
 		NoteEvent event = null;
 		for(Iterator<NoteEvent> i = activeNotes.keySet().iterator(); i.hasNext();) {
 			event = i.next();
+			//System.out.println(event.getAction());
 			if(now > event.getTimestamp())
 			{
 				i.remove(); //This removes the note from the map
@@ -174,7 +208,7 @@ public class SongPlayer
 	 * @author nickgartmann
 	 */
 	private class PlayerTimer implements Runnable {
-		private final int FRAMES_PER_SECOND = 100;
+		private final int FRAMES_PER_SECOND = 500;
 		/** number of milliseconds from the epoch of when the last frame started */
 		private long lastFrame = 0;
 
@@ -190,7 +224,7 @@ public class SongPlayer
 						update();			
 					}else{
 						try {
-							Thread.sleep(1); // Dont eat up all the processor
+							Thread.sleep(10); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}
@@ -198,7 +232,7 @@ public class SongPlayer
 					pauseOffset+=(now-lastFrame);
 				}
 				lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-									//ensure that we get the correct frames, no matter how long update takes
+				//ensure that we get the correct frames, no matter how long update takes
 			}
 		}
 	}

@@ -17,17 +17,17 @@ public class Track
 	 * The name of this track.
 	 */
 	private String name;
-	
+
 	/**
 	 * The instrument voice of this track, indexed by standard MIDI voices.
 	 */
 	private int voice;
-	
+
 	/**
 	 * The notes in this track.
 	 */
 	private List<Note> notes;
-	
+
 	/**
 	 * Creates a new track.
 	 * 
@@ -41,7 +41,7 @@ public class Track
 		this.voice=voice;
 		this.notes=new LinkedList<Note>();
 	}
-	
+
 	/**
 	 * The name of this track.
 	 * 
@@ -51,7 +51,7 @@ public class Track
 	{
 		return this.name;
 	}
-	
+
 	/**
 	 * The instrument voice of this track.
 	 * 
@@ -61,7 +61,7 @@ public class Track
 	{
 		return this.voice;
 	}
-	
+
 	/**
 	 * The notes of this track.
 	 * 
@@ -71,24 +71,29 @@ public class Track
 	{
 		return this.notes;
 	}
-	
+
 	public void addNote(Note note)
 	{
 		this.notes.add(note);
 	}
-	
-	private class TrackIterator implements Iterator<Note> {
+
+	public TrackIterator iterator(){
+		return new TrackIterator();
+	}
+
+	public class TrackIterator implements Iterator<Note> {
 		private ListIterator<Note> iter;
-		
+		private double beatOffset;
 		public TrackIterator() {
 			iter = notes.listIterator();
+			beatOffset=0;
 		}
-		
+
 		@Override
 		public boolean hasNext() {
 			return iter.hasNext();
 		}
-		
+
 		/**
 		 * Test if the track has enough notes to fill the given number of beats
 		 * @param beats the number of beats to fill
@@ -109,19 +114,34 @@ public class Track
 
 		@Override
 		public Note next() {
-			
-			return null;
+			return iter.next();
 		}
-		
-		public List<Note> next(int beats) {
-			return notes;
+
+		public double getOffset(){
+			return beatOffset;
+		}
+
+		public List<Note> next(double beats) {
+			if(beatOffset>0){
+				beatOffset-=beats;
+			}
+			double beatCount=0;
+			List<Note> nextNotes = new LinkedList<Note>();
+			if(beatOffset<=0){
+				while(iter.hasNext() && beatCount<(beats+beatOffset)){
+					Note current = iter.next();
+					nextNotes.add(current);
+					beatCount+=current.getDuration();
+				}
+				beatOffset = beatCount - (beats+beatOffset);
+			}
+			return nextNotes;
 		}
 
 		@Override
 		public void remove() {
-			// TODO Auto-generated method stub
-			
+			throw new UnsupportedOperationException();
 		}
-		
+
 	}
 }

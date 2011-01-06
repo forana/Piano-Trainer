@@ -196,7 +196,7 @@ public class MusicXmlParser implements SongFileParser{
 		return new Track(trackName,instrument);
 	}
 
-	private Note parseNote(Node node, boolean isRest, int duration, int pitch){
+	private Note parseNote(Node node, boolean isRest, double duration, int pitch){
 		Note retValue = null;
 		if(node.getNodeName().equals("pitch")){
 			char note = ' ';
@@ -216,7 +216,7 @@ public class MusicXmlParser implements SongFileParser{
 		}else if(node.getNodeName().equals("rest")){
 			isRest = true;
 		}else if(node.getNodeName().equals("duration")){
-			duration =  Integer.parseInt(node.getTextContent());
+			duration =  Double.parseDouble(node.getTextContent());
 		}else if(node.getNodeName().equals("voice")){
 			if(Integer.parseInt(node.getTextContent())!=currentTrack.getVoice()){
 				//TODO non-playable note with a voice change modifier in the current track

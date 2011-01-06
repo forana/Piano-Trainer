@@ -71,4 +71,11 @@ public class NoteEvent
 	{
 		return this.timestamp;
 	}
+	
+	/**
+	 * Set the time at which this event is supposed to take place (milliseconds from epoch)
+	 */
+	public void setTimestamp(long time){
+		timestamp = time;
+	}
 }

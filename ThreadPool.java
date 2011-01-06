@@ -2,6 +2,7 @@ package crescendo.base;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,22 @@ public class ThreadPool {
 	}
 	
 	/**
+	 * Grabs only the busy expirators.
+	 */
+	public List<Expirator> getBusyExpirators()
+	{
+		List<Expirator> busy=new LinkedList<Expirator>();
+		for (Expirator current : this.expirators)
+		{
+			if (current.isBusy())
+			{
+				busy.add(current);
+			}
+		}
+		return busy;
+	}
+	
+	/**
 	 * suspends the expiration of all of the notes being expired in the pool
 	 */
 	public void pause() {
@@ -87,6 +104,15 @@ public class ThreadPool {
 	public void resume() {
 		for(Expirator e : expirators) {
 			e.resume();
+		}
+	}
+	
+	/**
+	 * Stops all expiring notes.
+	 */
+	public void stop() {
+		for (Expirator e : expirators) {
+			e.stop();
 		}
 	}
 
@@ -131,7 +157,10 @@ public class ThreadPool {
 		public void uncaughtException(Thread t, Throwable e) {
 			if(e instanceof NoteExpiredException) {
 				Expirator ex = threadMap.get(t);
-				validator.noteExpired(ex.getNoteEvent());
+				if (!ex.isFlagged())
+				{
+					validator.noteExpired(ex.getNoteEvent());
+				}
 			}
 		}
 	}

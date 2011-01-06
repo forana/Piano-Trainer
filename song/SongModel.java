@@ -1,5 +1,6 @@
 package crescendo.base.song;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -99,8 +100,34 @@ public class SongModel
 	{
 		return this.timeSignature;
 	}
+
+	public SongIterator iterator() {
+		return new SongIterator();
+	}
 	
 	public int getKeySignature(){
 		return this.keySignature;
+	}
+	
+	private class SongIterator implements Iterator<Note> {
+		
+		public SongIterator() {
+			
+		}
+		
+		@Override
+		public boolean hasNext() {	
+			return false;
+		}
+
+		@Override
+		public Note next() {
+			return null;
+		}
+
+		@Override
+		public void remove() {	
+			
+		}
 	}
 }

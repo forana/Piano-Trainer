@@ -38,6 +38,8 @@ public class MidiParser implements SongFileParser
 		int bpm=120;
 		// time signature defaults to 4/4
 		TimeSignature timeSignature=new TimeSignature(4,4);
+		// key signature defaults to 0 (no accidentals)
+		int keySignature=0;
 		
 		// according to specification at http://www.sonicspot.com/guide/midifiles.html
 		// main header
@@ -258,7 +260,7 @@ public class MidiParser implements SongFileParser
 										timeSignature=new TimeSignature(numerator,denominator);
 										break;
 									case 0x59: // Key signature
-										/*int keySignature=*/stream.read();//-7;
+										keySignature=stream.read()-7;
 										/*int scale=*/stream.read();
 										break;
 									case 0x7F: // Sequencer-specific event
@@ -395,7 +397,7 @@ public class MidiParser implements SongFileParser
 			title=tracks.get(0).getName()+" ("+title+")";
 		}
 		
-		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,timeSignature);
+		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,timeSignature,keySignature);
 		return model;
 	}
 	

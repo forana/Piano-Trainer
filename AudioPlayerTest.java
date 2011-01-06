@@ -22,7 +22,7 @@ public class AudioPlayerTest
 		LinkedList<Track> trackList=new LinkedList<Track>();
 		this.track=new Track("Track 1",57); // trumpet
 		trackList.add(this.track);
-		this.model=new SongModel(trackList,null,null,null,null,null,120,null);
+		this.model=new SongModel(trackList,null,null,null,null,null,120,null,0);
 	}
 	
 	@Test
@@ -266,7 +266,7 @@ public class AudioPlayerTest
 		LinkedList<Track> trackList=new LinkedList<Track>();
 		trackList.add(track1);
 		trackList.add(track2);
-		SongModel twoModel=new SongModel(trackList,null,null,null,null,null,0,null);
+		SongModel twoModel=new SongModel(trackList,null,null,null,null,null,0,null,0);
 		AudioPlayer player=new AudioPlayer(twoModel,null);
 		Note[] notes1={new Note(73,1,100,track1),
 		               new Note(60,1,100,track1),

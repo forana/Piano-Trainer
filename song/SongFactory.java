@@ -7,8 +7,21 @@ import crescendo.base.parsing.MusicXmlParser;
 import crescendo.base.parsing.SongFileParser;
 import crescendo.base.parsing.MidiParser;
 
+/**
+ * Provides a method to read SongModel objects out of files without having to know the type needed.
+ * 
+ * @author forana
+ * @author nickgartmann
+ */
 public class SongFactory
 {
+	/**
+	 * Read a SongModel from a file.
+	 * 
+	 * @param filename The name of the file from which to read.
+	 * 
+	 * @throw IOException if the file is improperly formatted or a general file reading error occurs.
+	 */
 	public static SongModel generateSongFromFile(String filename) throws IOException
 	{
 		SongFileParser parser=null;

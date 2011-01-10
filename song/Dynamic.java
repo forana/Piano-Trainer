@@ -1,5 +1,11 @@
 package crescendo.base.song;
 
+/**
+ * Provides constants for volume levels.
+ * 
+ * @author nickgartmann
+ * @author forana
+ */
 public class Dynamic
 {
 	public static final int PIANISSIMO = 20;

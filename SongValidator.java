@@ -7,20 +7,40 @@ import crescendo.base.song.Track;
 import java.util.List;
 import java.util.LinkedList;
 
+/**
+ * Delegates NoteEvents from the SongPlayer to Expirators so that they can either time out or be
+ * matched to user input, and pumps the resulting events out to subscribers.
+ * 
+ * @author forana
+ */
 public class SongValidator implements NoteEventListener,FlowController,MidiEventListener
 {
-	private static final int POOL_SIZE = 15; // theoretically more than 10 notes should never happen
+	/** The maximum number of note events that can be simultaneously expired. */
+	private static final int POOL_SIZE = 20; // theoretically more than 10 notes should never happen
 	
+	/** The track that the user is playing. */
 	private Track activeTrack;
+	
+	/** The pool that contains all of the active expirators. */
 	private ThreadPool pool;
+	
+	/** The amount of time to allow for a timeout. */
 	private int timeout;
+	
+	/** All subscribed ProcessedNoteEventListeners. */
 	private List<ProcessedNoteEventListener> processedListeners;
 	
-	// this constructor is kludge for ThreadPoolTest until we figure out something better
+	/** This constructor is kludge for ThreadPoolTest until we figure out something better. */
 	public SongValidator()
 	{
 	}
 	
+	/**
+	 * Creates a new SongValidator that listens for notes in a specified track.
+	 * 
+	 * @param activeTrack The track the user is playing.
+	 * @param timeout The amount of time to allow to pass before a note is considered missed.
+	 */
 	public SongValidator(Track activeTrack,int timeout)
 	{
 		this.activeTrack=activeTrack;
@@ -29,6 +49,12 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		this.processedListeners=new LinkedList<ProcessedNoteEventListener>();
 	}
 	
+	/**
+	 * Receives a NoteEvent and delegates it to a free expirator for expiring/storage. If no expirator is free,
+	 * this method will block until one frees up.
+	 * 
+	 * @param e The NoteEvent to delegate.
+	 */
 	public void handleNoteEvent(NoteEvent e)
 	{
 		if (e.getNote().getTrack()!=this.activeTrack)
@@ -67,41 +93,79 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		}
 	}
 	
+	/**
+	 * Pause all currently-expiring notes.
+	 */
 	public void pause()
 	{
 		this.pool.pause();
 	}
 	
+	/**
+	 * Resume all currently-paused notes.
+	 */
 	public void resume()
 	{
 		this.pool.resume();
 	}
 	
+	/**
+	 * Shuts down the held ThreadPool objects, destroying all allocated threads. This object can no longer be used
+	 * after this method is called.
+	 */
 	public void songEnd()
 	{
 		this.pool.shutdown();
 	}
 	
+	/**
+	 * Stops all expiring notes.
+	 */
 	public void stop()
 	{
 		this.pool.stop();
 	}
 	
+	/**
+	 * Suspends the expiraton of all notes.
+	 */
 	public void suspend()
 	{
 		this.pool.pause();
 	}
 	
+	/**
+	 * Subscribe a ProcessedNoteEventListener to this object, so that it will be pumped events. This method does not check
+	 * for duplicate subscriptions.
+	 * 
+	 * @param l The listening object.
+	 */
 	public void attach(ProcessedNoteEventListener l)
 	{
 		this.processedListeners.add(l);
 	}
 	
+	/**
+	 * Remove a subscribed ProcessedNoteEventListener. If the same object has been subscribed multiple times, this will only
+	 * remove one of the subscriptions.
+	 * 
+	 * @param l The listener to remove the subscription for.
+	 */
 	public void detach(ProcessedNoteEventListener l)
 	{
 		this.processedListeners.remove(l);
 	}
 	
+	/**
+	 * Attempts to pair a MidiEvent to one of the currently expiring NoteEvents. A ProcessedNoteEvent will be pumped to
+	 * listeners, with a matched or null NoteEvent parameter, depending on the success of the pairing. If a note is paired,
+	 * it may be removed from the expiring notes if the match is exceptionally good. If it is not removed, no expiration event
+	 * will be sent when the note would have expired.
+	 * 
+	 * This method will never pair a 'press' with a 'note off', nor a 'release' with a 'note on'.
+	 * 
+	 * @param midiEvent The input event to attempt to match up.
+	 */
 	public void handleMidiEvent(MidiEvent midiEvent)
 	{
 		List<Expirator> busy=this.pool.getBusyExpirators();
@@ -166,6 +230,12 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		}
 	}
 	
+	/**
+	 * Signifies that a NoteEvent was never matched, and was therefore missed. A ProcessedNoteEvent will be pumped out
+	 * with a null midiEvent.
+	 * 
+	 * @param noteEvent The missed note.
+	 */
 	public void noteExpired(NoteEvent noteEvent)
 	{
 		ProcessedNoteEvent processed=new ProcessedNoteEvent(noteEvent,null);

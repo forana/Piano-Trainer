@@ -27,7 +27,7 @@ import crescendo.base.ErrorHandler;
  *  EventDispatcher is a singleton.
  *
  * @author groszc
- *
+ * @author forana
  */
 
 public class EventDispatcher implements KeyListener,MouseListener {
@@ -324,15 +324,25 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		private static final int OPCODE_OFF = 0x80;
 		private static final int OPCODE_ON = 0x90;
 		
+		/** Creates a new receiver, ready to handle events. */
 		public MidiReceiver()
 		{
 		}
 		
-		// is needed for the interface, but it's empty LOL
+		/** Does nothing. */
 		public void close()
 		{
 		}
 		
+		/**
+		 * Parses a midiMessage and creates a MidiEvent with the resulting information, if the message symbolizes
+		 * either a note on or note off event.
+		 * 
+		 * This method is intended only to be called by a Transmitter object.
+		 * 
+		 * @param midiMessage The message.
+		 * @param timestamp The time (in ms) at which this input occurred.
+		 */
 		public void send(MidiMessage midiMessage,long timestamp)
 		{
 			byte[] message=midiMessage.getMessage();
@@ -500,13 +510,27 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		}
 	}
 	
-	// sets the current transmitter
+	/**
+	 * Provides a receiver intended to be added to multiple transmitters that will set the transmitter of the
+	 * calling EventDispatcher when a key press is detected.
+	 */
 	private class MidiAutodetectionReceiver implements Receiver
 	{
+		/** The calling EventDispatcher. */
 		private EventDispatcher dispatcher;
+		
+		/** The device this receiver is responsible for. */
 		private MidiDevice responsibleDevice;
+		
+		/** Set if this receiver has already set the device, false otherwise. */
 		private boolean sent;
 		
+		/**
+		 * Creates a new receiver.
+		 * 
+		 * @param dispatcher The EventDispatcher of which to set the transmitter device.
+		 * @param device The MidiDevice this receiver represents.
+		 */
 		public MidiAutodetectionReceiver(EventDispatcher dispatcher,MidiDevice device)
 		{
 			this.dispatcher=dispatcher;
@@ -514,12 +538,21 @@ public class EventDispatcher implements KeyListener,MouseListener {
 			this.sent=false;
 		}
 		
+		/** Does nothing. **/
 		public void close()
 		{
 		}
 		
+		/**
+		 * Receives a message from a transmitter.
+		 * 
+		 * @param message The message.
+		 * @param timestmap The time (in ms) at which this message was instantiated.
+		 */
 		public void send(MidiMessage message,long timestamp)
 		{
+			// only send it once; without this it sends twice sometimes before this receiver can be destroyed,
+			// creating an internal off-by-1... quite fun
 			if (!this.sent)
 			{
 				// this will remove this listener as a byproduct

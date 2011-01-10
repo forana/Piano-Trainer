@@ -76,40 +76,75 @@ public class SongModel
 		return this.creators;
 	}
 	
+	/**
+	 * Gets the title of the song.
+	 * 
+	 * @return The title of the song.
+	 */
 	public String getTitle()
 	{
 		return this.title;
 	}
 	
+	/**
+	 * Gets the email address specified by this song.
+	 * 
+	 * @return The email address.
+	 */
 	public String getEmail()
 	{
 		return this.email;
 	}
 	
+	/**
+	 * Gets the website of for the specified song.
+	 * 
+	 * @return The URL for the song, in string form.
+	 */
 	public String getWebsite()
 	{
 		return this.website;
 	}
 	
+	/**
+	 * Gets the license with which this song was distributed.
+	 * 
+	 * @return The license, possibly just the name of it or an entire text.
+	 */
 	public String getLicense()
 	{
 		return this.license;
 	}
 	
+	/**
+	 * Gets the initial tempo of the song.
+	 * 
+	 * @return The initial tempo of the song in beats per minute.
+	 */
 	public int getBPM()
 	{
 		return this.bpm;
 	}
 	
+	/**
+	 * Gets the initial time signature of the song.
+	 * 
+	 * @return The initial time signature of the song.
+	 */
 	public TimeSignature getTimeSignature()
 	{
 		return this.timeSignature;
 	}
-
+	
 	public SongIterator iterator() {
 		return new SongIterator();
 	}
 	
+	/**
+	 * Gets the initial key signature of the song.
+	 * 
+	 * @return The initial key signature.
+	 */
 	public int getKeySignature(){
 		return this.keySignature;
 	}

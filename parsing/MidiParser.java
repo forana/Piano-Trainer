@@ -19,8 +19,20 @@ import crescendo.base.song.TimeSignature;
 import crescendo.base.song.modifier.Tie;
 import crescendo.base.song.modifier.Chord;
 
+/**
+ * Provides a parser for MIDI files, supporting basic note functionality.
+ * 
+ * @author forana
+ */
 public class MidiParser implements SongFileParser
 {
+	/**
+	 * Create a SongModel from the given file.
+	 * 
+	 * @param file The file to parse.
+	 * 
+	 * @throw IOException if the file is improperly formatted.
+	 */
 	public SongModel parse(File file) throws IOException
 	{
 		MidiInputStream stream=new MidiInputStream(new FileInputStream(file));
@@ -404,15 +416,38 @@ public class MidiParser implements SongFileParser
 		return model;
 	}
 	
+	/**
+	 * Provides a container class to build notes in procedurally.
+	 * 
+	 * @author forana
+	 */
 	private class SkeletalNote implements Comparable<SkeletalNote>
 	{
+		/** Pitch of the note (midi terms). */
 		private int pitch;
+		
+		/** Velocity of the note. */
 		private int velocity;
+		
+		/** Duration of the note, in milliseconds. */
 		private int duration;
+		
+		/** The time in the song at which this event occurs. */
 		private long offset;
+		
+		/** The length of the note in beats. */
 		private double numBeats;
+		
+		/** Set of times at which this note is divided. */
 		private Set<Long> divisions;
 		
+		/**
+		 * Creates a new skeletal note.
+		 * 
+		 * @param pitch The pitch of the note.
+		 * @param velocity The velocity of the press.
+		 * @param currentDelta The time at which this note begins.
+		 */
 		public SkeletalNote(int pitch,int velocity,long currentDelta)
 		{
 			this.pitch=pitch;
@@ -423,16 +458,30 @@ public class MidiParser implements SongFileParser
 			this.divisions=new HashSet<Long>();
 		}
 		
+		/**
+		 * Get the pitch of the note.
+		 * 
+		 * @return The pitch of the note, in midi terms.
+		 */
 		public int getPitch()
 		{
 			return this.pitch;
 		}
 		
+		/** Get the length of the note.
+		 * 
+		 * @return The length of the note, in milliseconds.
+		 */
 		public int getDuration()
 		{
 			return this.duration;
 		}
 		
+		/**
+		 * Gets the duration of a note for sequential purposes. This method assumes all divisions have already been made.
+		 * 
+		 * @return The length of the chopped note, in milliseconds.
+		 */
 		public long getChoppedDuration()
 		{
 			if (this.divisions.size()>0)
@@ -447,17 +496,36 @@ public class MidiParser implements SongFileParser
 			}
 		}
 		
+		/**
+		 * Increase the duration of this note.
+		 * 
+		 * @param delta The amount to add, in milliseconds.
+		 */
 		public void addDuration(int delta)
 		{
 			this.duration+=delta;
 		}
 		
+		/**
+		 * Get the start time of this note.
+		 * 
+		 * @return The start time of this note, in milliseconds.
+		 */
 		public long getOffset()
 		{
 			return this.offset;
 		}
 		
 		// set it for the first time (can't be set in constructor because the timing isn't initally known)
+		/**
+		 * Set the number of beats this note represents. This method assumes the duration is completely built.
+		 * 
+		 * @param timeMode The mode at which this file calculates time (0 or 1).
+		 * @param ticksPerBeat The number of 'ticks' per beat.
+		 * @param ticksPerFrame The number of 'ticks' per frame.
+		 * @param framesPerSecond The number of frames per second.
+		 * @param bpm The number of beats per minute for this note.
+		 */
 		public void setNumBeats(int timeMode,int ticksPerBeat,int ticksPerFrame,double framesPerSecond,int bpm)
 		{
 			double numbeats;
@@ -474,11 +542,21 @@ public class MidiParser implements SongFileParser
 			this.numBeats=numbeats;
 		}
 		
+		/**
+		 * Compare one note to another, allowing sorting by offset.
+		 * 
+		 * @param other The note to compare to.
+		 * 
+		 * @return An integer with the same sign as the time difference.
+		 */
 		public int compareTo(SkeletalNote other)
 		{
 			return (int)(this.getOffset()-other.getOffset());
 		}
 		
+		/**
+		 * Attempts to round this note's duration to a more recognizable duration. This method does not change the offset.
+		 */
 		public void normalize()
 		{
 			double testNum=this.numBeats*8;
@@ -505,28 +583,32 @@ public class MidiParser implements SongFileParser
 			this.numBeats=newLength;
 		}
 		
-		// adds a division at an arbitrary point along this note's life
-		// at this point we don't care if it's within the range of the note or not
+		/**
+		 * Adds a division at an arbitrary point along this note's life. This method assumes the duration has already been
+		 * built and normalized.
+		 * 
+		 * @param offset The position at which to make a division.
+		 */
 		public void addDivision(long offset)
 		{
-			// don't add start or endpoints
-			if (offset!=this.getOffset() && offset!=this.getOffset()+this.duration)
+			// don't add start or endpoints or items outside this note
+			if (offset>this.getOffset() && offset<this.getOffset()+this.duration)
 			{
 				this.divisions.add(offset);
 			}
 		}
 		
+		/**
+		 * Gets a full note representation of this skeletal version, associated to a specific track. This Note may have a Tie
+		 * modifier attached.
+		 * 
+		 * @param track The track to associate with.
+		 * 
+		 * @return The full Note object.
+		 */
 		public Note getNote(Track track)
 		{
-			// remove divisions that are outside of this note or coincide with a boundary
-			for (Iterator<Long> iter=this.divisions.iterator(); iter.hasNext();)
-			{
-				Long division=iter.next();
-				if (division<=this.getOffset() || division>=this.getOffset()+this.getDuration())
-				{
-					iter.remove();
-				}
-			}
+			// theoretically, invalid durations have already been removed, so no need to worry about them
 			if (this.divisions.size()>0)
 			{
 				// sort it so everything isn't ruined - has to be a list for this to happen though

@@ -71,7 +71,10 @@ public class Track
 	{
 		return this.notes;
 	}
-
+	
+	/**
+	 * Add a note to this track.
+	 */
 	public void addNote(Note note)
 	{
 		this.notes.add(note);

@@ -39,7 +39,7 @@ public class Note
 	private boolean playable;
 	
 	/**
-	 * Creates a Note.
+	 * Creates a playable Note.
 	 * 
 	 * @param pitch The MIDI pitch of the note.
 	 * @param duration The duration of the note, in beats.
@@ -51,6 +51,15 @@ public class Note
 		this(pitch,duration,dynamic,track,true);
 	}
 	
+	/**
+	 * Creates a Note that may or may not be playable.
+	 * 
+	 * @param pitch The MIDI pitch of the note.
+	 * @param duration The duration of the note, in beats.
+	 * @param dynamic The dynamic of the note.
+	 * @param track The track which contains the note.
+	 * @param playable Whether or not this note is playable.
+	 */
 	public Note(int pitch,double duration,int dynamic,Track track,boolean playable)
 	{
 		this.pitch=pitch;
@@ -101,16 +110,31 @@ public class Note
 		return this.duration;
 	}
 	
+	/**
+	 * Add a modifier to this note.
+	 * 
+	 * @param modifier The modifier to add.
+	 */
 	public void addModifier(NoteModifier modifier)
 	{
 		this.modifiers.add(modifier);
 	}
 	
+	/**
+	 * Gets all modifiers attached to this note.
+	 * 
+	 * @return All modifiers for this note.
+	 */
 	public List<NoteModifier> getModifiers()
 	{
 		return this.modifiers;
 	}
 	
+	/**
+	 * Whether or not this note should be played.
+	 * 
+	 * @return true if this note should be played, false otherwise.
+	 */
 	public boolean isPlayable()
 	{
 		return this.playable;

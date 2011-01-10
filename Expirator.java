@@ -40,6 +40,8 @@ public class Expirator implements Runnable{
 	 * Sets the note to expire
 	 * @param noteEvent event which contains the note to expire
 	 * @throws ExpiratorBusyException when expirator is already expiring a note 
+	 * 
+	 * @author forana
 	 */
 	public void expireNote(NoteEvent noteEvent) throws ExpiratorBusyException {
 		if(noteEvent==null) {

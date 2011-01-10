@@ -18,16 +18,18 @@ import crescendo.base.song.Track;
 
 /**
  * Plays notes through the software synthesizer, as encapsulated in a NoteEvent object.
+ * 
+ * @author forana
  */
 public class AudioPlayer implements NoteEventListener,FlowController
 {
 	/**
-	 * Allows association from track to channel and note data.
+	 * Associates track to channel and note data.
 	 */
 	private Map<Track,AudioPlayerChannel> channelMap;
 	
 	/**
-	 * The synthesizer object.
+	 * The underlying synthesizer object.
 	 */
 	private Synthesizer synth;
 	
@@ -44,7 +46,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 */
 	public AudioPlayer(SongModel songModel,Track activeTrack)
 	{
-		// initialize relation map... thing
+		// initialize relation map
 		this.channelMap=new HashMap<Track,AudioPlayerChannel>();
 		
 		boolean retry=false;
@@ -85,7 +87,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		for (Track track : songModel.getTracks())
 		{
-			// hey remember, don't add the active track
+			// don't add the active track, or an empty track
 			if (track!=activeTrack && track.getNotes().size()>0)
 			{
 				if (currentChannel<channels.length)
@@ -162,6 +164,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		}
 	}
 	
+	/**
+	 * Pauses all currently playing notes, stopping them, but allowing them to be restarted with a resume() call.
+	 */
 	public void pause()
 	{
 		this.suspended=false;
@@ -171,6 +176,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		}
 	}
 	
+	/**
+	 * Resume playing any paused or suspended notes.
+	 */
 	public void resume()
 	{
 		if (!this.suspended)
@@ -183,12 +191,18 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		this.suspended=false;
 	}
 	
+	/**
+	 * Suspend all notes.
+	 */
 	public void suspend()
 	{
 		// trip flag so we don't blast out new notes
 		this.suspended=true;
 	}
 	
+	/**
+	 * Stop all currently playing notes, without allowing the notes to be resumed.
+	 */
 	public void stop()
 	{
 		this.suspended=false;
@@ -198,6 +212,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		}
 	}
 	
+	/**
+	 * Releases allocated synthesizer object. Once this method is called, all playing notes will stop, and subsequent
+	 * calls to play notes will throw exceptions.
+	 */
 	public void songEnd()
 	{
 		// stop all playing notes
@@ -206,21 +224,36 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		this.synth.close();
 	}
 	
+	/**
+	 * Allows a collection of active notes to be paired with a MidiChannel object.
+	 */
 	private class AudioPlayerChannel
 	{
 		private MidiChannel channel;
 		
 		/**
 		 * Contains a list of active notes and their current velocities.
+		 * 
+		 * @author forana
 		 */
 		private List<Note> activeNotes;
 		
+		/**
+		 * Creates a new AudioPlayerChannel that wraps around a given MidiChannel.
+		 * 
+		 * @param channel The MidiChannel to play notes on.
+		 */
 		public AudioPlayerChannel(MidiChannel channel)
 		{
 			this.channel=channel;
 			this.activeNotes=new LinkedList<Note>();
 		}
 		
+		/**
+		 * Play (turn on) a note.
+		 * 
+		 * @param note The note.
+		 */
 		public void playNote(Note note)
 		{
 			int pitch=note.getPitch();
@@ -238,6 +271,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			this.activeNotes.add(note);
 		}
 		
+		/**
+		 * Stop (turn off) a note.
+		 * 
+		 * @param note The note.
+		 */
 		public void stopNote(Note note)
 		{
 			int pitch=note.getPitch();
@@ -246,11 +284,18 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			this.activeNotes.remove(note);
 		}
 		
+		/**
+		 * Pause this channel's notes, turning them off until resumeNotes is called.
+		 */
 		public void pauseNotes()
 		{
+			// don't remove them from the list
 			this.channel.allNotesOff();
 		}
 		
+		/**
+		 * Resumes any paused notes.
+		 */
 		public void resumeNotes()
 		{
 			for (Note note : this.activeNotes)
@@ -262,6 +307,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			}
 		}
 		
+		/**
+		 * Turn off any playing notes and clear out list of active notes.
+		 */
 		public void stopAllNotes()
 		{
 			this.channel.allNotesOff();

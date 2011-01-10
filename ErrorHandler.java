@@ -2,14 +2,27 @@ package crescendo.base;
 
 import javax.swing.JOptionPane;
 
+/**
+ * Provides static methods for showing simple modal dialogs.
+ * 
+ * @author forana
+ */
 public class ErrorHandler
 {
+	/** Defines all possible responses. **/
 	public static enum Response
 	{
 		OKAY,YES,NO,RETRY,FAIL
 	}
 	
-	/** This should always return OKAY. **/
+	/**
+	 * Shows a text notification.
+	 * 
+	 * @param title The title of the message box.
+	 * @param message The text of the notification.
+	 * 
+	 * @return Response.OKAY
+	 */
 	public static Response showNotification(String title,String message)
 	{
 		JOptionPane.showMessageDialog(null,message,title,JOptionPane.INFORMATION_MESSAGE);
@@ -20,6 +33,11 @@ public class ErrorHandler
 	 * Allows the user to choose between Yes and No.
 	 * If the user doesn't choose either (closes the dialog), it will be shown again
 	 * until one of the buttons is clicked.
+	 * 
+	 * @param title The title of the message box.
+	 * @param message The text of the notification.
+	 * 
+	 * @return Either Response.YES or Response.NO, depending on the user's choice.
 	 */
 	public static Response showYesNo(String title,String message)
 	{
@@ -46,6 +64,11 @@ public class ErrorHandler
 	 * performed.
 	 * 
 	 * If the user closes the dialog, RETRY is returned.
+	 * 
+	 * @param title The title of the message box.
+	 * @param message The text of the notification.
+	 * 
+	 * @return Either Response.RETRY or Response.FAIL, depending on the user's choice.
 	 */
 	public static Response showRetryFail(String title,String message)
 	{

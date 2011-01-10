@@ -81,9 +81,10 @@ public class MidiParser implements SongFileParser
 		// each track header
 		for (int i=0; i<numTracks; i++)
 		{
-			if (stream.readBytes(4)!=0x4D54726B) // MTrk
+			int header=stream.readBytes(4);
+			if (header!=0x4D54726B) // MTrk
 			{
-				throw new IOException("Track header not found");
+				throw new IOException("Track header not found (track #"+(i+1)+": 0x"+Integer.toHexString(header)+")");
 			}
 			// this map will contain all active notes, apply modifiers to them, etc
 			List<SkeletalNote> activeNotes=new LinkedList<SkeletalNote>();
@@ -237,7 +238,7 @@ public class MidiParser implements SongFileParser
 										/*int prefixChannel=*/stream.read();
 										break;
 									case 0x2F: // End of track
-										// TODO handle this
+										// TODO handle this?
 										break;
 									case 0x51: // Set tempo
 										int microSecondsPerQuarterNote=stream.readBytes(3);
@@ -340,14 +341,6 @@ public class MidiParser implements SongFileParser
 						restBeats=seconds*bpm/60;
 					}
 					// a rest's pitch and velocity don't matter, but it isn't playable
-					if (restBeats<0)
-					{
-						System.out.println("What the fuck");
-						System.out.println(j);
-						System.out.println("P: "+snotes.get(j-1).getOffset()+"\t\t"+snotes.get(j-1).getDuration());
-						System.out.println("C: "+current.getOffset()+"\t\t"+current.getDuration());
-						System.out.println(currentTime);
-					}
 					Note rest=new Note(0,restBeats,0,track,false);
 					track.addNote(rest);
 				}
@@ -375,13 +368,12 @@ public class MidiParser implements SongFileParser
 				{
 					simultaneousNotes.add(snotes.get(j+1));
 					j++;
-					System.out.println("Chording away "+j);
 				}
 				if (simultaneousNotes.size()>0)
 				{
 					Note note=current.getNote(track);
 					List<Note> chordNotes=new LinkedList<Note>();
-					chordNotes.add(note);
+					//chordNotes.add(note);
 					for (SkeletalNote skel:simultaneousNotes)
 					{
 						chordNotes.add(skel.getNote(track));
@@ -532,7 +524,6 @@ public class MidiParser implements SongFileParser
 				Long division=iter.next();
 				if (division<=this.getOffset() || division>=this.getOffset()+this.getDuration())
 				{
-					//System.out.println("I am "+this.getOffset()+" - "+(this.getOffset()+this.getDuration())+"; booting "+division);
 					iter.remove();
 				}
 			}

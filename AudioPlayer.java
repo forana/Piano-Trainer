@@ -111,6 +111,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 					// don't forget to increment this... pretty sure someone did once
 					currentChannel++;
 				}
+				else
+				{
+					System.err.println("Clipping track \""+track.getName()+"\"");
+				}
 			}
 		}
 	}

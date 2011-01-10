@@ -20,14 +20,14 @@ public class SongPlayerTest implements NoteEventListener{
 	
 	
 	public SongPlayerTest() throws IOException {
-		testModel = SongFactory.generateSongFromFile("resources/morrowind.mid");
+		testModel = SongFactory.generateSongFromFile("resources/OnlyHappyWhenItRains.mid");
 		testPlayer = new SongPlayer(testModel);
 		AudioPlayer player = new AudioPlayer(testModel, new Track("Test Track",1));
 		testPlayer.attach(player, 100);
 		System.out.println("Starting");
 		testPlayer.play();
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(1000000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

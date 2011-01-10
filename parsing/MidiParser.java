@@ -310,15 +310,17 @@ public class MidiParser implements SongFileParser
 			{
 				continue;
 			}*/
-			Track track=new Track(trackNames[i],trackVoices[i]);
-			int j=0;
 			List<SkeletalNote> snotes=trackNotes.get(i);
-			long currentTime=0;
+			// sort the notes by offset
+			Collections.sort(snotes);
 			// normalize the lengths of all notes (that is, make them more recognizable)
 			for (SkeletalNote note : snotes)
 			{
 				note.normalize();
 			}
+			long currentTime=0;
+			Track track=new Track(trackNames[i],trackVoices[i]);
+			int j=0;
 			while (j<snotes.size())
 			{
 				SkeletalNote current=snotes.get(j);
@@ -338,6 +340,14 @@ public class MidiParser implements SongFileParser
 						restBeats=seconds*bpm/60;
 					}
 					// a rest's pitch and velocity don't matter, but it isn't playable
+					if (restBeats<0)
+					{
+						System.out.println("What the fuck");
+						System.out.println(j);
+						System.out.println("P: "+snotes.get(j-1).getOffset()+"\t\t"+snotes.get(j-1).getDuration());
+						System.out.println("C: "+current.getOffset()+"\t\t"+current.getDuration());
+						System.out.println(currentTime);
+					}
 					Note rest=new Note(0,restBeats,0,track,false);
 					track.addNote(rest);
 				}
@@ -365,6 +375,7 @@ public class MidiParser implements SongFileParser
 				{
 					simultaneousNotes.add(snotes.get(j+1));
 					j++;
+					System.out.println("Chording away "+j);
 				}
 				if (simultaneousNotes.size()>0)
 				{
@@ -382,7 +393,7 @@ public class MidiParser implements SongFileParser
 				{
 					track.addNote(current.getNote(track));
 				}
-				currentTime=current.getOffset()+current.getDuration();
+				currentTime=current.getOffset()+current.getChoppedDuration();
 				j++;
 			}
 			tracks.add(track);
@@ -401,7 +412,7 @@ public class MidiParser implements SongFileParser
 		return model;
 	}
 	
-	private class SkeletalNote
+	private class SkeletalNote implements Comparable<SkeletalNote>
 	{
 		private int pitch;
 		private int velocity;
@@ -430,6 +441,20 @@ public class MidiParser implements SongFileParser
 			return this.duration;
 		}
 		
+		public long getChoppedDuration()
+		{
+			if (this.divisions.size()>0)
+			{
+				List<Long> sortedDivisions=new ArrayList<Long>(this.divisions);
+				Collections.sort(sortedDivisions);
+				return sortedDivisions.get(0)-this.offset;
+			}
+			else
+			{
+				return this.duration;
+			}
+		}
+		
 		public void addDuration(int delta)
 		{
 			this.duration+=delta;
@@ -446,15 +471,20 @@ public class MidiParser implements SongFileParser
 			double numbeats;
 			if (timeMode==0)
 			{
-				numbeats=1.0*this.getDuration()/ticksPerBeat;
+				numbeats=1.0*this.duration/ticksPerBeat;
 			}
 			else
 			{
-				double frames=this.getDuration()/ticksPerFrame;
+				double frames=this.duration/ticksPerFrame;
 				double seconds=frames/framesPerSecond;
 				numbeats=seconds*bpm/60;
 			}
 			this.numBeats=numbeats;
+		}
+		
+		public int compareTo(SkeletalNote other)
+		{
+			return (int)(this.getOffset()-other.getOffset());
 		}
 		
 		public void normalize()
@@ -487,7 +517,11 @@ public class MidiParser implements SongFileParser
 		// at this point we don't care if it's within the range of the note or not
 		public void addDivision(long offset)
 		{
-			this.divisions.add(offset);
+			// don't add start or endpoints
+			if (offset!=this.getOffset() && offset!=this.getOffset()+this.duration)
+			{
+				this.divisions.add(offset);
+			}
 		}
 		
 		public Note getNote(Track track)
@@ -498,7 +532,7 @@ public class MidiParser implements SongFileParser
 				Long division=iter.next();
 				if (division<=this.getOffset() || division>=this.getOffset()+this.getDuration())
 				{
-					System.out.println("I am "+this.getOffset()+" - "+(this.getOffset()+this.getDuration())+"; booting "+division);
+					//System.out.println("I am "+this.getOffset()+" - "+(this.getOffset()+this.getDuration())+"; booting "+division);
 					iter.remove();
 				}
 			}

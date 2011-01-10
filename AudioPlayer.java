@@ -86,28 +86,31 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		for (Track track : songModel.getTracks())
 		{
 			// hey remember, don't add the active track
-			if (track!=activeTrack)
+			if (track!=activeTrack && track.getNotes().size()>0)
 			{
-				Instrument instrument;
-				try
+				if (currentChannel<channels.length)
 				{
-					instrument=instruments[track.getVoice()];
+					Instrument instrument;
+					try
+					{
+						instrument=instruments[track.getVoice()];
+					}
+					catch (ArrayIndexOutOfBoundsException e)
+					{
+						instrument=instruments[0];
+					}
+					
+					MidiChannel channel=channels[currentChannel];
+					channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
+					
+					AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
+					
+					// add it to the map
+					this.channelMap.put(track,playerChannel);
+					
+					// don't forget to increment this... pretty sure someone did once
+					currentChannel++;
 				}
-				catch (ArrayIndexOutOfBoundsException e)
-				{
-					instrument=instruments[0];
-				}
-				
-				MidiChannel channel=channels[currentChannel];
-				channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
-				
-				AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
-				
-				// add it to the map
-				this.channelMap.put(track,playerChannel);
-				
-				// don't forget to increment this... pretty sure someone did once
-				currentChannel++;
 			}
 		}
 	}

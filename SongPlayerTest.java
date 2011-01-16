@@ -20,9 +20,9 @@ public class SongPlayerTest implements NoteEventListener{
 	
 	
 	public SongPlayerTest() throws IOException {
-		testModel = SongFactory.generateSongFromFile("resources/OnlyHappyWhenItRains.mid");
+		testModel = SongFactory.generateSongFromFile("resources/morrowind.mid");
 		testPlayer = new SongPlayer(testModel);
-		AudioPlayer player = new AudioPlayer(testModel, new Track("Test Track",1));
+		AudioPlayer player = new AudioPlayer(testModel, null);
 		testPlayer.attach(player, 100);
 		System.out.println("Starting");
 		testPlayer.play();

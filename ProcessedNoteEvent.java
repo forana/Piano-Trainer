@@ -15,13 +15,17 @@ public class ProcessedNoteEvent
 	/** The note it was paired to. **/
 	private NoteEvent expectedNote;
 	
+	/** Whether or not this pairing is to be considered 'correct'. **/
+	private boolean correct;
+	
 	/**
 	 * Creates a new event. Either parameter may be null, but not both.
 	 * 
 	 * @param expectedNote The note that was expected.
 	 * @param playedNote The note the user played.
+	 * @param correct Whether or note the note is correct.
 	 */
-	public ProcessedNoteEvent(NoteEvent expectedNote,MidiEvent playedNote)
+	public ProcessedNoteEvent(NoteEvent expectedNote,MidiEvent playedNote,boolean correct)
 	{
 		if (expectedNote==null && playedNote==null)
 		{
@@ -29,6 +33,7 @@ public class ProcessedNoteEvent
 		}
 		this.playedNote=playedNote;
 		this.expectedNote=expectedNote;
+		this.correct=correct;
 	}
 	
 	/**
@@ -42,12 +47,22 @@ public class ProcessedNoteEvent
 	}
 	
 	/**
-	 * The note the system expected
+	 * The note the system expected.
 	 * 
 	 * @return The note that was expected, or null if no note was expected.
 	 */
 	public NoteEvent getExpectedNote()
 	{
 		return this.expectedNote;
+	}
+	
+	/**
+	 * Whether or not the note is correct.
+	 * 
+	 * @return true if the note was judged correct, false otherwise.
+	 */
+	public boolean isCorrect()
+	{
+		return this.correct;
 	}
 }

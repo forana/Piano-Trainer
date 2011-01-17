@@ -3,6 +3,7 @@ package crescendo.base;
 import crescendo.base.EventDispatcher.MidiEvent;
 import crescendo.base.EventDispatcher.MidiEventListener;
 import crescendo.base.EventDispatcher.ActionType;
+import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import java.util.List;
 import java.util.LinkedList;
@@ -30,6 +31,9 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	/** All subscribed ProcessedNoteEventListeners. */
 	private List<ProcessedNoteEventListener> processedListeners;
 	
+	/** The heuristics that will judge notes correct or incorrect. */
+	private HeuristicsModel heuristics;
+	
 	/** This constructor is kludge for ThreadPoolTest until we figure out something better. */
 	public SongValidator()
 	{
@@ -41,10 +45,10 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	 * @param activeTrack The track the user is playing.
 	 * @param timeout The amount of time to allow to pass before a note is considered missed.
 	 */
-	public SongValidator(Track activeTrack,int timeout)
+	public SongValidator(SongModel model,Track activeTrack,HeuristicsModel heuristics)
 	{
 		this.activeTrack=activeTrack;
-		this.timeout=timeout;
+		this.timeout=(int)(heuristics.getTimingInterval()*model.getBPM()*60*1000);
 		this.pool=new ThreadPool(this,POOL_SIZE,this.timeout);
 		this.processedListeners=new LinkedList<ProcessedNoteEventListener>();
 	}
@@ -223,7 +227,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 				matched.flag();
 			}
 		}
-		ProcessedNoteEvent processed=new ProcessedNoteEvent(matchedEvent,midiEvent);
+		ProcessedNoteEvent processed=new ProcessedNoteEvent(matchedEvent,midiEvent,heuristics.judge(matchedEvent,midiEvent));
 		for (ProcessedNoteEventListener listener : this.processedListeners)
 		{
 			listener.handleProcessedNoteEvent(processed);
@@ -238,7 +242,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	 */
 	public void noteExpired(NoteEvent noteEvent)
 	{
-		ProcessedNoteEvent processed=new ProcessedNoteEvent(noteEvent,null);
+		ProcessedNoteEvent processed=new ProcessedNoteEvent(noteEvent,null,false);
 		for (ProcessedNoteEventListener listener : this.processedListeners)
 		{
 			listener.handleProcessedNoteEvent(processed);

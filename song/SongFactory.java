@@ -26,7 +26,8 @@ public class SongFactory
 	{
 		SongFileParser parser=null;
 		File file=new File(filename);
-		if (filename.toLowerCase().endsWith(".mxl"))
+		// xml is a temporary hack so I can test without having to add unraring - forana
+		if (filename.toLowerCase().endsWith(".mxl") || filename.toLowerCase().endsWith(".xml"))
 		{
 			// do das musicXML
 			parser = new MusicXmlParser();

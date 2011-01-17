@@ -87,9 +87,12 @@ public class Track
 	public class TrackIterator implements Iterator<Note> {
 		private ListIterator<Note> iter;
 		private double beatOffset;
+		private double beatsPassed;
+		
 		public TrackIterator() {
 			iter = notes.listIterator();
 			beatOffset=0;
+			beatsPassed=0;
 		}
 
 		@Override
@@ -103,7 +106,9 @@ public class Track
 		 * @return if the track has enough notes to fill the requested number of beats
 		 */
 		public boolean hasNext(double beats) {
-			double beatCount = 0;
+			// commenting this out for now; unless I'm mistaken this has the same effect
+			// for a far lesser cost - forana
+			/*double beatCount = 0;
 			int iterCount = 0;
 			while(iter.hasNext() && beatCount<beats){
 				beatCount+=iter.next().getDuration();
@@ -112,7 +117,8 @@ public class Track
 			for(;iterCount>0;iterCount--){
 				iter.previous();
 			}
-			return beatCount>=beats;
+			return beatCount>=beats;*/
+			return iter.hasNext();
 		}
 
 		@Override
@@ -138,7 +144,13 @@ public class Track
 				}
 				beatOffset = beatCount - (beats+beatOffset);
 			}
+			beatsPassed+=beats;
 			return nextNotes;
+		}
+		
+		public double getBeatsPassed()
+		{
+			return beatsPassed;
 		}
 
 		@Override

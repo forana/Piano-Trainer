@@ -13,6 +13,8 @@ import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.base.song.Track.TrackIterator;
+import crescendo.base.song.modifier.NoteModifier;
+import crescendo.base.song.modifier.Chord;
 
 /**
  * A SongPlayer does the actual running through the song and propagation of events.
@@ -163,26 +165,46 @@ public class SongPlayer
 
 		double bpms = (double)songModel.getBPM()/(double)60000; //calculate the number of beats per millisecond
 		if(now>=nextPoll){
-			for(TrackIterator iter : iterators.values()){
+			for(Iterator<TrackIterator> iterIter=iterators.values().iterator(); iterIter.hasNext();){
+				TrackIterator iter=iterIter.next();
 				double offset = iter.getOffset() * bpms;	//figure out the offset in milliseconds (rather than in beats)
 				//get the list of notes within the next amount of beats. 
 				//Get notes more than how many beats ahead the longest listener wants their beats
-				List<Note> notes = iter.next(this.longestListener/1000f/60f * songModel.getBPM());
-				for(Note note : notes){
-					if(note.getDynamic()>0){
-						//Create the note events
-						NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) (offset+now));
-						NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) (offset+now+(note.getDuration()/(double)songModel.getBPM())*60*1000));
-						activeNotes.put(ne, new LinkedList<NoteEventListener>());
-						activeNotes.put(neEnd, new LinkedList<NoteEventListener>());
-						offset+=note.getDuration();
+				if (iter.hasNext())
+				{
+					List<Note> notes = iter.next(this.longestListener*bpms);
+					for(int i=0; i<notes.size(); i++){ // changed from iterator so concurrentmodification doesn't happen
+						Note note=notes.get(i);
+						if(note.getDynamic()>0){
+							//Create the note events
+							NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) (2*longestListener+offset+now));
+							NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) (2*longestListener+offset+now+note.getDuration()/bpms));
+							activeNotes.put(ne,new LinkedList<NoteEventListener>());
+							activeNotes.put(neEnd,new LinkedList<NoteEventListener>());
+							offset+=note.getDuration();
+						}
+						// kludge while we make things work
+						for (NoteModifier modifier : note.getModifiers())
+						{
+							if (modifier instanceof Chord)
+							{
+								for (Note modNote : modifier.getNotes())
+								{
+									notes.add(modNote);
+								}
+							}
+						}
 					}
+				}
+				else
+				{
+					iterIter.remove();
 				}
 			}
 			nextPoll = now+longestListener;
 		}
 
-		boolean noteplayed = false;
+		
 		//Pump out note events
 		NoteEvent event = null;
 		for(Iterator<NoteEvent> i = activeNotes.keySet().iterator(); i.hasNext();) {
@@ -191,19 +213,19 @@ public class SongPlayer
 			{
 				i.remove(); //This removes the note from the map
 			}else{
+				List<NoteEventListener> thisList=activeNotes.get(event);
 				for(NoteEventListener listener : listeners.keySet()) {
 					//Only send the note if it is within the correct range, and the listener has not received it yet
 					if(now >= (event.getTimestamp()-listeners.get(listener))
-							&& !activeNotes.get(event).contains(listener)) {
-						System.out.println(event.getNote().getPitch()+" - "+event.getAction());
+							&& !thisList.contains(listener)) {
+						//System.out.println(event.getNote().getPitch()+" - "+event.getAction());
 						listener.handleNoteEvent(event);
-						activeNotes.get(event).add(listener);
-						noteplayed=true;
+						thisList.add(listener);
 					}
 				}
 			}
 		}
-		if(noteplayed){System.out.println("------------ frame -----------");}
+		//if(noteplayed){System.out.println("------------ frame -----------");}
 	}
 
 	/**
@@ -213,6 +235,7 @@ public class SongPlayer
 	 */
 	private class PlayerTimer implements Runnable {
 		private final int FRAMES_PER_SECOND = 500;
+		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
 		/** number of milliseconds from the epoch of when the last frame started */
 		private long lastFrame = 0;
 
@@ -224,11 +247,11 @@ public class SongPlayer
 			while(doContinue) {
 				long now = System.currentTimeMillis();
 				if(!isPaused) {
-					if(now > (lastFrame + (1000.0/(float)FRAMES_PER_SECOND))) {
+					if(now > (lastFrame + MS_DELAY)) {
 						update();			
 					}else{
 						try {
-							Thread.sleep(5); // Dont eat up all the processor
+							Thread.sleep(10); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}

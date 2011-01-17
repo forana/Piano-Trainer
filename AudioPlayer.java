@@ -23,6 +23,20 @@ import crescendo.base.song.Track;
  */
 public class AudioPlayer implements NoteEventListener,FlowController
 {
+	public static Instrument[] instrumentList;
+	
+	static {
+		try {
+			Synthesizer tempSynth=MidiSystem.getSynthesizer();
+			tempSynth.open();
+			instrumentList=tempSynth.getDefaultSoundbank().getInstruments();
+			tempSynth.close();
+		}
+		catch (MidiUnavailableException e)
+		{
+			instrumentList=new Instrument[0];
+		}
+	}
 	/**
 	 * Associates track to channel and note data.
 	 */
@@ -77,7 +91,6 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		// get channels and instruments
 		MidiChannel[] channels=this.synth.getChannels();
-		Instrument[] instruments=this.synth.getAvailableInstruments();
 		
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
@@ -95,11 +108,13 @@ public class AudioPlayer implements NoteEventListener,FlowController
 					Instrument instrument;
 					try
 					{
-						instrument=instruments[track.getVoice()];
+						
+						instrument=instrumentList[track.getVoice()];
 					}
 					catch (ArrayIndexOutOfBoundsException e)
 					{
-						instrument=instruments[0];
+						instrument=instrumentList[0];
+						System.err.println("No instrument found for '"+track.getName()+"' (index "+track.getVoice()+")");
 					}
 					
 					MidiChannel channel=channels[currentChannel];

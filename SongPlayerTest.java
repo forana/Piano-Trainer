@@ -21,11 +21,10 @@ public class SongPlayerTest implements NoteEventListener{
 	
 	public SongPlayerTest() throws IOException {
 
-		testModel = SongFactory.generateSongFromFile("resources/songplayertest.mxl");
+		testModel = SongFactory.generateSongFromFile("resources/pkmn-champion.mid");
 		testPlayer = new SongPlayer(testModel);
 		AudioPlayer player = new AudioPlayer(testModel, null);
 		testPlayer.attach(player, 100);
-		System.out.println("Starting");
 		testPlayer.play();
 		try {
 			Thread.sleep(1000000);

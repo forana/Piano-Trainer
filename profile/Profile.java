@@ -14,6 +14,12 @@ public class Profile implements Serializable,Comparable{
 
 	private static final long serialVersionUID = -809118196452135843L;
 	
+	
+	//TODO: preferred midi devide (string)
+	//TODO: bool for dynamic grading
+	//TODO: bool for pitch grading
+	//TODO: bool for timing grading
+	
 	/** name of profile **/
 	private String name;
 	

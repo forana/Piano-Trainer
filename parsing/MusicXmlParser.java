@@ -40,7 +40,7 @@ public class MusicXmlParser implements SongFileParser{
 	
 	
 	//All of the possible named notes in midi
-	private static String[] midiNoteArray = new String[]{"c","db","d","eb","f","gb","g","ab","a","bb","b"};
+	private static String[] midiNoteArray = new String[]{"c","db","d","eb","e","f","gb","g","ab","a","bb","b"};
 	
 	/**
 	 * Constructs a MusicXmlParser

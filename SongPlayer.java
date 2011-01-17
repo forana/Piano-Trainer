@@ -81,8 +81,6 @@ public class SongPlayer
 		doContinue = true;
 		pauseOffset = 0;
 		timerContainer.start();
-		//get a new iterator from the song model
-
 	}
 
 	public void pause() {
@@ -163,15 +161,18 @@ public class SongPlayer
 	private void update() {
 		long now = System.currentTimeMillis();
 
-		double bpms = (double)songModel.getBPM()/(double)60000;
+		double bpms = (double)songModel.getBPM()/(double)60000; //calculate the number of beats per millisecond
 		if(now>=nextPoll){
 			for(TrackIterator iter : iterators.values()){
-				double offset = iter.getOffset() * bpms;
+				double offset = iter.getOffset() * bpms;	//figure out the offset in milliseconds (rather than in beats)
+				//get the list of notes within the next amount of beats. 
+				//Get notes more than how many beats ahead the longest listener wants their beats
 				List<Note> notes = iter.next(this.longestListener/1000f/60f * songModel.getBPM());
 				for(Note note : notes){
 					if(note.getDynamic()>0){
+						//Create the note events
 						NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) (offset+now));
-						NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) (offset+now+(note.getDuration()/(int)songModel.getBPM())*60*1000));
+						NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) (offset+now+(note.getDuration()/(double)songModel.getBPM())*60*1000));
 						activeNotes.put(ne, new LinkedList<NoteEventListener>());
 						activeNotes.put(neEnd, new LinkedList<NoteEventListener>());
 						offset+=note.getDuration();
@@ -181,11 +182,11 @@ public class SongPlayer
 			nextPoll = now+longestListener;
 		}
 
+		boolean noteplayed = false;
 		//Pump out note events
 		NoteEvent event = null;
 		for(Iterator<NoteEvent> i = activeNotes.keySet().iterator(); i.hasNext();) {
 			event = i.next();
-			//System.out.println(event.getAction());
 			if(now > event.getTimestamp())
 			{
 				i.remove(); //This removes the note from the map
@@ -194,12 +195,15 @@ public class SongPlayer
 					//Only send the note if it is within the correct range, and the listener has not received it yet
 					if(now >= (event.getTimestamp()-listeners.get(listener))
 							&& !activeNotes.get(event).contains(listener)) {
+						System.out.println(event.getNote().getPitch()+" - "+event.getAction());
 						listener.handleNoteEvent(event);
 						activeNotes.get(event).add(listener);
+						noteplayed=true;
 					}
 				}
 			}
 		}
+		if(noteplayed){System.out.println("------------ frame -----------");}
 	}
 
 	/**
@@ -224,7 +228,7 @@ public class SongPlayer
 						update();			
 					}else{
 						try {
-							Thread.sleep(10); // Dont eat up all the processor
+							Thread.sleep(5); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}
@@ -232,7 +236,7 @@ public class SongPlayer
 					pauseOffset+=(now-lastFrame);
 				}
 				lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-				//ensure that we get the correct frames, no matter how long update takes
+									//ensure that we get the correct frames, no matter how long update takes
 			}
 		}
 	}

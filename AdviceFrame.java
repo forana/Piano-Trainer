@@ -2,8 +2,6 @@ package crescendo.sheetmusic;
 
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
-import crescendo.base.NoteEvent;
-import crescendo.base.EventDispatcher.MidiEvent;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -17,11 +15,13 @@ import java.util.LinkedList;
 
 public class AdviceFrame extends JPanel implements ProcessedNoteEventListener
 {
+	private static final long serialVersionUID=1L;
+	
 	private static final int BACKGROUND_COLOR=0x666666;
 	private static final int TEXT_COLOR=0xFFFFFF;
+	private static final Font FONT=new Font(Font.SANS_SERIF,Font.BOLD,16);
 	
 	private JLabel label;
-	private int currentFadeout;
 	
 	private List<AdvicePattern> patterns;
 	
@@ -31,7 +31,7 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener
 		this.setBackground(new Color(BACKGROUND_COLOR));
 		this.label=new JLabel("");
 		this.label.setForeground(new Color(TEXT_COLOR));
-		this.label.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
+		this.label.setFont(FONT);
 		this.label.setHorizontalAlignment(JLabel.LEFT);
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints c=new GridBagConstraints();

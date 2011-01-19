@@ -8,12 +8,11 @@ import crescendo.base.EventDispatcher.MidiEvent;
  * 
  * @author forana
  */
-public class HeuristicsModel
-{
+public class HeuristicsModel {
 	/**
-	 * Default amount of time to allow for note expiration.
+	 * Default amount of time to allow for note expiration (in beats).
 	 */
-	private static double DEFAULT_TIMING_INTERVAL=0.75;
+	private static double DEFAULT_TIMING_INTERVAL=0.5;
 	
 	/**
 	 * Default tolerance for velocity.
@@ -38,8 +37,7 @@ public class HeuristicsModel
 	 * @param listenPitch Whether or not to care about pitch differences.
 	 * @param listenVelocity Whether or note to care about velocity differences.
 	 */
-	public HeuristicsModel(boolean listenPitch,boolean listenVelocity)
-	{
+	public HeuristicsModel(boolean listenPitch,boolean listenVelocity) {
 		this.timingInterval=DEFAULT_TIMING_INTERVAL;
 		this.velocityTolerance=DEFAULT_VELOCITY_TOLERANCE;
 		this.listenPitch=listenPitch;
@@ -54,8 +52,7 @@ public class HeuristicsModel
 	 * @param listenPitch Whether or not to care about pitch differences.
 	 * @param listenVelocity Whether or note to care about velocity differences.
 	 */
-	public HeuristicsModel(double timingInterval,int velocityTolerance,boolean listenPitch,boolean listenVelocity)
-	{
+	public HeuristicsModel(double timingInterval,int velocityTolerance,boolean listenPitch,boolean listenVelocity) {
 		this.timingInterval=timingInterval;
 		this.velocityTolerance=velocityTolerance;
 		this.listenPitch=listenPitch;
@@ -67,8 +64,7 @@ public class HeuristicsModel
 	 * 
 	 * @return The number of beats away a note can be and still be correct.
 	 */
-	public double getTimingInterval()
-	{
+	public double getTimingInterval() {
 		return this.timingInterval;
 	}
 	
@@ -80,12 +76,11 @@ public class HeuristicsModel
 	 * 
 	 * @return true if the note is judged correct, false otherwise.
 	 */
-	public boolean judge(NoteEvent expected,MidiEvent played)
-	{
-		if (expected==null || played==null)
-		{
+	public boolean judge(NoteEvent expected,MidiEvent played) {
+		if (expected==null || played==null) {
 			return false;
 		}
+		// TODO explain this here
 		return (!this.listenPitch || (expected.getNote().getPitch()==played.getNote())) &&
 			(!this.listenVelocity || (Math.abs(expected.getNote().getDynamic()-played.getVelocity())<=this.velocityTolerance));
 	}

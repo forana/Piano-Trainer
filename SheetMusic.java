@@ -1,7 +1,12 @@
-package crescendo.module.sheetmusic;
+package crescendo.sheetmusic;
 
+import java.awt.BorderLayout;
 import java.io.IOException;
+
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
 import crescendo.base.AudioPlayer;
 import crescendo.base.ErrorHandler;
 import crescendo.base.ErrorHandler.Response;
@@ -17,12 +22,28 @@ public class SheetMusic extends Module{
 	private String loadedSongPath;	//Save path for resuming after invalid shutdown
 	
 	//private FlowController flowController;
-	//private Feedback feedback;
-	//private SongEngine songEngine;
+	private AdviceFrame adviceFeedbackFrame;
+	private MusicEngine musicEngine;
+	private ScoreFrame scoreFeedbackFrame;
 	
+	private SongPlayer songPlayer;
+	
+	private JPanel bottomBarContainer;
+	
+	private JScrollPane mainAreaTarget;
 	
 	public SheetMusic(){
-		//TODO:Load up the UI  
+		//TODO:Load up the UI
+		bottomBarContainer = new JPanel();
+		bottomBarContainer.setVisible(false);
+		
+		mainAreaTarget = new JScrollPane();
+		mainAreaTarget.setVisible(false);
+		
+		this.setLayout(new BorderLayout());
+		
+		add(mainAreaTarget,BorderLayout.CENTER);
+		add(bottomBarContainer,BorderLayout.SOUTH);
 	}
 	
 	/**
@@ -34,6 +55,10 @@ public class SheetMusic extends Module{
 		
 		//load up the state information
 
+	}
+	
+	public void showSongSelectionScreen(){
+		//load the song selection screen
 	}
 
 	public void loadSong(String filename){
@@ -70,11 +95,29 @@ public class SheetMusic extends Module{
 		//End work-around
 		
 		
-		//Hook up song processor peices
+		//Initialize UI Pieces
+		adviceFeedbackFrame = new AdviceFrame();
+		scoreFeedbackFrame = new ScoreFrame(selectedSongModel.getTracks().get(activeTrack));
+		musicEngine = new MusicEngine(selectedSongModel);
+	
+		
+		bottomBarContainer.add(adviceFeedbackFrame);
+		bottomBarContainer.setVisible(true);
+		
+		mainAreaTarget.setViewportView(musicEngine);
+		mainAreaTarget.setVisible(true);
+		
+		add(scoreFeedbackFrame,BorderLayout.NORTH);
+		
+		//Add the progress frame to the bottom bar container...
+		
+		
+		//Hook up song processor pieces
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
-		SongPlayer songPlayer = new SongPlayer(selectedSongModel);
+		songPlayer = new SongPlayer(selectedSongModel);
 		SongValidator validator = new SongValidator();
 		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
+		
 		
 		//Attach input events
 		dispatcher.attach(validator);
@@ -82,23 +125,48 @@ public class SheetMusic extends Module{
 		//Attach note events
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
 		songPlayer.attach(validator,50); //base this number in the huristics model
-			//song engine
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);
 		songPlayer.attach(validator);
 		
 		//Attach processed note events
-			//feedback
-			//song engine
+		validator.attach(adviceFeedbackFrame);
+		validator.attach(scoreFeedbackFrame);
+		validator.attach(musicEngine);
 	
 	}
 
+	public void play(){
+		songPlayer.play();
+		musicEngine.play();
+	}
+	
+	public void pause(){
+		songPlayer.pause();
+		musicEngine.pause();
+	}
+	
+	public void resume(){
+		songPlayer.resume();
+		musicEngine.resume();
+	}
+	
+	public void stop(){
+		songPlayer.stop();
+		musicEngine.stop();
+	}
 
 
 	@Override
 	public String saveState() {
 		return loadedSongPath;
+	}
+
+	@Override
+	public void cleanUp() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

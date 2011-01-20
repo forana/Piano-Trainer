@@ -1,21 +1,23 @@
-package crescendo.module.sheetmusic;
+package crescendo.sheetmusic;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
-import java.util.HashMap;
-import java.util.Map;
+
+import crescendo.base.ProcessedNoteEvent;
+import crescendo.base.ProcessedNoteEventListener;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 
-public class MusicEngine extends Canvas{
+public class MusicEngine extends Canvas implements ProcessedNoteEventListener {
 	
 	private Thread timerThread;
 	private boolean isLooping;
 	private SongModel songModel;
-	//private Map<Note,MetaNote> notes;
+	//private Map<Note,DrawableNote> notes;
 	private double currentPosition;
 	private Note sectionStartNote;
 	private Note sectionEndNote;
+	//private List<Drawable> drawables;
 	
 
 	public MusicEngine(SongModel model){
@@ -65,6 +67,31 @@ public class MusicEngine extends Canvas{
 	@Override
 	public void paint(Graphics g){
 
+	}
+	
+	public void play(){
+		
+	}
+	
+	public void pause(){
+		
+	}
+	
+	public void stop(){
+		
+	}
+	
+	public void resume(){
+		
+	}
+	
+	@Override
+	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
+		if(e.getExpectedNote()==null){
+			//Create a new incorrect note
+		}else{
+			//notes.get(e.getExpectedNote()).setCorrect(e.isCorrect());
+		}
 	}
 	
 	private class MusicEngineTimer implements Runnable{

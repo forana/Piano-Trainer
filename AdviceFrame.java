@@ -2,6 +2,7 @@ package crescendo.sheetmusic;
 
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
+import crescendo.sheetmusic.advicepattern.*;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -63,7 +64,10 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 	 */
 	private void buildPatterns() {
 		this.patterns=new LinkedList<AdvicePattern>();
-		this.patterns.add(new EarlyNotesPattern());
+		this.patterns.add(new QuietPattern());
+		this.patterns.add(new LoudPattern());
+		this.patterns.add(new EarlyPattern());
+		this.patterns.add(new LatePattern());
 	}
 	
 	/**
@@ -93,68 +97,5 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 	private void setText(String text) {
 		this.label.setText(text);
 		this.repaint();
-	}
-	
-	/**
-	 * Provides a pattern that is triggered if a number of notes are played too early.
-	 * 
-	 * @author forana
-	 */
-	private class EarlyNotesPattern implements AdvicePattern {
-		private static final int MAX_TRANSGRESSIONS=3;
-		private static final int TRIGGER_LEVEL=6;
-		
-		// number that were early
-		private int earlyCount;
-		
-		// number that weren't early
-		private int transgressions;
-		
-		/**
-		 * Creates a new pattern.
-		 */
-		public EarlyNotesPattern() {
-			this.earlyCount=0;
-			this.transgressions=0;
-		}
-		
-		/**
-		 * Consider a new event.
-		 * 
-		 * @param event The event to consider.
-		 */
-		public void addEvent(ProcessedNoteEvent e) {
-			// a missed/extra note isn't early
-			if (e.getExpectedNote()==null || e.getPlayedNote()==null) {
-				transgressions++;
-			} else if (e.getExpectedNote().getTimestamp()<=e.getPlayedNote().getTimestamp()) {
-				transgressions++;
-			} else {
-				earlyCount++;
-			}
-			// reset?
-			if (transgressions>MAX_TRANSGRESSIONS) {
-				earlyCount=0;
-				transgressions=0;
-			}
-		}
-		
-		/**
-		 * Determines if the pattern is currently matched.
-		 * 
-		 * @return true if the pattern is matched, false otherwise.
-		 */
-		public boolean matched() {
-			return this.earlyCount>=TRIGGER_LEVEL;
-		}
-		
-		/**
-		 * The message that should be displayed if the pattern is matched.
-		 * 
-		 * @return the message.
-		 */
-		public String getMessage() {
-			return "You're playing a little early.";
-		}
 	}
 }

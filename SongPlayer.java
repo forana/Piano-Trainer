@@ -22,7 +22,7 @@ import crescendo.base.song.modifier.Chord;
  * @author forana
  * @author gartmannn
  */
-public class SongPlayer
+public class SongPlayer implements FlowController
 {
 
 
@@ -108,6 +108,22 @@ public class SongPlayer
 			controller.stop();
 		}
 		doContinue=false;
+	}
+	
+	@Override
+	public void songEnd() {
+		for(FlowController controller : controllers) {
+			controller.songEnd();
+		}
+		doContinue=false;
+	}
+
+	@Override
+	public void suspend() {
+		isPaused = true;
+		for(FlowController controller : controllers) {
+			controller.suspend();
+		}		
 	}
 
 	/**

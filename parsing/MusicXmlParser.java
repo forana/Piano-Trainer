@@ -2,6 +2,7 @@ package crescendo.base.parsing;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import crescendo.base.song.Creator;
@@ -65,10 +68,20 @@ public class MusicXmlParser implements SongFileParser{
 		boolean validating = false; //Semaphore for the DocumentBuilderFactory
 		DocumentBuilderFactory factory  = DocumentBuilderFactory.newInstance();
 		factory.setValidating(validating);
+		// fix for no-internet issue, part 1 - forana
+		factory.setSchema(null);
+		// end part 1
 		DocumentBuilder builder;
 		Document document = null;
 		try {
 			builder = factory.newDocumentBuilder();
+			// fix for no-internet issue, part 2 - forana
+			builder.setEntityResolver(new EntityResolver() {
+				public InputSource resolveEntity(String publicId,String systemId) throws SAXException,IOException {
+					return new InputSource(new StringReader(""));
+				}
+			});
+			// end part 2
 			document = builder.parse(file);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -104,7 +117,7 @@ public class MusicXmlParser implements SongFileParser{
 			parseWork(node);
 			parseChildren = false;
 		}else if(nodeName.equals("movement-number")){
-			movementNumber = Integer.parseInt(node.getTextContent());
+			movementNumber = node.getTextContent()==""?0:Integer.parseInt(node.getTextContent());
 		}else if(nodeName.equals("movement-title")){
 			movementTitle = node.getTextContent();
 		}else if(nodeName.equals("creator")){
@@ -116,7 +129,7 @@ public class MusicXmlParser implements SongFileParser{
 		}else if(nodeName.equals("measure")){
 			currentMeasure = Integer.parseInt(node.getAttributes().getNamedItem("number").getNodeValue());
 		}else if(nodeName.equals("divisions")){
-			currentDivision = Integer.parseInt(node.getTextContent());
+			currentDivision = node.getTextContent()==""?0:Integer.parseInt(node.getTextContent());
 		}else if(nodeName.equals("key")){
 			//TODO handle key signature
 			if(currentMeasure==1){
@@ -129,7 +142,7 @@ public class MusicXmlParser implements SongFileParser{
 			int beatNote = -1;
 			for(int i=0;i<node.getChildNodes().getLength();i++){
 				if(node.getChildNodes().item(i).getNodeName().equals("beats")){
-					beatsPerMeasure = Integer.parseInt(node.getChildNodes().item(i).getTextContent());
+					beatsPerMeasure = node.getChildNodes().item(i).getTextContent()==""?0:Integer.parseInt(node.getChildNodes().item(i).getTextContent());
 				}else if(node.getChildNodes().item(i).getNodeName().equals("beat-type")){
 					beatNote = Integer.parseInt(node.getChildNodes().item(i).getTextContent());
 				}
@@ -205,18 +218,18 @@ public class MusicXmlParser implements SongFileParser{
 			for(int i=0;i<node.getChildNodes().getLength();i++)
 			{
 				if(node.getChildNodes().item(i).getNodeName().equals("step")){
-					note = node.getChildNodes().item(i).getTextContent().toLowerCase().charAt(0);
+					note = node.getChildNodes().item(i).getTextContent()==""?0:node.getChildNodes().item(i).getTextContent().toLowerCase().charAt(0);
 				}else if(node.getChildNodes().item(i).getNodeName().equals("alter")){
-					alter = Integer.parseInt(node.getChildNodes().item(i).getTextContent());
+					alter = node.getTextContent()==""?0:Integer.parseInt(node.getChildNodes().item(i).getTextContent());
 				}else if(node.getChildNodes().item(i).getNodeName().equals("octave")){
-					octave = Integer.parseInt(node.getChildNodes().item(i).getTextContent());
+					octave = node.getTextContent()==""?0:Integer.parseInt(node.getChildNodes().item(i).getTextContent());
 				}
 			}
 			pitch = noteToMidi(note,alter,octave);
 		}else if(node.getNodeName().equals("rest")){
 			isRest = true;
 		}else if(node.getNodeName().equals("duration")){
-			duration =  Double.parseDouble(node.getTextContent());
+			duration =  node.getTextContent()==""?0:Double.parseDouble(node.getTextContent());
 		}else if(node.getNodeName().equals("voice")){
 			if(Integer.parseInt(node.getTextContent())!=currentTrack.getVoice()){
 				//TODO non-playable note with a voice change modifier in the current track
@@ -243,7 +256,7 @@ public class MusicXmlParser implements SongFileParser{
 				if(cNode.getNodeName().equals("work-title")){
 					workTitle = cNode.getTextContent();
 				}else if(cNode.getNodeName().equals("work-number")){
-					workNumber = Integer.parseInt(cNode.getTextContent());
+					workNumber = cNode.getTextContent()==""?0:Integer.parseInt(cNode.getTextContent());
 				}
 			}
 		}

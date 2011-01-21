@@ -18,4 +18,10 @@ public abstract class Module extends JPanel{
 	 * @return string representation of the state of the module
 	 */
 	public abstract String saveState();
+	
+	/**
+	 * Do a proper shutdown of the current module. Used to close any existing connections, stop all playing 
+	 * music, and save the current state to the profile.
+	 */
+	public abstract void cleanUp();
 }

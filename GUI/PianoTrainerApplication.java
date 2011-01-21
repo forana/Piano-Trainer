@@ -1,24 +1,18 @@
 package crescendo.base.GUI;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
@@ -34,7 +28,12 @@ import crescendo.base.profile.ProfileManager;
  */
 public class PianoTrainerApplication {
 	
+	private static PianoTrainerApplication pianoTrainerApplication=null;
+	
+	/** the container of all the other elements on the general app UI **/
 	private  JFrame mainWindow;
+	
+	/** the ui menu **/
 	private  JMenuBar menuBar;
 	
 	/** drop down menu of profiles to select **/
@@ -52,26 +51,32 @@ public class PianoTrainerApplication {
 	/** The Help Menu of the application */
 	private JMenu helpMenu;
 	
+	
 	private JMenuItem helpAbout;
 	private JMenuItem helpItem;
-	private MenuFrame mainFrame;
+	private Container moduleFrame;
 	
+	/** containers for spacing the menu elements correctly **/
 	private Container buttonContainer;
 	private Container moduleButtonContainer;
 	private Container spacingContainer;
 	
-	
+	/** the profile preferences/management button **/
 	private JButton preferencesButton;
 	
-	private JButton GameButton;
-	private JButton LessonButton;
-	private JButton SheetMusicButton;
+	/** The three module buttons **/
+	private JButton gameButton;
+	private JButton lessonButton;
+	private JButton sheetMusicButton;
+	
+	/** the profileModule to display when asked to **/
+	private ProfileModule profileModule;
 	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new PianoTrainerApplication();
+		PianoTrainerApplication.getInstance();
 	}
 	
 	/**
@@ -79,56 +84,88 @@ public class PianoTrainerApplication {
 	 * 
 	 * Default Constructor
 	 */
-	PianoTrainerApplication()
+	private PianoTrainerApplication()
 	{
 		init();
 	}
 	
+	/**
+	 * getInstance
+	 * 
+	 * This method returns a singleton instance of PianoTrainerApplication
+	 * @return the singleton PianoTrainerApplication
+	 */
+	public static PianoTrainerApplication getInstance()
+	{
+		if(pianoTrainerApplication==null)pianoTrainerApplication = new PianoTrainerApplication();
+		return pianoTrainerApplication;
+	}
+	
+	/**
+	 * init
+	 * 
+	 * This method sets up the user interface elements, adds event listeners, initializes
+	 * member attributes, and puts the general application UI together.
+	 * 
+	 */
 	public void init(){
+		//set the the main window
 		mainWindow = new JFrame();
 		mainWindow.setSize(1024, 768);
 		mainWindow.setVisible(true);
 		menuBar = new JMenuBar();
 		mainWindow.setTitle("Piano Trainer");
 
+		//initialize the profile manager
 		profileManager = ProfileManager.getInstance();
+		
+		//initialize the profileModule for use
+		profileModule = new ProfileModule(1024, 768);
 
 		
+		//create the menu bar on the top of the screen
+		menuBar.setLayout(new BorderLayout());
 		
 		
+		//set up the profile selection menu
 		profileMenu = new JMenu(profileManager.getActiveProfile().getName());
 		updateProfileMenu();
-		menuBar.setLayout(new BorderLayout());
+		
+		
+		//add the profile selection menu to the menu bar
 		menuBar.add(profileMenu, BorderLayout.BEFORE_LINE_BEGINS);
 		
-		
+		//set up the spacing of the topbar
 		buttonContainer = new Container();
 		buttonContainer.setLayout(new BorderLayout());
 		
-		
+		//set up the profile/preferences button
 		preferencesButton = new JButton("***");
 		preferencesButton.addActionListener(al);
 		preferencesButton.setSize(50, -1);
 		
 		buttonContainer.add(preferencesButton, BorderLayout.WEST);
 		
-		
+		//set up the container of the module switching buttons
 		moduleButtonContainer = new Container();
 		moduleButtonContainer.setLayout(new BorderLayout());
 		
-		GameButton = new JButton("Game");
-		LessonButton = new JButton("Lesson");
-		SheetMusicButton = new JButton("Sheet Music");
+		//create the module switching buttons
+		gameButton = new JButton("Game");
+		lessonButton = new JButton("Lesson");
+		sheetMusicButton = new JButton("Sheet Music");
 		
-		moduleButtonContainer.add(GameButton,BorderLayout.WEST);
-		moduleButtonContainer.add(LessonButton,BorderLayout.CENTER);
-		moduleButtonContainer.add(SheetMusicButton,BorderLayout.EAST);
+		//add the module buttons to the container
+		moduleButtonContainer.add(gameButton,BorderLayout.WEST);
+		moduleButtonContainer.add(lessonButton,BorderLayout.CENTER);
+		moduleButtonContainer.add(sheetMusicButton,BorderLayout.EAST);
 		
+		// add the module button container to the spacing container
 		buttonContainer.add(moduleButtonContainer,BorderLayout.EAST);
 		
+		//some more spacing work
 		Container spacing = new Container();
 		spacing.setPreferredSize(new Dimension(300,0));
-		//buttonContainer.add(spacing,BorderLayout.CENTER);
 		
 		
 		spacingContainer = new Container();
@@ -137,9 +174,11 @@ public class PianoTrainerApplication {
 		spacingContainer.add(buttonContainer);
 		spacingContainer.add(spacing);
 		
-		
+		//add the spacing+modulebuttons+spacing container to the menubar
 		menuBar.add(spacingContainer, BorderLayout.CENTER);
 		
+		
+		//set up the help/about menu button
 		helpMenu=new JMenu("?");
 		
 		helpAbout = new JMenuItem("About");
@@ -149,16 +188,26 @@ public class PianoTrainerApplication {
 		helpAbout.addActionListener(al);
 		helpItem.addActionListener(al);
 		
+		//add the help/about menu button to the menu bar
 		menuBar.add(helpMenu,BorderLayout.EAST);
 		helpMenu.setAlignmentX((float) 500);
 		
+		//set the menu bar of the main frame
 		mainWindow.setJMenuBar(menuBar);
 		
-		mainFrame = new MenuFrame(1024, 768);
-		mainWindow.add(mainFrame);
 		
 		
 		
+		
+		//for now create a button on a "default" module for startup
+		moduleFrame = new Container();
+		moduleFrame.add(new JButton("ASDF"));
+		
+		//add the module to the main window
+		mainWindow.add(moduleFrame);
+		
+		
+		//check to see if there are any profiles/preferences to load, if not ask the user for a profile name
 		boolean profilesLoaded=profileManager.loadFromFile("pianoData.PT");
 		if(!profilesLoaded)
 		{
@@ -172,36 +221,20 @@ public class PianoTrainerApplication {
 	}
 	
 	
-	
-	/**
-	 * Add a module or frame to the window
-	 * @param c
-	 * @return
-	 */
-	public static boolean add(JComponent c){
-		return false;
-	}
-	
-	
-	
-	
-	/**
-	 * Remove a module or frame from the window
-	 * @param c
-	 * @return
-	 */
-	public static boolean remove(JComponent c){
-		return false;
-	}
-	
-	
 	/**
 	 * updateProfileMenu
 	 * 
-	 * private helper function to separate concerns
+	 * helper function to update the contents of the profile menu in
+	 * case someone (like the profilemanager) modifies the information
+	 * displayed there.
 	 */
-	private void updateProfileMenu()
+	public void updateProfileMenu()
 	{
+		//basically we remove everything from the profilemenu and
+		//	put everything back in fresh from the profilemanager
+		
+		
+		
 		profileMenu.setText(profileManager.getActiveProfile().getName());
 		profileMenu.removeAll();
 		
@@ -226,15 +259,19 @@ public class PianoTrainerApplication {
 	}
 	
 	/**
-	 * Handles the switching between two different modules
+	 * Handles the switching between different modules
 	 */
-	public static void switchModules(Module m){
-		
+	public void switchModules(Container c){
+		//TODO: handle set-up and tear-down for modules
+		mainWindow.remove(moduleFrame);
+		moduleFrame = c;
+		mainWindow.add(moduleFrame);
+		moduleFrame.repaint();
 	}
 	
 	
 	/**
-	 * Profile menu action listener (for switching profile/ add new profile shortcut)
+	 * Menu action listener (for switching profile/ add new profile, module switching, and help/about/update
 	 */
 	private ActionListener al = new ActionListener(){
 		public void actionPerformed(ActionEvent e) {
@@ -242,8 +279,7 @@ public class PianoTrainerApplication {
 			//if they chose to go to profile preferences
 			if(e.getSource().equals(preferencesButton))
 			{
-				//TODO: go to preferences module
-				JOptionPane.showMessageDialog(null, "SHOW PREFERENCES MODULE NAO!");
+				switchModules(profileModule);
 			}
 			
 			
@@ -253,10 +289,14 @@ public class PianoTrainerApplication {
 			{
 				String name = JOptionPane.showInputDialog("Enter Profile Name:");
 				
-				Profile newProfile = new Profile(name);
-				profileManager.addProfile(newProfile);	
-			
-				profileManager.switchProfile(newProfile);	
+				if(name!=null)
+				{
+					Profile newProfile = new Profile(name);
+					if(profileManager.addProfile(newProfile))
+					{
+						profileManager.switchProfile(newProfile);	
+					}
+				}
 			}
 			
 			//if they selected a different profile
@@ -264,7 +304,6 @@ public class PianoTrainerApplication {
 			{
 				if(e.getSource().equals(p))
 				{
-					
 					profileManager.switchProfile(profileManager.getProfileByName(p.getText()));	
 				}
 			}

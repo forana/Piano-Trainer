@@ -7,7 +7,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 /**
@@ -71,20 +70,28 @@ public class ProfileManager implements Serializable{
 	 * addProfile
 	 * 
 	 * @param p - profile to add
+	 * @return whether or not p was added
 	 */
-	public void addProfile(Profile p)
+	public boolean addProfile(Profile p)
 	{
-		profiles.add(p);
+		boolean toRet = false;
+		if(getProfileByName(p.getName())==null)
+		{
+			profiles.add(p);
+			toRet = true;
+		}
+		return toRet;
 	}
 	
 	/**
 	 * removeProfile
 	 * 
 	 * @param p - profile to remove
+	 * @return whether or not p was removed
 	 */
-	public void removeProfile(Profile p)
+	public boolean removeProfile(Profile p)
 	{
-		profiles.remove(p);
+		return profiles.remove(p);
 	}
 	
 	
@@ -94,10 +101,17 @@ public class ProfileManager implements Serializable{
 	 * 
 	 * @param p - profile to rename
 	 * @param newName - the new name to give the profile
+	 * @return whether or not p could be renamed
 	 */
-	public void renameProfile(Profile p,String newName)
+	public boolean renameProfile(Profile p,String newName)
 	{
-		p.setName(newName);
+		boolean toRet = false;
+		if(getProfileByName(newName)==null)
+		{
+			p.setName(newName);
+			toRet = true;
+		}
+		return toRet;
 	}
 	
 	
@@ -113,6 +127,10 @@ public class ProfileManager implements Serializable{
 	
 	/**
 	 * setActiveProfile
+	 * 
+	 * sets the active profile
+	 * 
+	 * **NOTE** THIS WILL DELETE CURRENT ACTIVE PROFILE
 	 * 
 	 * @param p - profile to set to activeProfile
 	 */
@@ -161,6 +179,7 @@ public class ProfileManager implements Serializable{
 	{
 		Profile toRet = null;
 		for(Profile p: profiles)if(p.getName().equals(name))toRet = p;
+		if(activeProfile.getName().equals(name))toRet = activeProfile;
 		return toRet;
 	}
 	
@@ -188,7 +207,7 @@ public class ProfileManager implements Serializable{
 		}
 		catch(IOException ex)
 		{
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			toRet = false;
 		}
 		
@@ -224,12 +243,12 @@ public class ProfileManager implements Serializable{
 		}
 		catch(IOException ex)
 		{
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			toRet = false;
 		} 
 		catch (ClassNotFoundException e) 
 		{
-			e.printStackTrace();
+			//e.printStackTrace();
 			toRet = false;
 		}
 		

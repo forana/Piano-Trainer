@@ -16,7 +16,7 @@ public class MusicXmlParserTest {
 	@Test
 	public void TestMiddleC() throws IOException{
 		SongFileParser mxl = new MusicXmlParser();
-		SongModel model = mxl.parse(new File("resources/pokerface.xml"));
+		SongModel model = mxl.parse(new File("resources/pokerface.mxl"));
 		
 		assertEquals(model.getTitle(),"Middle C");
 		assertEquals(model.getLicense(),"GPL");

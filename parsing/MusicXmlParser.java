@@ -1,12 +1,18 @@
 package crescendo.base.parsing;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -53,7 +60,7 @@ public class MusicXmlParser implements SongFileParser{
 		currentTrack = null;
 		tracks = new HashMap<String,Track>();
 		creators = new ArrayList<Creator>();
-		bpm = -1;
+		bpm = 120; // default
 		timeSignature = null;
 		keySignature = 0;
 	}
@@ -65,6 +72,7 @@ public class MusicXmlParser implements SongFileParser{
 	 */
 	@Override
 	public SongModel parse(File file) throws IOException {
+		ZipFile zf=null;
 		boolean validating = false; //Semaphore for the DocumentBuilderFactory
 		DocumentBuilderFactory factory  = DocumentBuilderFactory.newInstance();
 		factory.setValidating(validating);
@@ -72,8 +80,8 @@ public class MusicXmlParser implements SongFileParser{
 		factory.setSchema(null);
 		// end part 1
 		DocumentBuilder builder;
-		Document document = null;
-		try {
+		try
+		{
 			builder = factory.newDocumentBuilder();
 			// fix for no-internet issue, part 2 - forana
 			builder.setEntityResolver(new EntityResolver() {
@@ -82,16 +90,78 @@ public class MusicXmlParser implements SongFileParser{
 				}
 			});
 			// end part 2
-			document = builder.parse(file);
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
+		}
+		catch (ParserConfigurationException e)
+		{
+			// pipe the message through as an IOException
+			throw new IOException(e.getMessage());
+		}
+		
+		InputStream songStream; // this will be the stream that will be parsed as the song
+		if (file.getName().toLowerCase().endsWith(".mxl"))
+		{
+			System.out.println("I am a zip");
+			zf=new ZipFile(file);
+			ZipEntry containerEntry=zf.getEntry("META-INF/container.xml");
+			if (containerEntry==null)
+			{
+				throw new IOException("No container entry found in compressed musicXML file.");
+			}
+			else
+			{
+				try
+				{
+					Document containerDoc=builder.parse(zf.getInputStream(containerEntry));
+					String rootFileName=null;
+					NodeList rootfiles=containerDoc.getElementsByTagName("rootfile");
+					for (int i=0; i<rootfiles.getLength(); i++)
+					{
+						Node node=rootfiles.item(i);
+						Node fullpath=node.getAttributes().getNamedItem("full-path");
+						if (fullpath!=null)
+						{
+							Node mediaType=node.getAttributes().getNamedItem("media-type");
+							if (mediaType==null || mediaType.getTextContent().equals("application/vnd.recordare.musicxml+xml"))
+							{
+								rootFileName=fullpath.getTextContent();
+							}
+						}
+					}
+					if (rootFileName==null)
+					{
+						throw new IOException("Could not locate root file in compressed musicXML.");
+					}
+					else
+					{
+						songStream=zf.getInputStream(zf.getEntry(rootFileName));
+					}
+				}
+				catch (SAXException e)
+				{
+					throw new IOException(e.getMessage());
+				}
+			}
+			
+		}
+		else
+		{
+			songStream=new FileInputStream(file);
+		}
+		
+		Document document = null;
+		try {
+			document = builder.parse(songStream);
 		} catch (SAXException e) {
 			e.printStackTrace();
 		}
 		for(int i=0;i<document.getChildNodes().getLength();i++)
 		{
 			parseNode(document.getChildNodes().item(i));
-		}		
+		}
+		if (zf!=null)
+		{
+			zf.close();
+		}
 		return new SongModel(new ArrayList<Track>(tracks.values()), workTitle, creators, "", "", copyright, bpm, timeSignature,keySignature);
 	}
 	

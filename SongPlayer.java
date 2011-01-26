@@ -66,10 +66,7 @@ public class SongPlayer implements FlowController
 		timer = new PlayerTimer();
 		timerContainer = new Thread(timer);
 		List<Track> tracks = songModel.getTracks();
-		iterators = new HashMap<Track,TrackIterator>();
-		for(Track track : tracks){
-			iterators.put(track, track.iterator());
-		}
+
 	}
 
 	/**
@@ -82,6 +79,10 @@ public class SongPlayer implements FlowController
 		isPaused = false;
 		doContinue = true;
 		pauseOffset = 0;
+		iterators = new HashMap<Track,TrackIterator>();
+		for(Track track : this.songModel.getTracks()){
+			iterators.put(track, track.iterator());
+		}
 		timerContainer.start();
 	}
 
@@ -108,6 +109,10 @@ public class SongPlayer implements FlowController
 			controller.stop();
 		}
 		doContinue=false;
+		try {
+			timerContainer.join();
+		} catch (InterruptedException e) {}
+		timerContainer = new Thread(new PlayerTimer());
 	}
 	
 	@Override
@@ -234,14 +239,13 @@ public class SongPlayer implements FlowController
 					//Only send the note if it is within the correct range, and the listener has not received it yet
 					if(now >= (event.getTimestamp()-listeners.get(listener))
 							&& !thisList.contains(listener)) {
-						//System.out.println(event.getNote().getPitch()+" - "+event.getAction());
 						listener.handleNoteEvent(event);
 						thisList.add(listener);
 					}
 				}
 			}
 		}
-		//if(noteplayed){System.out.println("------------ frame -----------");}
+		
 	}
 
 	/**

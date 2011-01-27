@@ -71,6 +71,7 @@ public class SongPlayer implements FlowController
 		timerContainer = new Thread(timer);
 		List<Track> tracks = songModel.getTracks();
 		this.songState=new SongState(songModel.getBPM(),songModel.getTimeSignature(),songModel.getKeySignature());
+		initializeIterators();
 	}
 	
 	/**
@@ -92,10 +93,6 @@ public class SongPlayer implements FlowController
 		isPaused = false;
 		doContinue = true;
 		pauseOffset = 0;
-		iterators = new HashMap<Track,TrackIterator>();
-		for(Track track : this.songModel.getTracks()){
-			iterators.put(track, track.iterator());
-		}
 		timerContainer.start();
 	}
 
@@ -126,6 +123,16 @@ public class SongPlayer implements FlowController
 			timerContainer.join();
 		} catch (InterruptedException e) {}
 		timerContainer = new Thread(new PlayerTimer());
+		
+		//We have to do this here just in case the user presses play again
+		initializeIterators();
+	}
+
+	private void initializeIterators(){
+		iterators = new HashMap<Track,TrackIterator>();
+		for(Track track : this.songModel.getTracks()){
+			iterators.put(track, track.iterator());
+		}
 	}
 	
 	@Override
@@ -190,6 +197,48 @@ public class SongPlayer implements FlowController
 	}
 
 	/**
+	 * Set the current iterators to be a percentage of the way through the song
+	 * @param percentage - percent progress through the song
+	 */
+	public void setPosition(double percentage){
+		double totalDuration = songModel.getDuration();
+		double currentDuration = 0;
+		final double beatCount = .5;
+		while(currentDuration/totalDuration<percentage){
+			for(Iterator<TrackIterator> iterIter = iterators.values().iterator(); iterIter.hasNext();){
+				TrackIterator iter = iterIter.next();
+				iter.next(beatCount);
+				currentDuration+=beatCount;
+			}
+		}
+	}
+
+	/**
+	 * Set the current iterators to be at the position of the given note
+	 * @param startNote - note which marks the current progress through the song
+	 */
+	public void setPosition(Note startNote){
+		Track activeTrack = startNote.getTrack();
+		int beatCount = 0;
+		Note currentNote = null;
+		TrackIterator activeTrackIterator = activeTrack.iterator();
+		//Find the number of beats into its track the startNote is
+		while((currentNote = activeTrackIterator.next()) != startNote){
+			if(currentNote!=null){
+				beatCount+=currentNote.getDuration();
+			}
+		}
+		//Move all of the iterators to that position
+		for(Iterator<TrackIterator> iterIter = iterators.values().iterator(); iterIter.hasNext();){
+			TrackIterator iter = iterIter.next();
+			if(!iter.equals(iterators.get(activeTrack))){
+				iter.next(beatCount);
+			}
+		}
+	}
+
+
+	/**
 	 * Sends out notes to the listeners. Only sends them out if it is
 	 * within the requested time frame. This method also removes old notes 
 	 * from the list of active notes.
@@ -237,7 +286,7 @@ public class SongPlayer implements FlowController
 			}
 			nextPoll = now+longestListener;
 		}
-		
+
 		//Pump out note events
 		NoteEvent event = null;
 		for(Iterator<NoteEvent> i = activeNotes.keySet().iterator(); i.hasNext();) {
@@ -257,7 +306,7 @@ public class SongPlayer implements FlowController
 				}
 			}
 		}
-		
+
 	}
 
 	/**
@@ -266,7 +315,9 @@ public class SongPlayer implements FlowController
 	 * @author nickgartmann
 	 */
 	private class PlayerTimer implements Runnable {
+
 		private final int FRAMES_PER_SECOND = 200;
+
 		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
 		/** number of milliseconds from the epoch of when the last frame started */
 		private long lastFrame = 0;
@@ -282,10 +333,10 @@ public class SongPlayer implements FlowController
 					if(now > (lastFrame + MS_DELAY)) {
 						update();
 						lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-									        //ensure that we get the correct frames, no matter how long update takes
+						//ensure that we get the correct frames, no matter how long update takes
 					} else {
 						try {
-							Thread.sleep(10); // Dont eat up all the processor
+							Thread.sleep(5); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}

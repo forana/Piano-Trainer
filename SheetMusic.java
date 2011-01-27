@@ -10,6 +10,7 @@ import javax.swing.JScrollPane;
 import crescendo.base.AudioPlayer;
 import crescendo.base.ErrorHandler;
 import crescendo.base.ErrorHandler.Response;
+import crescendo.base.HeuristicsModel;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
@@ -94,12 +95,21 @@ public class SheetMusic extends Module{
 		activeTrack-=1;
 		//End work-around
 		
+		// Initialize meta-things
+		boolean careAboutPitch=true;
+		boolean careAboutDynamic=true;
+		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
+		
+		//Hook up song processor pieces
+		EventDispatcher dispatcher = EventDispatcher.getInstance();
+		songPlayer = new SongPlayer(selectedSongModel);
+		SongValidator validator = new SongValidator(selectedSongModel,selectedSongModel.getTracks().get(activeTrack),heuristics);
+		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame();
-		scoreFeedbackFrame = new ScoreFrame(selectedSongModel.getTracks().get(activeTrack));
+		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
 		musicEngine = new MusicEngine(selectedSongModel);
-	
 		
 		bottomBarContainer.add(adviceFeedbackFrame);
 		bottomBarContainer.setVisible(true);
@@ -110,14 +120,6 @@ public class SheetMusic extends Module{
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
 		
 		//Add the progress frame to the bottom bar container...
-		
-		
-		//Hook up song processor pieces
-		EventDispatcher dispatcher = EventDispatcher.getInstance();
-		songPlayer = new SongPlayer(selectedSongModel);
-		SongValidator validator = new SongValidator();
-		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
-		
 		
 		//Attach input events
 		dispatcher.attach(validator);

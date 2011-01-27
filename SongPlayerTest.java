@@ -28,7 +28,7 @@ public class SongPlayerTest implements NoteEventListener{
 	static
 	{
 		try {
-			testModel = SongFactory.generateSongFromFile("resources/songplayer_test.mxl");
+			testModel = SongFactory.generateSongFromFile("resources/songplayer_test.xml");
 		} catch (IOException e) {}
 	}
 	
@@ -167,7 +167,7 @@ public class SongPlayerTest implements NoteEventListener{
 		}catch(InterruptedException e){}
 		
 		if(now+800 - (receivedOffNotes.get(0).getTimestamp()-lookaheadOffset) > 10 ||
-				now+800 - (receivedOffNotes.get(0).getTimestamp()-lookaheadOffset) < -10 ){
+			now+800 - (receivedOffNotes.get(0).getTimestamp()-lookaheadOffset) < -10 ) {
 			fail("Received end of note 1 outside of acceptable range: "+
 					(now+800 - (receivedOffNotes.get(0).getTimestamp()-lookaheadOffset)));
 		}
@@ -176,7 +176,7 @@ public class SongPlayerTest implements NoteEventListener{
 	static
 	{
 		try {
-			testModel = SongFactory.generateSongFromFile("resources/songplayer_test_chord.mxl");
+			testModel = SongFactory.generateSongFromFile("resources/songplayer_test_chord.xml");
 		} catch (IOException e) {}
 	}
 	

@@ -66,7 +66,6 @@ public class SongPlayer implements FlowController
 		timer = new PlayerTimer();
 		timerContainer = new Thread(timer);
 		List<Track> tracks = songModel.getTracks();
-
 	}
 
 	/**
@@ -198,8 +197,8 @@ public class SongPlayer implements FlowController
 						Note note=notes.get(i);
 						if(note.getDynamic()>0){
 							//Create the note events
-							NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) (2*longestListener+offset+now));
-							NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) (2*longestListener+offset+now+note.getDuration()/bpms));
+							NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) ((2*longestListener)+offset+now));
+							NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) ((2*longestListener)+offset+now+note.getDuration()/bpms));
 							activeNotes.put(ne,new LinkedList<NoteEventListener>());
 							activeNotes.put(neEnd,new LinkedList<NoteEventListener>());
 							offset+=note.getDuration();
@@ -224,7 +223,6 @@ public class SongPlayer implements FlowController
 			}
 			nextPoll = now+longestListener;
 		}
-
 		
 		//Pump out note events
 		NoteEvent event = null;
@@ -254,7 +252,7 @@ public class SongPlayer implements FlowController
 	 * @author nickgartmann
 	 */
 	private class PlayerTimer implements Runnable {
-		private final int FRAMES_PER_SECOND = 500;
+		private final int FRAMES_PER_SECOND = 200;
 		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
 		/** number of milliseconds from the epoch of when the last frame started */
 		private long lastFrame = 0;
@@ -268,18 +266,18 @@ public class SongPlayer implements FlowController
 				long now = System.currentTimeMillis();
 				if(!isPaused) {
 					if(now > (lastFrame + MS_DELAY)) {
-						update();			
-					}else{
+						update();
+						lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
+									        //ensure that we get the correct frames, no matter how long update takes
+					} else {
 						try {
 							Thread.sleep(10); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}
 				}else{
-					pauseOffset+=(now-lastFrame);
+					pauseOffset/*+*/=(now-lastFrame);
 				}
-				lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-									//ensure that we get the correct frames, no matter how long update takes
 			}
 		}
 	}

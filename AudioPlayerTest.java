@@ -21,6 +21,7 @@ public class AudioPlayerTest
 	{
 		LinkedList<Track> trackList=new LinkedList<Track>();
 		this.track=new Track("Track 1",57); // trumpet
+		this.track.addNote(null);
 		trackList.add(this.track);
 		this.model=new SongModel(trackList,null,null,null,null,null,120,null,0);
 	}

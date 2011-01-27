@@ -174,6 +174,29 @@ public class SongPlayer implements FlowController
 	public void detach(FlowController controller) {
 		controllers.remove(controller);
 	}
+	
+	/**
+	 * Set the current iterators to be a percentage of the way through the song
+	 * @param percentage - percent progress through the song
+	 */
+	public void setPosition(double percentage){
+		
+	}
+	
+	/**
+	 * Set the current iterators to be at the position of the given note
+	 * @param startNote - note which marks the current progress through the song
+	 */
+	public void setPosition(Note startNote){
+		Track activeTrack = startNote.getTrack();
+		int beatCount = 0;
+		Note currentNote = null;
+		TrackIterator activeTrackIterator = activeTrack.iterator();
+		while((currentNote = activeTrackIterator.next()) != startNote){
+			
+		}
+	}
+	
 
 	/**
 	 * Sends out notes to the listeners. Only sends them out if it is
@@ -252,7 +275,9 @@ public class SongPlayer implements FlowController
 	 * @author nickgartmann
 	 */
 	private class PlayerTimer implements Runnable {
+
 		private final int FRAMES_PER_SECOND = 200;
+
 		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
 		/** number of milliseconds from the epoch of when the last frame started */
 		private long lastFrame = 0;
@@ -271,7 +296,7 @@ public class SongPlayer implements FlowController
 									        //ensure that we get the correct frames, no matter how long update takes
 					} else {
 						try {
-							Thread.sleep(10); // Dont eat up all the processor
+							Thread.sleep(5); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}

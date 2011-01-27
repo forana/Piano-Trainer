@@ -35,20 +35,8 @@ public class SongPlayerTest implements NoteEventListener{
 	public SongPlayerTest() throws IOException {
 
 		testPlayer = new SongPlayer(testModel);
-		
-		/*
-		AudioPlayer player = new AudioPlayer(testModel, null);
-		testPlayer.attach(player, 100);
-		testPlayer.play();
-		try {
-			Thread.sleep(1000000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
 		receivedOnNotes = new ArrayList<NoteEvent>();
-		receivedOffNotes = new ArrayList<NoteEvent>();
+		receivedOffNotes = new ArrayList<NoteEvent>();		
 	}
 	
 	@After
@@ -63,7 +51,7 @@ public class SongPlayerTest implements NoteEventListener{
 		testPlayer.attach(this, 10);
 		testPlayer.play();
 		try {
-			Thread.sleep(100);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {}
 		if(receivedOnNotes.size()>expectedNotesAttach) {
 			fail("Too many notes received: "+receivedOnNotes.size()+" - Expected: "+expectedNotesAttach);
@@ -75,6 +63,7 @@ public class SongPlayerTest implements NoteEventListener{
 	
 	@Test
 	public void TestDetach() {
+		testPlayer.attach(this,10);
 		testPlayer.detach(this);
 		testPlayer.play();
 		try {
@@ -173,12 +162,14 @@ public class SongPlayerTest implements NoteEventListener{
 		}
 	}
 	
+	/*
 	static
 	{
 		try {
 			testModel = SongFactory.generateSongFromFile("resources/songplayer_test_chord.xml");
 		} catch (IOException e) {}
 	}
+	*/
 	
 	@Test
 	public void TestChord(){

@@ -13,9 +13,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
+import crescendo.sheetmusic.SheetMusic;
 
 
 /**
@@ -54,7 +56,7 @@ public class PianoTrainerApplication {
 	
 	private JMenuItem helpAbout;
 	private JMenuItem helpItem;
-	private Container moduleFrame;
+	private JPanel moduleFrame;
 	
 	/** containers for spacing the menu elements correctly **/
 	private Container buttonContainer;
@@ -71,6 +73,8 @@ public class PianoTrainerApplication {
 	
 	/** the profileModule to display when asked to **/
 	private ProfileModule profileModule;
+	
+	private SheetMusic sheetMusicModule;
 	
 	/**
 	 * @param args
@@ -152,8 +156,11 @@ public class PianoTrainerApplication {
 		
 		//create the module switching buttons
 		gameButton = new JButton("Game");
+		gameButton.addActionListener(al);
 		lessonButton = new JButton("Lesson");
+		lessonButton.addActionListener(al);
 		sheetMusicButton = new JButton("Sheet Music");
+		sheetMusicButton.addActionListener(al);
 		
 		//add the module buttons to the container
 		moduleButtonContainer.add(gameButton,BorderLayout.WEST);
@@ -200,7 +207,7 @@ public class PianoTrainerApplication {
 		
 		
 		//for now create a button on a "default" module for startup
-		moduleFrame = new Container();
+		moduleFrame = new JPanel();
 		moduleFrame.add(new JButton("ASDF"));
 		
 		//add the module to the main window
@@ -261,7 +268,7 @@ public class PianoTrainerApplication {
 	/**
 	 * Handles the switching between different modules
 	 */
-	public void switchModules(Container c){
+	public void switchModules(JPanel c){
 		//TODO: handle set-up and tear-down for modules
 		mainWindow.remove(moduleFrame);
 		moduleFrame = c;
@@ -280,6 +287,15 @@ public class PianoTrainerApplication {
 			if(e.getSource().equals(preferencesButton))
 			{
 				switchModules(profileModule);
+			}
+			
+			
+			//if they chose to go to sheet music module 
+			if(e.getSource().equals(sheetMusicButton))
+			{
+				sheetMusicModule = new SheetMusic();
+				sheetMusicModule.loadSong("Resources/drawtest2.mid");
+				switchModules(sheetMusicModule);
 			}
 			
 			

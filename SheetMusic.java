@@ -107,7 +107,7 @@ public class SheetMusic extends Module{
 		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
 		
 		//Initialize UI Pieces
-		adviceFeedbackFrame = new AdviceFrame();
+		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
 		musicEngine = new MusicEngine(selectedSongModel);
 		

@@ -1,6 +1,8 @@
 package crescendo.sheetmusic.advicepattern;
 
+import crescendo.base.HeuristicsModel;
 import crescendo.base.ProcessedNoteEvent;
+import crescendo.base.SongState;
 import crescendo.sheetmusic.AdvicePattern;
 
 /**
@@ -13,18 +15,25 @@ public class LatePattern implements AdvicePattern {
 	private static final int TRIGGER_LEVEL=6;
 	private static final String message="You're playing a little late.";
 	
+	private static final double THRESHOLD=0.3;
+	
 	// number that were late
 	private int lateCount;
 	
 	// number that weren't late
 	private int transgressions;
 	
+	private HeuristicsModel heuristics;
+	private SongState state;
+	
 	/**
 	 * Creates a new pattern.
 	 */
-	public LatePattern() {
+	public LatePattern(HeuristicsModel heuristics,SongState state) {
 		this.lateCount=0;
 		this.transgressions=0;
+		this.heuristics=heuristics;
+		this.state=state;
 	}
 	
 	/**
@@ -36,10 +45,14 @@ public class LatePattern implements AdvicePattern {
 		// a missed/extra note isn't late
 		if (e.getExpectedNote()==null || e.getPlayedNote()==null) {
 			transgressions++;
-		} else if (e.getExpectedNote().getTimestamp()>=e.getPlayedNote().getTimestamp()) {
-			transgressions++;
 		} else {
-			lateCount++;
+			int interval=(int)(this.heuristics.getTimingInterval()/(1.0*this.state.getBPM()/60/1000));
+			if (e.getExpectedNote().getTimestamp()>=e.getPlayedNote().getTimestamp()
+				&& Math.abs(e.getExpectedNote().getTimestamp()-e.getPlayedNote().getTimestamp())*1.0/interval>THRESHOLD) {
+				transgressions++;
+			} else {
+				lateCount++;
+			}
 		}
 		// reset?
 		if (transgressions>MAX_TRANSGRESSIONS) {

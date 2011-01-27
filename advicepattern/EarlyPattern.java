@@ -2,6 +2,8 @@ package crescendo.sheetmusic.advicepattern;
 
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.sheetmusic.AdvicePattern;
+import crescendo.base.HeuristicsModel;
+import crescendo.base.SongState;
 
 /**
  * Provides a pattern that is triggered if a number of notes are played too early.
@@ -13,18 +15,25 @@ public class EarlyPattern implements AdvicePattern {
 	private static final int TRIGGER_LEVEL=6;
 	private static final String message="You're playing a little early.";
 	
+	private static final double THRESHOLD=0.3;
+	
 	// number that were early
 	private int earlyCount;
 	
 	// number that weren't early
 	private int transgressions;
 	
+	private HeuristicsModel heuristics;
+	private SongState state;
+	
 	/**
 	 * Creates a new pattern.
 	 */
-	public EarlyPattern() {
+	public EarlyPattern(HeuristicsModel heuristics,SongState state) {
 		this.earlyCount=0;
 		this.transgressions=0;
+		this.heuristics=heuristics;
+		this.state=state;
 	}
 	
 	/**
@@ -36,10 +45,14 @@ public class EarlyPattern implements AdvicePattern {
 		// a missed/extra note isn't early
 		if (e.getExpectedNote()==null || e.getPlayedNote()==null) {
 			transgressions++;
-		} else if (e.getExpectedNote().getTimestamp()<=e.getPlayedNote().getTimestamp()) {
-			transgressions++;
 		} else {
-			earlyCount++;
+			int interval=(int)(this.heuristics.getTimingInterval()/(1.0*this.state.getBPM()/60/1000));
+			if (e.getExpectedNote().getTimestamp()<=e.getPlayedNote().getTimestamp()
+				&& Math.abs(e.getExpectedNote().getTimestamp()-e.getPlayedNote().getTimestamp())*1.0/interval>THRESHOLD) {
+				transgressions++;
+			} else {
+				earlyCount++;
+			}
 		}
 		// reset?
 		if (transgressions>MAX_TRANSGRESSIONS) {

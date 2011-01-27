@@ -24,7 +24,7 @@ import crescendo.base.profile.ProfileManager;
  * @author groszc
  *
  */
-public class ProfileModule extends Container{
+public class ProfileModule extends JPanel{
 	
 	//general app pref elements
 	JButton renameProfileButton;

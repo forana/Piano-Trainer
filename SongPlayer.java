@@ -52,6 +52,10 @@ public class SongPlayer implements FlowController
 
 	private Map<Track,TrackIterator> iterators;
 	private long nextPoll;
+	
+	/** The object that tracks chaning meta-info */
+	private SongState songState;
+	
 	/**
 	 * Create a song player for the given song model. 
 	 * Initializes the lists of controllers and listeners, and creates the timer
@@ -66,6 +70,16 @@ public class SongPlayer implements FlowController
 		timer = new PlayerTimer();
 		timerContainer = new Thread(timer);
 		List<Track> tracks = songModel.getTracks();
+		this.songState=new SongState(songModel.getBPM(),songModel.getTimeSignature(),songModel.getKeySignature());
+	}
+	
+	/**
+	 * Get the object that tracks song meta-info.
+	 * @return The held SongState instance.
+	 */
+	public SongState getSongState()
+	{
+		return this.songState;
 	}
 
 	/**
@@ -183,7 +197,7 @@ public class SongPlayer implements FlowController
 	private void update() {
 		long now = System.currentTimeMillis();
 
-		double bpms = (double)songModel.getBPM()/(double)60000; //calculate the number of beats per millisecond
+		double bpms = (double)songState.getBPM()/(double)60000; //calculate the number of beats per millisecond
 		if(now>=nextPoll){
 			for(Iterator<TrackIterator> iterIter=iterators.values().iterator(); iterIter.hasNext();){
 				TrackIterator iter=iterIter.next();

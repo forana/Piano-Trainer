@@ -15,7 +15,7 @@ public class MidiParserTest
 	@Test
 	public void properLoad() throws IOException
 	{
-		SongModel model=SongFactory.generateSongFromFile("resources/pkmn-rt1.mid");
+		SongModel model=SongFactory.generateSongFromFile("resources/smb-1up.mid");
 		System.out.println("Song name: "+model.getTitle());
 		System.out.println("Number of tracks: "+model.getTracks().size());
 		for (Track track : model.getTracks())

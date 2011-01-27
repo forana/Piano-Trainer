@@ -26,6 +26,8 @@ import crescendo.base.song.modifier.Chord;
  */
 public class MidiParser implements SongFileParser
 {
+	private static final boolean DEBUG = false;
+	
 	/**
 	 * Create a SongModel from the given file.
 	 * 
@@ -123,6 +125,10 @@ public class MidiParser implements SongFileParser
 					bytesRead++;
 					boolean dontReadInStop=false;
 					int notePitch=0;
+					if (DEBUG)
+					{
+						System.out.print(deltaTime+"\t "+Integer.toHexString(opcode>>4)+"\t");
+					}
 					switch (opcode>>4)
 					{
 						case 0x9: // Note on
@@ -146,6 +152,10 @@ public class MidiParser implements SongFileParser
 									// use 0 for duration and null for track for now; these will be added later
 									activeNotes.add(new SkeletalNote(notePitch,noteOnVelocity,currentDelta));
 								}
+								if (DEBUG)
+								{
+									System.out.println(notePitch+" @ "+noteOnVelocity);
+								}
 								break;
 							}
 							else
@@ -158,6 +168,10 @@ public class MidiParser implements SongFileParser
 								notePitch=stream.read();
 								/*int noteOffVelocity=*/stream.read(); // this should always be zero, but if it isn't, we don't really care
 								bytesRead+=2;
+								if (DEBUG)
+								{
+									System.out.println(notePitch);
+								}
 							}
 							// if this pitch is held by a note, well golly, let's add that sucker
 							for (Iterator<SkeletalNote> iter=activeNotes.iterator(); iter.hasNext();)
@@ -175,6 +189,7 @@ public class MidiParser implements SongFileParser
 							// TODO handle aftertouch w/ modifier
 							/*int noteAftertouchPitch=*/stream.read();
 							/*int noteAftertouchAmount=*/stream.read();
+							if (DEBUG) System.out.println("(aftertouch)");
 							bytesRead+=2;
 							break;
 						case 0xB: // Controller event
@@ -182,6 +197,7 @@ public class MidiParser implements SongFileParser
 							// TODO handle this?
 							/*int controllerType=*/stream.read();
 							/*int controllerValue=*/stream.read();
+							if (DEBUG) System.out.println("(controller event)");
 							bytesRead+=2;
 							break;
 						case 0xC: // Program change
@@ -189,16 +205,19 @@ public class MidiParser implements SongFileParser
 							bytesRead++;
 							// set the current track's voice
 							trackVoices[i]=programNumber;
+							if (DEBUG) System.out.println("(wtf voice changed)");
 							break;
 						case 0xD: // Channel aftertouch
 							// TODO if we handle aftertouch we need to handle this as well
 							/*int aftertouchAmount=*/stream.read();
 							bytesRead++;
+							if (DEBUG) System.out.println("(channel aftertouch)");
 							break;
 						case 0xE: // Pitch bend
 							/*int bendLSB=*/stream.read();
 							/*int bendMSB=*/stream.read();
 							/*int bendAmount=(bendMSB<<7)+bendLSB;*/
+							if (DEBUG) System.out.println("(pitch was bent)");
 							bytesRead+=2;
 							break;
 						case 0xF: // Meta event
@@ -210,52 +229,64 @@ public class MidiParser implements SongFileParser
 								bytesRead+=stream.lastVariableLength();
 								// this should probably not be done here (rather in each branch), but lazyness
 								bytesRead+=metaLength;
+								if (DEBUG) System.out.print(metaCode+"\t");
 								switch (metaCode)
 								{
 									case 0x00: // Sequence number
 										// not handling - sequence number is irrelevant
-										/*int sequenceNumber=*/stream.readBytes(2);
+										/*int sequenceNumber=*/stream.readBytes(metaLength);
+										if (DEBUG) System.out.println("changed sequence");
 										break;
 									case 0x01: // Text event
 										// not handling
 										/*String eventText=*/stream.readString(metaLength);
+										if (DEBUG) System.out.println("read some text");
 										break;
 									case 0x02: // Copyright notice
 										String copyright=stream.readString(metaLength);
 										license=copyright;
+										if (DEBUG) System.out.println(copyright);
 										break;
 									case 0x03: // Sequence / track name
 										String trackName=stream.readString(metaLength);
 										trackNames[i]=trackName;
+										if (DEBUG) System.out.println(trackName);
 										break;
 									case 0x04: // Instrument name
 										// TODO should handle this so that user has an idea of what instrument the track is
 										/*String instrumentName=*/stream.readString(metaLength);
+										if (DEBUG) System.out.println("named the instrument");
 										break;
 									case 0x05: // Lyrics
 										// not handling
 										/*String lyrics=*/stream.readString(metaLength);
+										if (DEBUG) System.out.println("lyrics lol");
 										break;
 									case 0x06: // Marker
 										// TODO Actually use markers?
 										/*String markerName=*/stream.readString(metaLength);
+										if (DEBUG) System.out.println("read a marker");
 										break;
 									case 0x07: // Cue point
 										// same as marker?
 										/*String cueName=*/stream.readString(metaLength);
+										if (DEBUG) System.out.println("read a cue point");
 										break;
 									case 0x20: // Midi channel prefix
 									case 0x21: // Midi port prefix
 										       // found at http://www.omega-art.com/midi/mfiles.html
 										/*int prefixChannel=*/stream.read();
+										if (DEBUG) System.out.println("midi port prefix");
 										break;
 									case 0x2F: // End of track
 										// TODO handle this?
+										if (DEBUG) System.out.println("end of track");
 										break;
 									case 0x51: // Set tempo
 										int microSecondsPerQuarterNote=stream.readBytes(3);
 										int microSecondsPerMinute=60000000;
 										bpm=microSecondsPerMinute/microSecondsPerQuarterNote;
+										if (DEBUG) System.out.println(bpm+" bpm");
 										break;
 									case 0x54: // SMPTE offset
 										/*int hours=*/stream.read();
@@ -264,6 +295,7 @@ public class MidiParser implements SongFileParser
 										/*int frames=*/stream.read();
 										/*int subFrames=*/stream.read();
 										// TODO handle this
+										if (DEBUG) System.out.println("did an SMPTE offset");
 										break;
 									case 0x58: // Time signature
 										int numerator=stream.read();
@@ -271,13 +303,16 @@ public class MidiParser implements SongFileParser
 										/*int clockCyclesPerMetronomeTick=*/stream.read();
 										/*int thirtySecondNotesPerQuarterNote=*/stream.read(); // for sanity's sake, not using this
 										timeSignature=new TimeSignature(numerator,denominator);
+										if (DEBUG) System.out.println("set time to "+numerator+"/"+denominator);
 										break;
 									case 0x59: // Key signature
 										keySignature=stream.read()-7;
 										/*int scale=*/stream.read();
+										if (DEBUG) System.out.println("set key signature to "+keySignature);
 										break;
 									case 0x7F: // Sequencer-specific event
 										/*String miscData=*/stream.readString(metaLength);
+										if (DEBUG) System.out.println("some sequencer-specific event");
 										break;
 									default:
 										throw new IOException("Unrecognized meta event code '"+Integer.toHexString(metaCode)+"' @ track "+(i+1)+" offset "+bytesRead);
@@ -290,18 +325,21 @@ public class MidiParser implements SongFileParser
 								// just read the proper number of bytes so we can all go home
 								stream.readBytes(metaLength);
 								bytesRead+=metaLength;
+								if (DEBUG) System.out.println("manufacturer exclusive");
 							}
 							break;
 						default:
 							// stupid note repetition
-							if (opcode==0x0A) // start repetition mode?
+							/*if (opcode==0x0A) // start repetition mode?
 							{
+								if (DEBUG) System.out.println("It's that thing that I have no idea what it does.");
 								stream.read(); // no idea what this parameter is
 								bytesRead++;
 								break;
 							}
 							else//if (lastOpcode>>4==0x9) // was our last non-repetition opcode note on?
-							{
+							*/{
+								if (DEBUG) System.out.println("(repetition)");
 								stream.push(opcode); // because this isn't really an opcode, it's a parameter
 								stream.push(lastOpcode); // just do the same thing again
 								repeatOpcode=true;

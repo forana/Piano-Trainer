@@ -32,6 +32,8 @@ public class SongModel
 	private int bpm;
 	private int keySignature;
 	
+	private double totalDuration;
+	
 	/**
 	 * Creates a SongModel.
 	 * 
@@ -55,6 +57,14 @@ public class SongModel
 		this.license=license;
 		this.bpm=beatsPerMinute;
 		this.keySignature = keySignature;
+		
+		totalDuration=0;
+		if(tracks.size()>0){			
+			List<Note> notes = tracks.get(0).getNotes();
+			for(Note n : notes){
+				totalDuration+=n.getDuration();
+			}
+		}
 	}
 	
 	/**
@@ -149,6 +159,15 @@ public class SongModel
 		return this.keySignature;
 	}
 	
+	
+	/**
+	 * Gets the duration of the song in number of beats
+	 * @return duration of the song in number of beats
+	 */
+	public double getDuration(){
+		return totalDuration;	
+	}
+	
 	private class SongIterator implements Iterator<Note> {
 		
 		private int currentTrack;
@@ -194,5 +213,6 @@ public class SongModel
 		public void remove() {	
 			throw new UnsupportedOperationException();
 		}
+		
 	}
 }

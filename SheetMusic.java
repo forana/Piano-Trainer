@@ -1,8 +1,13 @@
 package crescendo.sheetmusic;
 
+import java.awt.Adjustable;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.io.IOException;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,6 +18,7 @@ import crescendo.base.ErrorHandler.Response;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
+import crescendo.base.GUI.PianoTrainerApplication;
 import crescendo.base.module.Module;
 import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
@@ -34,17 +40,86 @@ public class SheetMusic extends Module{
 	
 	public SheetMusic(){
 		//TODO:Load up the UI
+		
+		this.setSize(1024, 768);
+		
+		
+		
 		bottomBarContainer = new JPanel();
-		bottomBarContainer.setVisible(false);
+		bottomBarContainer.setVisible(true);
+		
+		
 		
 		mainAreaTarget = new JScrollPane();
-		mainAreaTarget.setVisible(false);
+		mainAreaTarget.setSize(1024, 500);
+		mainAreaTarget.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		mainAreaTarget.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		mainAreaTarget.getHorizontalScrollBar().addAdjustmentListener(MyAdjustmentListener);
+		mainAreaTarget.getVerticalScrollBar().addAdjustmentListener(MyAdjustmentListener);
+		mainAreaTarget.setVisible(true);
 		
 		this.setLayout(new BorderLayout());
 		
 		add(mainAreaTarget,BorderLayout.CENTER);
 		add(bottomBarContainer,BorderLayout.SOUTH);
 	}
+	
+	AdjustmentListener MyAdjustmentListener = new AdjustmentListener(){
+	    // This method is called whenever the value of a scrollbar is changed,
+	    // either by the user or programmatically.
+	    public void adjustmentValueChanged(AdjustmentEvent evt) {
+	    	musicEngine.repaint();
+	    	SheetMusic.this.repaint();
+	    	mainAreaTarget.repaint();
+	    	bottomBarContainer.repaint();
+	    	SheetMusic.this.invalidate();
+	    	musicEngine.invalidate();
+	    	mainAreaTarget.invalidate();
+	    	
+	    	
+	    	System.out.println("imathing");
+	        Adjustable source = evt.getAdjustable();
+
+	        // getValueIsAdjusting() returns true if the user is currently
+	        // dragging the scrollbar's knob and has not picked a final value
+	        if (evt.getValueIsAdjusting()) {
+	        	
+	            return;
+	        }
+
+	        // Determine which scrollbar fired the event
+	        int orient = source.getOrientation();
+	        if (orient == Adjustable.HORIZONTAL) {
+	            // Event from horizontal scrollbar
+	        } else {
+	            // Event from vertical scrollbar
+	        }
+
+	        // Determine the type of event
+	        int type = evt.getAdjustmentType();
+	        switch (type) {
+	          case AdjustmentEvent.UNIT_INCREMENT:
+	              // Scrollbar was increased by one unit
+	              break;
+	          case AdjustmentEvent.UNIT_DECREMENT:
+	              // Scrollbar was decreased by one unit
+	              break;
+	          case AdjustmentEvent.BLOCK_INCREMENT:
+	              // Scrollbar was increased by one block
+	              break;
+	          case AdjustmentEvent.BLOCK_DECREMENT:
+	              // Scrollbar was decreased by one block
+	              break;
+	          case AdjustmentEvent.TRACK:
+	              // The knob on the scrollbar was dragged
+	              break;
+	        }
+
+	        // Get current value
+	        int value = evt.getValue();
+	    }
+	};
+
 	
 	/**
 	 * Load the sheet music module with a previously saved state
@@ -67,7 +142,7 @@ public class SheetMusic extends Module{
 		int maxRetrys = 10;
 		int currentRetrys = 0;
 		try {
-			while(selectedSongModel!=null && currentRetrys<maxRetrys){
+			while(selectedSongModel==null && currentRetrys<maxRetrys){
 				selectedSongModel = SongFactory.generateSongFromFile(filename);
 			}
 		} catch (IOException e) {
@@ -82,15 +157,15 @@ public class SheetMusic extends Module{
 		
 		//Show select current track dialog or figure out the preferred active track
 		//TODO: This is a temporary fix, ask the user to manually input the track number until they get a valid track number
-		int activeTrack = -1;
-		while(activeTrack < 1 || activeTrack > selectedSongModel.getTracks().size()){
+		int activeTrack = 1;
+		/*while(activeTrack < 1 || activeTrack > selectedSongModel.getTracks().size()){
 			try{
 				activeTrack = Integer.parseInt(JOptionPane.showInputDialog(this, "What track would you like to play? (1 - "+selectedSongModel.getTracks().size()+")"));
 		
 			}catch(NumberFormatException formatException){
 				activeTrack = -1;
 			}
-		}
+		}*/
 		activeTrack-=1;
 		//End work-around
 		
@@ -131,9 +206,9 @@ public class SheetMusic extends Module{
 		songPlayer.attach(validator);
 		
 		//Attach processed note events
-		validator.attach(adviceFeedbackFrame);
-		validator.attach(scoreFeedbackFrame);
-		validator.attach(musicEngine);
+		//validator.attach(adviceFeedbackFrame);
+		//validator.attach(scoreFeedbackFrame);
+		//validator.attach(musicEngine);
 	
 	}
 

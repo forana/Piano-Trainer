@@ -2,6 +2,11 @@ package crescendo.sheetmusic;
 
 import crescendo.base.ProcessedNoteEventListener;
 import crescendo.base.ProcessedNoteEvent;
+import crescendo.base.song.Track;
+import crescendo.base.song.Note;
+import crescendo.base.NoteEvent;
+import crescendo.base.song.modifier.NoteModifier;
+import crescendo.base.song.modifier.Chord;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -9,6 +14,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Provides a component to be displayed on the same screen as the songengine.
@@ -29,17 +36,20 @@ public class ScoreFrame extends JPanel implements ProcessedNoteEventListener {
 	private JLabel scorePercentLabel;
 	// label for the streak
 	private JLabel streakLabel;
-	// calculator that knows all about score
-	private ScoreCalculator score;
+	// number of correct noteevents we'd expect
+	private int expectedCount;
+	// current number of sequential correct notes
+	private int currentStreak;
+	// set of noteevents that were "correct"
+	private Set<NoteEvent> correctNotes;
 	
 	/**
 	 * Creates a ScoreFrame with expectations based on a given track.
 	 * 
 	 * @param activeTrack The track currently being played.
 	 */
-	public ScoreFrame(ScoreCalculator calculator) {
+	public ScoreFrame(Track activeTrack) {
 		super();
-		this.score=calculator;
 		
 		// assemble UI elements
 		this.setBackground(new Color(BACKGROUND_COLOR));
@@ -65,12 +75,28 @@ public class ScoreFrame extends JPanel implements ProcessedNoteEventListener {
 		this.streakLabel.setFont(FONT);
 		this.streakLabel.setForeground(new Color(TEXT_COLOR));
 		this.add(this.streakLabel,c);
+		
+		// count notes
+		this.expectedCount=0;
+		this.currentStreak=0;
+		this.correctNotes=new HashSet<NoteEvent>();
+		for (Note note : activeTrack.getNotes()) {
+			this.expectedCount+=2;
+			// TODO change this when note structure changes
+			for (NoteModifier modifier : note.getModifiers()) {
+				if (modifier instanceof Chord) {
+					this.expectedCount+=2*modifier.getNotes().size();
+				}
+			}
+		}
 	}
 	
 	/**
 	 * Reset currently-calculated data.
 	 */
 	public void reset() {
+		this.correctNotes.clear();
+		this.currentStreak=0;
 		this.scorePercentLabel.setText("0.0");
 		this.streakLabel.setText("0");
 	}	
@@ -79,8 +105,14 @@ public class ScoreFrame extends JPanel implements ProcessedNoteEventListener {
 	 * Respond to a processed note being pumped out, altering the streak and potentially the 
 	 */
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
-		this.scorePercentLabel.setText(Double.toString(this.score.getCurrentPercent()));
-		this.streakLabel.setText(Integer.toString(this.score.getStreak()));
+		if (e.isCorrect()) {
+			this.correctNotes.add(e.getExpectedNote());
+			currentStreak++;
+		} else {
+			currentStreak=0;
+		}
+		this.scorePercentLabel.setText(Double.toString(1.0*this.correctNotes.size()/expectedCount));
+		this.streakLabel.setText(Integer.toString(currentStreak));
 		repaint();
 	}
 }

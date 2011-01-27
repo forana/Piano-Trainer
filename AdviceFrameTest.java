@@ -5,9 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-/*import crescendo.base.ProcessedNoteEvent;
+import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.NoteEvent;
-import crescendo.base.EventDispatcher.MidiEvent;*/
+import crescendo.base.EventDispatcher.MidiEvent;
 
 public class AdviceFrameTest
 {
@@ -16,7 +16,7 @@ public class AdviceFrameTest
 	@Before
 	public void setup()
 	{
-		this.af=new AdviceFrame(null,null);
+		this.af=new AdviceFrame();
 		JFrame frame=new JFrame("AdviceFrame Test");
 		frame.setSize(400,200);
 		frame.add(this.af);
@@ -32,7 +32,7 @@ public class AdviceFrameTest
 	@Test
 	public void testEarlyNotes()
 	{
-		/*for (int i=0; i<10; i++)
+		for (int i=0; i<10; i++)
 		{
 			try
 			{
@@ -42,7 +42,7 @@ public class AdviceFrameTest
 			{
 			}
 			af.handleProcessedNoteEvent(new ProcessedNoteEvent(new NoteEvent(null,null,System.currentTimeMillis()+100),new MidiEvent(60,100,null),false));
-		}*/
+		}
 	}
 	
 	@After

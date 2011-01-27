@@ -1,9 +1,7 @@
 package crescendo.sheetmusic;
 
-import crescendo.base.HeuristicsModel;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
-import crescendo.base.SongState;
 import crescendo.sheetmusic.advicepattern.*;
 
 import javax.swing.JPanel;
@@ -36,17 +34,11 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 	// list of patterns being used
 	private List<AdvicePattern> patterns;
 	
-	private HeuristicsModel heuristics;
-	private SongState state;
-	
 	/**
 	 * Creates a new AdviceFrame.
 	 */
-	public AdviceFrame(HeuristicsModel heuristics,SongState state) {
+	public AdviceFrame() {
 		super();
-		
-		this.heuristics=heuristics;
-		this.state=state;
 		
 		// UI elements
 		this.setBackground(new Color(BACKGROUND_COLOR));
@@ -74,8 +66,8 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 		this.patterns=new LinkedList<AdvicePattern>();
 		this.patterns.add(new QuietPattern());
 		this.patterns.add(new LoudPattern());
-		this.patterns.add(new EarlyPattern(heuristics,state));
-		this.patterns.add(new LatePattern(heuristics,state));
+		this.patterns.add(new EarlyPattern());
+		this.patterns.add(new LatePattern());
 	}
 	
 	/**

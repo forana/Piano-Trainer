@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import crescendo.base.AudioPlayer;
 import crescendo.base.ErrorHandler;
 import crescendo.base.ErrorHandler.Response;
+import crescendo.base.HeuristicsModel;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
@@ -24,6 +25,7 @@ import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
 
 public class SheetMusic extends Module{
+	private static final long serialVersionUID = 1L;
 
 	private String loadedSongPath;	//Save path for resuming after invalid shutdown
 	
@@ -40,15 +42,10 @@ public class SheetMusic extends Module{
 	
 	public SheetMusic(){
 		//TODO:Load up the UI
-		
 		this.setSize(1024, 768);
-		
-		
 		
 		bottomBarContainer = new JPanel();
 		bottomBarContainer.setVisible(true);
-		
-		
 		
 		mainAreaTarget = new JScrollPane();
 		mainAreaTarget.setSize(1024, 500);
@@ -65,61 +62,58 @@ public class SheetMusic extends Module{
 	}
 	
 	AdjustmentListener MyAdjustmentListener = new AdjustmentListener(){
-	    // This method is called whenever the value of a scrollbar is changed,
-	    // either by the user or programmatically.
-	    public void adjustmentValueChanged(AdjustmentEvent evt) {
-	    	musicEngine.repaint();
-	    	SheetMusic.this.repaint();
-	    	mainAreaTarget.repaint();
-	    	bottomBarContainer.repaint();
-	    	SheetMusic.this.invalidate();
-	    	musicEngine.invalidate();
-	    	mainAreaTarget.invalidate();
-	    	
-	    	
-	    	System.out.println("imathing");
-	        Adjustable source = evt.getAdjustable();
-
-	        // getValueIsAdjusting() returns true if the user is currently
-	        // dragging the scrollbar's knob and has not picked a final value
-	        if (evt.getValueIsAdjusting()) {
-	        	
-	            return;
-	        }
-
-	        // Determine which scrollbar fired the event
-	        int orient = source.getOrientation();
-	        if (orient == Adjustable.HORIZONTAL) {
-	            // Event from horizontal scrollbar
-	        } else {
-	            // Event from vertical scrollbar
-	        }
-
-	        // Determine the type of event
-	        int type = evt.getAdjustmentType();
-	        switch (type) {
-	          case AdjustmentEvent.UNIT_INCREMENT:
-	              // Scrollbar was increased by one unit
-	              break;
-	          case AdjustmentEvent.UNIT_DECREMENT:
-	              // Scrollbar was decreased by one unit
-	              break;
-	          case AdjustmentEvent.BLOCK_INCREMENT:
-	              // Scrollbar was increased by one block
-	              break;
-	          case AdjustmentEvent.BLOCK_DECREMENT:
-	              // Scrollbar was decreased by one block
-	              break;
-	          case AdjustmentEvent.TRACK:
-	              // The knob on the scrollbar was dragged
-	              break;
-	        }
-
-	        // Get current value
-	        int value = evt.getValue();
-	    }
+		// This method is called whenever the value of a scrollbar is changed,
+		// either by the user or programmatically.
+		public void adjustmentValueChanged(AdjustmentEvent evt) {
+			musicEngine.repaint();
+			SheetMusic.this.repaint();
+			mainAreaTarget.repaint();
+			bottomBarContainer.repaint();
+			SheetMusic.this.invalidate();
+			musicEngine.invalidate();
+			mainAreaTarget.invalidate();
+			
+			
+			System.out.println("imathing");
+			Adjustable source = evt.getAdjustable();
+			
+			// getValueIsAdjusting() returns true if the user is currently
+			// dragging the scrollbar's knob and has not picked a final value
+			if (evt.getValueIsAdjusting()) {
+				return;
+		}
+		
+		// Determine which scrollbar fired the event
+		int orient = source.getOrientation();
+		if (orient == Adjustable.HORIZONTAL) {
+			// Event from horizontal scrollbar
+		} else {
+			// Event from vertical scrollbar
+		}
+		
+		// Determine the type of event
+		int type = evt.getAdjustmentType();
+		switch (type) {
+			case AdjustmentEvent.UNIT_INCREMENT:
+				// Scrollbar was increased by one unit
+				break;
+			case AdjustmentEvent.UNIT_DECREMENT:
+				// Scrollbar was decreased by one unit
+				break;
+			case AdjustmentEvent.BLOCK_INCREMENT:
+				// Scrollbar was increased by one block
+				break;
+			case AdjustmentEvent.BLOCK_DECREMENT:
+				// Scrollbar was decreased by one block
+				break;
+			case AdjustmentEvent.TRACK:
+				// The knob on the scrollbar was dragged
+				break;
+			}
+			// Get current value
+			int value = evt.getValue();
+		}
 	};
-
 	
 	/**
 	 * Load the sheet music module with a previously saved state
@@ -169,12 +163,21 @@ public class SheetMusic extends Module{
 		activeTrack-=1;
 		//End work-around
 		
+		// Initialize meta-things
+		boolean careAboutPitch=true;
+		boolean careAboutDynamic=true;
+		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
+		
+		//Hook up song processor pieces
+		EventDispatcher dispatcher = EventDispatcher.getInstance();
+		songPlayer = new SongPlayer(selectedSongModel);
+		SongValidator validator = new SongValidator(selectedSongModel,selectedSongModel.getTracks().get(activeTrack),heuristics);
+		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
 		
 		//Initialize UI Pieces
-		adviceFeedbackFrame = new AdviceFrame();
-		scoreFeedbackFrame = new ScoreFrame(selectedSongModel.getTracks().get(activeTrack));
+		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
+		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
 		musicEngine = new MusicEngine(selectedSongModel);
-	
 		
 		bottomBarContainer.add(adviceFeedbackFrame);
 		bottomBarContainer.setVisible(true);
@@ -185,14 +188,6 @@ public class SheetMusic extends Module{
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
 		
 		//Add the progress frame to the bottom bar container...
-		
-		
-		//Hook up song processor pieces
-		EventDispatcher dispatcher = EventDispatcher.getInstance();
-		songPlayer = new SongPlayer(selectedSongModel);
-		SongValidator validator = new SongValidator();
-		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
-		
 		
 		//Attach input events
 		dispatcher.attach(validator);
@@ -206,9 +201,9 @@ public class SheetMusic extends Module{
 		songPlayer.attach(validator);
 		
 		//Attach processed note events
-		//validator.attach(adviceFeedbackFrame);
-		//validator.attach(scoreFeedbackFrame);
-		//validator.attach(musicEngine);
+		validator.attach(adviceFeedbackFrame);
+		validator.attach(scoreFeedbackFrame);
+		validator.attach(musicEngine);
 	
 	}
 

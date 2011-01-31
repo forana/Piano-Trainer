@@ -67,7 +67,7 @@ public class SongSelectionScreen extends JScrollPane {
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
 					//This is where a real application would open the file.
-
+					//TODO: Nick pass the filename to your stuff
 
 				}
 

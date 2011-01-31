@@ -26,8 +26,6 @@ public class SongModel
 	/** time signature of this song */
 	private TimeSignature timeSignature;
 	private String title;
-	private String email;
-	private String website;
 	private String license;
 	private int bpm;
 	private int keySignature;
@@ -40,20 +38,16 @@ public class SongModel
 	 * @param tracks
 	 * @param title
 	 * @param creators
-	 * @param email
-	 * @param website
 	 * @param license
 	 * @param beatsPerMinute
 	 * @param timeSignature
 	 * TODO Finish this comment.
 	 */
-	public SongModel(List<Track> tracks,String title,List<Creator> creators,String email,String website,String license,int beatsPerMinute, TimeSignature timeSignature, int keySignature) {
+	public SongModel(List<Track> tracks,String title,List<Creator> creators,String license,int beatsPerMinute, TimeSignature timeSignature, int keySignature) {
 		this.tracks=tracks;
 		this.creators=creators;
 		this.timeSignature = timeSignature;
 		this.title=title;
-		this.email=email;
-		this.website=website;
 		this.license=license;
 		this.bpm=beatsPerMinute;
 		this.keySignature = keySignature;
@@ -94,26 +88,6 @@ public class SongModel
 	public String getTitle()
 	{
 		return this.title;
-	}
-	
-	/**
-	 * Gets the email address specified by this song.
-	 * 
-	 * @return The email address.
-	 */
-	public String getEmail()
-	{
-		return this.email;
-	}
-	
-	/**
-	 * Gets the website of for the specified song.
-	 * 
-	 * @return The URL for the song, in string form.
-	 */
-	public String getWebsite()
-	{
-		return this.website;
 	}
 	
 	/**

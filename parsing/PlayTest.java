@@ -12,7 +12,7 @@ public class PlayTest
 	{
 		try
 		{
-			SongModel model=SongFactory.generateSongFromFile("resources/pkmn-rt1.mid");
+			SongModel model=SongFactory.generateSongFromFile("resources/dont_speak.mid");
 			SongPlayer player=new SongPlayer(model);
 			AudioPlayer audio=new AudioPlayer(model,null);
 			player.attach(audio,100);

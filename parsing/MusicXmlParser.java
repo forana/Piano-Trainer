@@ -162,7 +162,7 @@ public class MusicXmlParser implements SongFileParser{
 		{
 			zf.close();
 		}
-		return new SongModel(new ArrayList<Track>(tracks.values()), workTitle, creators, "", "", copyright, bpm, timeSignature,keySignature);
+		return new SongModel(new ArrayList<Track>(tracks.values()), workTitle, creators, copyright, bpm, timeSignature,keySignature);
 	}
 	
 	/**

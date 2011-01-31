@@ -1,41 +1,34 @@
 package crescendo.base.song.modifier;
 
 import crescendo.base.song.Note;
-import java.util.List;
-import java.util.LinkedList;
 
 /**
  * Provides a modifier that allows one note to be tied to another without interrupting the relative structure of the song.
  * 
  * @author forana
  */
-public class Tie implements NoteModifier
+public class Tie extends NoteModifier
 {
 	/** The contained notes. */
-	private List<Note> notes;
+	private Note start;
+	private Note end;
 	
 	/**
 	 * Creates a new tie, connecting two notes.
 	 */
 	public Tie(Note first,Note last)
 	{
-		this.notes=new LinkedList<Note>();
-		this.notes.add(first);
-		this.notes.add(last);
+		this.start=first;
+		this.end=last;
 	}
 	
-	public void execute()
+	public Note getStartNote()
 	{
-		//TODO This
+		return this.start;
 	}
 	
-	/**
-	 * Gets the notes represented by this tie.
-	 * 
-	 * @return The notes.
-	 */
-	public List<Note> getNotes()
+	public Note getEndNote()
 	{
-		return this.notes;
+		return this.end;
 	}
 }

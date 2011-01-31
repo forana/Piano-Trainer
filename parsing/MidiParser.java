@@ -16,8 +16,12 @@ import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.base.song.Creator;
 import crescendo.base.song.TimeSignature;
+import crescendo.base.song.modifier.NoteModifier;
 import crescendo.base.song.modifier.Tie;
 import crescendo.base.song.modifier.Chord;
+import crescendo.base.song.modifier.Modulation;
+import crescendo.base.song.modifier.TimeSignatureChange;
+import crescendo.base.song.modifier.TempoChange;
 
 /**
  * Provides a parser for MIDI files, supporting basic note functionality.
@@ -26,7 +30,9 @@ import crescendo.base.song.modifier.Chord;
  */
 public class MidiParser implements SongFileParser
 {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
+	
+	private static final int PERCUSSION_CHANNEL_INDEX=9;
 	
 	/**
 	 * Create a SongModel from the given file.
@@ -39,10 +45,14 @@ public class MidiParser implements SongFileParser
 	{
 		MidiInputStream stream=new MidiInputStream(new FileInputStream(file));
 		
+		// song name
+		String songName=null;
 		// initialize track items - these cannot be track objects yet as they need to be built
 		List<List<SkeletalNote>> trackNotes; // this should REALLY be an array, but java can't do that
 		String[] trackNames;
 		int[] trackVoices;
+		List<SkeletalNote> percussionNotes;
+		List<TimedModifier> modifiers;
 		// unfortunately this is the best we can do for these
 		String author=null;
 		String email=null;
@@ -74,6 +84,7 @@ public class MidiParser implements SongFileParser
 		trackNotes=new ArrayList<List<SkeletalNote>>(numTracks);
 		trackNames=new String[numTracks];
 		trackVoices=new int[numTracks];
+		percussionNotes=new ArrayList<SkeletalNote>();
 		for (int i=0; i<numTracks; i++)
 		{
 			trackNotes.add(new ArrayList<SkeletalNote>()); // arraylist to make it faster to access via index
@@ -122,6 +133,12 @@ public class MidiParser implements SongFileParser
 					repeatOpcode=false;
 					int opcode=stream.read();
 					int channel=opcode & 0x0F;
+					if (DEBUG) 	System.out.print(Integer.toHexString(channel)+"\t");
+					// if the channel is percussion, assume this whole track is percussion
+					if (channel==PERCUSSION_CHANNEL_INDEX)
+					{
+						trackVoices[i]=-1;
+					}
 					bytesRead++;
 					boolean dontReadInStop=false;
 					int notePitch=0;
@@ -181,7 +198,14 @@ public class MidiParser implements SongFileParser
 								{
 									note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 									iter.remove();
-									trackNotes.get(i).add(note);
+									if (channel==PERCUSSION_CHANNEL_INDEX)
+									{
+										percussionNotes.add(note);
+									}
+									else
+									{
+										trackNotes.get(i).add(note);
+									}
 								}
 							}
 							break;
@@ -250,7 +274,11 @@ public class MidiParser implements SongFileParser
 									case 0x03: // Sequence / track name
 										String trackName=stream.readString(metaLength);
 										trackNames[i]=trackName;
-										if (DEBUG) System.out.println(trackName);
+										if (songName==null)
+										{
+											songName=trackName;
+										}
+										if (DEBUG) System.out.println("Track name: "+trackName);
 										break;
 									case 0x04: // Instrument name
 										// TODO should handle this so that user has an idea of what instrument the track is
@@ -354,6 +382,9 @@ public class MidiParser implements SongFileParser
 		
 		
 		List<Track> tracks=new ArrayList<Track>();
+		// add in percussion
+		numTracks++;
+		
 		for (int i=0; i<numTracks; i++)
 		{
 			// skip empty tracks?
@@ -367,7 +398,7 @@ public class MidiParser implements SongFileParser
 			// normalize the lengths of all notes (that is, make them more recognizable)
 			for (SkeletalNote note : snotes)
 			{
-				note.normalize();
+				//note.normalize();
 			}
 			long currentTime=0;
 			Track track=new Track(trackNames[i],trackVoices[i]);
@@ -412,29 +443,8 @@ public class MidiParser implements SongFileParser
 					// the rest will be handled by the note itself
 					k++;
 				}
-				//find all notes that start at the same time
-				List<SkeletalNote> simultaneousNotes=new LinkedList<SkeletalNote>();
-				while (j+1<snotes.size() && snotes.get(j+1).getOffset()==current.getOffset())
-				{
-					simultaneousNotes.add(snotes.get(j+1));
-					j++;
-				}
-				if (simultaneousNotes.size()>0)
-				{
-					Note note=current.getNote(track);
-					List<Note> chordNotes=new LinkedList<Note>();
-					//chordNotes.add(note);
-					for (SkeletalNote skel:simultaneousNotes)
-					{
-						chordNotes.add(skel.getNote(track));
-					}
-					note.addModifier(new Chord(chordNotes));
-					track.addNote(note);
-				}
-				else
-				{
-					track.addNote(current.getNote(track));
-				}
+				// find all notes that start at the same time
+				// todo add note adding logic here
 				currentTime=current.getOffset()+current.getChoppedDuration();
 				j++;
 			}
@@ -444,14 +454,32 @@ public class MidiParser implements SongFileParser
 		List<Creator> creators=new LinkedList<Creator>();
 		creators.add(new Creator(author,"Sequencer"));
 		
-		String title=file.getName();
-		if (tracks.size()>0 && tracks.get(0).getName()!="")
+		String title=songName+" ("+file.getName()+")";
+		
+		SongModel model=new SongModel(tracks,title,creators,license,bpm,timeSignature,keySignature);
+		return model;
+	}
+	
+	private class TimedModifier
+	{
+		private long time;
+		private NoteModifier modifier;
+		
+		public TimedModifier(long time,NoteModifier modifier)
 		{
-			title=tracks.get(0).getName()+" ("+title+")";
+			this.time=time;
+			this.modifier=modifier;
 		}
 		
-		SongModel model=new SongModel(tracks,title,creators,email,website,license,bpm,timeSignature,keySignature);
-		return model;
+		public long getTime()
+		{
+			return time;
+		}
+		
+		public NoteModifier getModifier()
+		{
+			return modifier;
+		}
 	}
 	
 	/**

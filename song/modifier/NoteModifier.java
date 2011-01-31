@@ -1,16 +1,22 @@
 package crescendo.base.song.modifier;
 
+import crescendo.base.SongState;
 import crescendo.base.song.Note;
 import java.util.List;
+import java.util.LinkedList;
 
 /**
  * Provides a generalization for a note modifier.
  */
-public interface NoteModifier
+public abstract class NoteModifier
 {
 	/** Call an arbitrary command. **/
-	public void execute();
+	public void execute(SongState state)
+	{
+	}
 	
-	/** Return the notes associated with this modifier. **/
-	public List<Note> getNotes();
+	public List<Note> getNotes()
+	{
+		return new LinkedList<Note>();
+	}
 }

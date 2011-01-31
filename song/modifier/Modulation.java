@@ -2,12 +2,13 @@ package crescendo.base.song.modifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import crescendo.base.SongState;
 
 import crescendo.base.song.Note;
 
-public class Modulation implements NoteModifier {
+public class Modulation extends NoteModifier {
 	
-	public int targetKeySignature; //This should be public so it can be accessed after casting the NoteModifier to a Modulation modifier.
+	private int targetKeySignature;
 	private List<Note> note;
 	
 	public Modulation(Note note,int targetKey){
@@ -17,13 +18,12 @@ public class Modulation implements NoteModifier {
 	}
 	
 	@Override
-	public void execute() {
-		//This method does nothing for the modulation modifier, it is for markup purposes only
+	public void execute(SongState state) {
+		state.setKey(this.targetKeySignature);
 	}
-
-	@Override
-	public List<Note> getNotes() {
-		return note;
+	
+	public int getTargetKey()
+	{
+		return this.targetKeySignature;
 	}
-
 }

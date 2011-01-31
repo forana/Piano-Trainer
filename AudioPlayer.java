@@ -23,6 +23,8 @@ import crescendo.base.song.Track;
  */
 public class AudioPlayer implements NoteEventListener,FlowController
 {
+	// Channel 10 (9 if zero-indexed) is always reserved for percussion
+	public static final int PERCUSSION_INDEX = 9;
 	public static Instrument[] instrumentList;
 	
 	static {
@@ -51,6 +53,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 * Signifies whether or not the audio is currently being suspended.
 	 */
 	private boolean suspended;
+	
+	/**
+	 * Percussion channel
+	 */
+	private AudioPlayerChannel percussionChannel;
 	
 	/**
 	 * Creates a new AudioPlayer, contructed around a specific song.
@@ -94,6 +101,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
+		this.percussionChannel=new AudioPlayerChannel(channels[PERCUSSION_INDEX]);
 		
 		// start off assuming we arent't suspended
 		this.suspended=false;
@@ -105,6 +113,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			{
 				if (currentChannel<channels.length)
 				{
+					if (currentChannel==PERCUSSION_INDEX)
+					{
+						currentChannel++;
+					}
 					Instrument instrument;
 					try
 					{
@@ -113,8 +125,8 @@ public class AudioPlayer implements NoteEventListener,FlowController
 					}
 					catch (ArrayIndexOutOfBoundsException e)
 					{
-						instrument=instrumentList[0];
-						System.err.println("No instrument found for '"+track.getName()+"' (index "+track.getVoice()+")");
+						instrument=instrumentList[0]; // this is probably drums
+						//System.err.println("No instrument found for '"+track.getName()+"' (index "+track.getVoice()+")");
 					}
 					
 					MidiChannel channel=channels[currentChannel];
@@ -144,7 +156,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 * @return The current delay between giving the MIDI subsystem a note and the time
 	 * it gets played, in milliseconds.
 	 */
-	public double getLatency()
+	public long getLatency()
 	{
 		// the division converts microseconds to milliseconds
 		return this.synth.getLatency()/1000;
@@ -162,8 +174,18 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		NoteAction action=noteEvent.getAction();
 		Track track=note.getTrack();
 		
-		// match the track to the proper channel object
-		AudioPlayerChannel channel=this.channelMap.get(track);
+		AudioPlayerChannel channel;
+		
+		if (track.getVoice()>0)
+		{
+			// match the track to the proper channel object
+			channel=this.channelMap.get(track);
+		}
+		else
+		{
+			// use percussion channel
+			channel=this.percussionChannel;
+		}
 		
 		if (channel!=null)
 		{

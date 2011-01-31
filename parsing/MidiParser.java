@@ -17,7 +17,7 @@ import crescendo.base.song.Track;
 import crescendo.base.song.Creator;
 import crescendo.base.song.TimeSignature;
 import crescendo.base.song.modifier.NoteModifier;
-import crescendo.base.song.modifier.Tie;
+//import crescendo.base.song.modifier.Tie;
 import crescendo.base.song.modifier.Chord;
 import crescendo.base.song.modifier.Modulation;
 import crescendo.base.song.modifier.TimeSignatureChange;
@@ -30,8 +30,9 @@ import crescendo.base.song.modifier.TempoChange;
  */
 public class MidiParser implements SongFileParser
 {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
+	// this is set according to the midi spec
 	private static final int PERCUSSION_CHANNEL_INDEX=9;
 	
 	/**
@@ -55,13 +56,11 @@ public class MidiParser implements SongFileParser
 		List<TimedModifier> modifiers;
 		// unfortunately this is the best we can do for these
 		String author=null;
-		String email=null;
-		String website=null;
 		String license=null;
 		// bpm defaults to 120
 		int bpm=120;
 		// time signature defaults to 4/4
-		TimeSignature timeSignature=new TimeSignature(4,4);
+		TimeSignature timeSignature=null;
 		// key signature defaults to 0 (no accidentals)
 		int keySignature=0;
 		
@@ -85,6 +84,7 @@ public class MidiParser implements SongFileParser
 		trackNames=new String[numTracks];
 		trackVoices=new int[numTracks];
 		percussionNotes=new ArrayList<SkeletalNote>();
+		modifiers=new ArrayList<TimedModifier>();
 		for (int i=0; i<numTracks; i++)
 		{
 			trackNotes.add(new ArrayList<SkeletalNote>()); // arraylist to make it faster to access via index
@@ -196,7 +196,6 @@ public class MidiParser implements SongFileParser
 								SkeletalNote note=iter.next();
 								if (note.getPitch()==notePitch)
 								{
-									note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 									iter.remove();
 									if (channel==PERCUSSION_CHANNEL_INDEX)
 									{
@@ -210,7 +209,7 @@ public class MidiParser implements SongFileParser
 							}
 							break;
 						case 0xA: // Note aftertouch
-							// TODO handle aftertouch w/ modifier
+							// note handling aftertouch
 							/*int noteAftertouchPitch=*/stream.read();
 							/*int noteAftertouchAmount=*/stream.read();
 							if (DEBUG) System.out.println("(aftertouch)");
@@ -218,7 +217,7 @@ public class MidiParser implements SongFileParser
 							break;
 						case 0xB: // Controller event
 							// http://wiki.cockos.com/wiki/index.php/MIDI_Specification
-							// TODO handle this?
+							// not handling controller event
 							/*int controllerType=*/stream.read();
 							/*int controllerValue=*/stream.read();
 							if (DEBUG) System.out.println("(controller event)");
@@ -228,11 +227,14 @@ public class MidiParser implements SongFileParser
 							int programNumber=stream.read();
 							bytesRead++;
 							// set the current track's voice
-							trackVoices[i]=programNumber;
+							if (channel!=PERCUSSION_CHANNEL_INDEX)
+							{
+								trackVoices[i]=programNumber;
+							}
 							if (DEBUG) System.out.println("(wtf voice changed)");
 							break;
 						case 0xD: // Channel aftertouch
-							// TODO if we handle aftertouch we need to handle this as well
+							// not handling aftertouch
 							/*int aftertouchAmount=*/stream.read();
 							bytesRead++;
 							if (DEBUG) System.out.println("(channel aftertouch)");
@@ -291,12 +293,12 @@ public class MidiParser implements SongFileParser
 										if (DEBUG) System.out.println("lyrics lol");
 										break;
 									case 0x06: // Marker
-										// TODO Actually use markers?
+										// not handling markers
 										/*String markerName=*/stream.readString(metaLength);
 										if (DEBUG) System.out.println("read a marker");
 										break;
 									case 0x07: // Cue point
-										// same as marker?
+										// not handling markers
 										/*String cueName=*/stream.readString(metaLength);
 										if (DEBUG) System.out.println("read a cue point");
 										break;
@@ -307,13 +309,21 @@ public class MidiParser implements SongFileParser
 										if (DEBUG) System.out.println("midi port prefix");
 										break;
 									case 0x2F: // End of track
-										// TODO handle this?
+										// to handle this would just break things more; use for debug only
 										if (DEBUG) System.out.println("end of track");
 										break;
 									case 0x51: // Set tempo
 										int microSecondsPerQuarterNote=stream.readBytes(3);
 										int microSecondsPerMinute=60000000;
-										bpm=microSecondsPerMinute/microSecondsPerQuarterNote;
+										int nbpm=microSecondsPerMinute/microSecondsPerQuarterNote;
+										if (currentDelta>0)
+										{
+											modifiers.add(new TimedModifier(currentDelta,new TempoChange(nbpm)));
+										}
+										else
+										{
+											bpm=nbpm;
+										}
 										if (DEBUG) System.out.println(bpm+" bpm");
 										break;
 									case 0x54: // SMPTE offset
@@ -330,11 +340,27 @@ public class MidiParser implements SongFileParser
 										int denominator=(int)Math.pow(2,stream.read());
 										/*int clockCyclesPerMetronomeTick=*/stream.read();
 										/*int thirtySecondNotesPerQuarterNote=*/stream.read(); // for sanity's sake, not using this
-										timeSignature=new TimeSignature(numerator,denominator);
+										if (timeSignature==null)
+										{
+											timeSignature=new TimeSignature(numerator,denominator);
+										}
+										else
+										{
+											modifiers.add(new TimedModifier(currentDelta,new TimeSignatureChange(
+												new TimeSignature(numerator,denominator))));
+										}
 										if (DEBUG) System.out.println("set time to "+numerator+"/"+denominator);
 										break;
 									case 0x59: // Key signature
-										keySignature=stream.read()-7;
+										int nkeySignature=stream.read()-7;
+										if (currentDelta>0)
+										{
+											modifiers.add(new TimedModifier(currentDelta,new Modulation(nkeySignature)));
+										}
+										else
+										{
+											keySignature=nkeySignature;
+										}
 										/*int scale=*/stream.read();
 										if (DEBUG) System.out.println("set key signature to "+keySignature);
 										break;
@@ -383,49 +409,58 @@ public class MidiParser implements SongFileParser
 		
 		List<Track> tracks=new ArrayList<Track>();
 		// add in percussion
-		numTracks++;
+		trackNotes.add(percussionNotes);
 		
-		for (int i=0; i<numTracks; i++)
+		for (int i=0; i<trackNotes.size(); i++)
 		{
 			// skip empty tracks?
-			/*if (trackNotes.get(i).size()==0)
+			if (trackNotes.get(i).size()==0)
 			{
+				if (DEBUG) System.out.println("Skipping empty track "+i);
 				continue;
-			}*/
+			}
 			List<SkeletalNote> snotes=trackNotes.get(i);
 			// sort the notes by offset
 			Collections.sort(snotes);
-			// normalize the lengths of all notes (that is, make them more recognizable)
+			// loop #1: normalize the lengths of all notes
 			for (SkeletalNote note : snotes)
 			{
-				//note.normalize();
+				note.normalize();
 			}
 			long currentTime=0;
-			Track track=new Track(trackNames[i],trackVoices[i]);
-			int j=0;
-			while (j<snotes.size())
+			long endOfSong=0;
+			int modIndex=0;
+			int cbpm=bpm;
+			Track track;
+			if (snotes==percussionNotes)
+			{
+				track=new Track("Percussion",-1); // negative voice for percussion
+			}
+			else
+			{
+				track=new Track(trackNames[i],trackVoices[i]);
+			}
+			if (DEBUG) System.out.println("Track: "+track.getName());
+			int stop=snotes.size();
+			if (DEBUG) System.out.println("\t"+stop+" notes before split");
+			// loop #2 - split up ties
+			for (int j=0; j<stop; j++)
 			{
 				SkeletalNote current=snotes.get(j);
-				// if there's a difference, a rest needs to be added
-				if (current.getOffset()!=currentTime)
+				
+				// make sure we're calculating with the right bpm
+				while (modIndex<modifiers.size() && currentTime<=modifiers.get(modIndex).getTime())
 				{
-					long difference=current.getOffset()-currentTime;
-					double restBeats;
-					if (timeMode==0)
+					NoteModifier mod=modifiers.get(modIndex).getModifier();
+					if (mod instanceof TempoChange)
 					{
-						restBeats=1.0*difference/ticksPerBeat;
+						cbpm=((TempoChange)mod).getTargetTempo();
+						if (DEBUG) System.out.println("\tBPM = "+cbpm);
 					}
-					else
-					{
-						double frames=difference/ticksPerFrame;
-						double seconds=frames/framesPerSecond;
-						restBeats=seconds*bpm/60;
-					}
-					// a rest's pitch and velocity don't matter, but it isn't playable
-					Note rest=new Note(0,restBeats,0,track,false);
-					track.addNote(rest);
+					modIndex++;
 				}
-				// perform a bit of a look-ahead to see if any of this note needs to be turned into a tie
+				
+				// add in divisions
 				int k=j+1;
 				while (k<snotes.size())
 				{
@@ -443,11 +478,120 @@ public class MidiParser implements SongFileParser
 					// the rest will be handled by the note itself
 					k++;
 				}
-				// find all notes that start at the same time
-				// todo add note adding logic here
-				currentTime=current.getOffset()+current.getChoppedDuration();
-				j++;
+				// split divided notes
+				snotes.addAll(current.split(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,cbpm));
+				
+				// update where we are
+				currentTime=current.getOffset()+current.getDuration();
+				
+				// mark end of song
+				if (currentTime>endOfSong)
+				{
+					endOfSong=currentTime;
+				}
 			}
+			
+			// sort again, because we added notes (possibly)
+			Collections.sort(snotes);
+			if (DEBUG) System.out.println("\t"+snotes.size()+" notes after split");
+			
+			// loop #3, let's chord it up and make real notes out of it
+			List<Note> notes=new LinkedList<Note>();
+			modIndex=0;
+			currentTime=0;
+			cbpm=bpm;
+			for (int j=0; j<snotes.size(); )
+			{
+				while (modIndex<modifiers.size() && currentTime<=modifiers.get(modIndex).getTime())
+				{
+					NoteModifier mod=modifiers.get(modIndex).getModifier();
+					if (mod instanceof TempoChange)
+					{
+						cbpm=((TempoChange)mod).getTargetTempo();
+					}
+					modIndex++;
+				}
+				
+				SkeletalNote current=snotes.get(j);
+				
+				// add a rest if needed
+				if (current.getOffset()!=currentTime)
+				{
+					long difference=current.getOffset()-currentTime;
+					double restBeats;
+					if (timeMode==0)
+					{
+						restBeats=1.0*difference/ticksPerBeat;
+					}
+					else
+					{
+						double frames=difference/ticksPerFrame;
+						double seconds=frames/framesPerSecond;
+						restBeats=seconds*bpm/60;
+					}
+					// a rest's pitch and velocity don't matter, but it isn't playable
+					Note rest=new Note(0,restBeats,0,track,false);
+					notes.add(rest);
+				}
+				
+				// turn into real note
+				Note note=current.getNote(track);
+				
+				// find simultaneous notes
+				j++;
+				List<SkeletalNote> simultaneousNotes=new LinkedList<SkeletalNote>();
+				while (j<snotes.size() && snotes.get(j).getOffset()==current.getOffset())
+				{
+					simultaneousNotes.add(snotes.get(j));
+					j++;
+				}
+				
+				// if any found, add them as modifier to this note
+				if (simultaneousNotes.size()>0)
+				{
+					List<Note> chordNotes=new LinkedList<Note>();
+					for (SkeletalNote snote : simultaneousNotes)
+					{
+						chordNotes.add(snote.getNote(track));
+					}
+					note.addModifier(new Chord(chordNotes));
+				}
+				
+				notes.add(note);
+				
+				currentTime=current.getOffset()+current.getDuration();
+			}
+			
+			// if there was time left over after that iteration, it should be a rest
+			if (currentTime<endOfSong)
+			{
+				long difference=endOfSong-currentTime;
+				double restBeats;
+				if (timeMode==0)
+				{
+					restBeats=1.0*difference/ticksPerBeat;
+				}
+				else
+				{
+					double frames=difference/ticksPerFrame;
+					double seconds=frames/framesPerSecond;
+					restBeats=seconds*bpm/60;
+				}
+				// a rest's pitch and velocity don't matter, but it isn't playable
+				Note rest=new Note(0,restBeats,0,track,false);
+				notes.add(rest);
+			}
+			
+			// TODO add tie checking loop here
+			
+			if (DEBUG) System.out.println("\t"+notes.size()+" notes after rests added");
+			
+			// loop #5: add all notes to track
+			for (Note note : notes)
+			{
+				track.addNote(note);
+			}
+			
 			tracks.add(track);
 		}
 		
@@ -455,6 +599,11 @@ public class MidiParser implements SongFileParser
 		creators.add(new Creator(author,"Sequencer"));
 		
 		String title=songName+" ("+file.getName()+")";
+		
+		if (timeSignature==null)
+		{
+			timeSignature=new TimeSignature(4,4);
+		}
 		
 		SongModel model=new SongModel(tracks,title,creators,license,bpm,timeSignature,keySignature);
 		return model;
@@ -544,25 +693,6 @@ public class MidiParser implements SongFileParser
 		}
 		
 		/**
-		 * Gets the duration of a note for sequential purposes. This method assumes all divisions have already been made.
-		 * 
-		 * @return The length of the chopped note, in milliseconds.
-		 */
-		public long getChoppedDuration()
-		{
-			if (this.divisions.size()>0)
-			{
-				List<Long> sortedDivisions=new ArrayList<Long>(this.divisions);
-				Collections.sort(sortedDivisions);
-				return sortedDivisions.get(0)-this.offset;
-			}
-			else
-			{
-				return this.duration;
-			}
-		}
-		
-		/**
 		 * Increase the duration of this note.
 		 * 
 		 * @param delta The amount to add, in milliseconds.
@@ -609,7 +739,7 @@ public class MidiParser implements SongFileParser
 		}
 		
 		/**
-		 * Compare one note to another, allowing sorting by offset.
+		 * Compare one note to another, allowing sorting by offset then pitch.
 		 * 
 		 * @param other The note to compare to.
 		 * 
@@ -617,7 +747,7 @@ public class MidiParser implements SongFileParser
 		 */
 		public int compareTo(SkeletalNote other)
 		{
-			return (int)(this.getOffset()-other.getOffset());
+			return 1000*(int)(this.getOffset()-other.getOffset())+(this.getPitch()-other.getPitch());
 		}
 		
 		/**
@@ -664,6 +794,42 @@ public class MidiParser implements SongFileParser
 			}
 		}
 		
+		public List<SkeletalNote> split(int timeMode,int ticksPerBeat,int ticksPerFrame,double framesPerSecond,int bpm)
+		{
+			List<SkeletalNote> splitNotes=new LinkedList<SkeletalNote>();
+			
+			if (this.divisions.size()>0)
+			{
+				// sort it so everything isn't ruined - has to be a list for this to happen though
+				List<Long> sortedDivisions=new ArrayList<Long>(this.divisions);
+				Collections.sort(sortedDivisions);
+				
+				for (int i=1; i<sortedDivisions.size(); i++)
+				{
+					// calculate difference in clock ticks
+					int cycles;
+					if (i==sortedDivisions.size()-1)
+					{
+						cycles=(int)(this.getDuration()-(sortedDivisions.get(i-1)-this.getOffset()));
+					}
+					else
+					{
+						cycles=(int)(sortedDivisions.get(i)-sortedDivisions.get(i-1));
+					}
+					SkeletalNote note=new SkeletalNote(this.pitch,this.velocity,sortedDivisions.get(i));
+					note.addDuration(cycles);
+					// do this here since this note will never have split() called on it
+					note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
+					splitNotes.add(note);
+				}
+				
+				this.duration=(int)(sortedDivisions.get(0)-this.getOffset());
+			}
+			this.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
+			
+			return splitNotes;
+		}
+		
 		/**
 		 * Gets a full note representation of this skeletal version, associated to a specific track. This Note may have a Tie
 		 * modifier attached.
@@ -674,44 +840,7 @@ public class MidiParser implements SongFileParser
 		 */
 		public Note getNote(Track track)
 		{
-			// theoretically, invalid durations have already been removed, so no need to worry about them
-			if (this.divisions.size()>0)
-			{
-				// sort it so everything isn't ruined - has to be a list for this to happen though
-				List<Long> sortedDivisions=new ArrayList<Long>(this.divisions);
-				Collections.sort(sortedDivisions);
-				Note[] notes=new Note[sortedDivisions.size()+1];
-				// define notes for ties before trying to tie them
-				for (int i=0; i<notes.length; i++)
-				{
-					// define number of beats as a fraction of the original length
-					double cycles;
-					if (i==0)
-					{
-						cycles=sortedDivisions.get(0)-this.getOffset();
-					}
-					else if (i==notes.length-1)
-					{
-						cycles=this.getDuration()-(sortedDivisions.get(i-1)-this.getOffset());
-					}
-					else
-					{
-						cycles=sortedDivisions.get(i)-sortedDivisions.get(i-1);
-					}
-					notes[i]=new Note(this.pitch,this.numBeats*(cycles/this.getDuration()),this.velocity,track);
-				}
-				// make ties
-				for (int i=0; i<notes.length-1; i++)
-				{
-					Tie tie=new Tie(notes[i],notes[i+1]);
-					notes[i].addModifier(tie);
-				}
-				return notes[0];
-			}
-			else
-			{
-				return new Note(this.pitch,this.numBeats,this.velocity,track);
-			}
+			return new Note(this.pitch,this.numBeats,this.velocity,track);
 		}
 	}
 }

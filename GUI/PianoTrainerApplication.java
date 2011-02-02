@@ -120,6 +120,8 @@ public class PianoTrainerApplication {
 		menuBar = new JMenuBar();
 		mainWindow.setTitle("Piano Trainer");
 
+		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		//initialize the profile manager
 		profileManager = ProfileManager.getInstance();
 		
@@ -160,7 +162,12 @@ public class PianoTrainerApplication {
 		lessonButton = new JButton("Lesson");
 		lessonButton.addActionListener(al);
 		sheetMusicButton = new JButton("Sheet Music");
-		sheetMusicButton.addActionListener(al);
+		
+		sheetMusicButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				switchModules(new SheetMusic());	
+			}
+		});
 		
 		//add the module buttons to the container
 		moduleButtonContainer.add(gameButton,BorderLayout.WEST);

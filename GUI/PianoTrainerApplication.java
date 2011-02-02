@@ -117,6 +117,8 @@ public class PianoTrainerApplication {
 		menuBar = new JMenuBar();
 		mainWindow.setTitle("Piano Trainer");
 
+		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		//initialize the profile manager
 		profileManager = ProfileManager.getInstance();
 		

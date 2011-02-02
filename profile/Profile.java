@@ -1,6 +1,7 @@
 package crescendo.base.profile;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Profile
@@ -28,6 +29,10 @@ public class Profile implements Serializable,Comparable{
 	private long secondsInLesson;
 	private long secondsInSheetMusic;
 	
+	
+	ArrayList<SongPreference> songPreferences;
+	SongPreference lastPlayedSong;
+	
 	/**
 	 * Profile
 	 * 
@@ -45,6 +50,39 @@ public class Profile implements Serializable,Comparable{
 		gradeDynamic=true;
 		gradePitch=true;
 		gradeTiming=true;
+		
+		songPreferences = new ArrayList<SongPreference>();
+	}
+	
+	
+	/**
+	 * getLastPlayedSong
+	 * 
+	 * @return the songpreference of the last played song
+	 */
+	public SongPreference getLastPlayedSong()
+	{
+		return lastPlayedSong;
+	}
+	
+	/**
+	 * setLastPlayedSong
+	 * 
+	 * @param lastPlayedSong - the songpreference of the last played song
+	 */
+	public void setLastPlayedSong(SongPreference lastPlayedSong)
+	{
+		this.lastPlayedSong = lastPlayedSong;
+	}
+	
+	/**
+	 * getSongPreferences
+	 * 
+	 * @return a list of song preferences
+	 */
+	public ArrayList<SongPreference> getSongPreferences()
+	{
+		return songPreferences;
 	}
 	
 	/**
@@ -94,7 +132,7 @@ public class Profile implements Serializable,Comparable{
 	 * 
 	 * @return true if Timing is graded
 	 */
-	public boolean getIsTiminGraded()
+	public boolean getIsTimingGraded()
 	{
 		return gradeTiming;
 	}

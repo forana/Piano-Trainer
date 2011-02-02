@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
+import crescendo.sheetmusic.SheetMusic;
 
 
 /**
@@ -154,6 +155,12 @@ public class PianoTrainerApplication {
 		gameButton = new JButton("Game");
 		lessonButton = new JButton("Lesson");
 		sheetMusicButton = new JButton("Sheet Music");
+		
+		sheetMusicButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				switchModules(new SheetMusic());	
+			}
+		});
 		
 		//add the module buttons to the container
 		moduleButtonContainer.add(gameButton,BorderLayout.WEST);

@@ -15,10 +15,11 @@ public class Profile implements Serializable,Comparable{
 	private static final long serialVersionUID = -809118196452135843L;
 	
 	
-	//TODO: preferred midi devide (string)
-	//TODO: bool for dynamic grading
-	//TODO: bool for pitch grading
-	//TODO: bool for timing grading
+	//TODO: preferred midi device (string)
+	
+	private boolean gradeDynamic;
+	private boolean gradePitch;
+	private boolean gradeTiming;
 	
 	/** name of profile **/
 	private String name;
@@ -40,6 +41,73 @@ public class Profile implements Serializable,Comparable{
 		secondsInGame=0;
 		secondsInLesson=0;
 		secondsInSheetMusic=0;
+		
+		gradeDynamic=true;
+		gradePitch=true;
+		gradeTiming=true;
+	}
+	
+	/**
+	 * getIsDynamicGraded
+	 * 
+	 * @return true if dynamic is graded
+	 */
+	public boolean getIsDynamicGraded()
+	{
+		return gradeDynamic;
+	}
+	
+	/**
+	 * setIsDynamicGraded
+	 * 
+	 * @param true if dynamic should be graded
+	 * @return 
+	 */
+	public void setIsDynamicGraded(boolean isGraded)
+	{
+		gradeDynamic = isGraded;
+	}
+	
+	/**
+	 * getIsPitchGraded
+	 * 
+	 * @return true if pitch is graded
+	 */
+	public boolean getIsPitchGraded()
+	{
+		return gradePitch;
+	}
+	
+	/**
+	 * setIsTimingGraded
+	 * 
+	 * @param true if Timing should be graded
+	 * @return 
+	 */
+	public void setIsTimingGraded(boolean isGraded)
+	{
+		gradeTiming = isGraded;
+	}
+	
+	/**
+	 * getIsTimingGraded
+	 * 
+	 * @return true if Timing is graded
+	 */
+	public boolean getIsTiminGraded()
+	{
+		return gradeTiming;
+	}
+	
+	/**
+	 * setIsPitchGraded
+	 * 
+	 * @param true if Pitch should be graded
+	 * @return 
+	 */
+	public void setIsPitchGraded(boolean isGraded)
+	{
+		gradePitch = isGraded;
 	}
 	
 	/**

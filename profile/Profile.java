@@ -1,6 +1,7 @@
 package crescendo.base.profile;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Profile
@@ -15,10 +16,11 @@ public class Profile implements Serializable,Comparable{
 	private static final long serialVersionUID = -809118196452135843L;
 	
 	
-	//TODO: preferred midi devide (string)
-	//TODO: bool for dynamic grading
-	//TODO: bool for pitch grading
-	//TODO: bool for timing grading
+	//TODO: preferred midi device (string)
+	
+	private boolean gradeDynamic;
+	private boolean gradePitch;
+	private boolean gradeTiming;
 	
 	/** name of profile **/
 	private String name;
@@ -26,6 +28,10 @@ public class Profile implements Serializable,Comparable{
 	private long secondsInGame;
 	private long secondsInLesson;
 	private long secondsInSheetMusic;
+	
+	
+	ArrayList<SongPreference> songPreferences;
+	SongPreference lastPlayedSong;
 	
 	/**
 	 * Profile
@@ -40,6 +46,106 @@ public class Profile implements Serializable,Comparable{
 		secondsInGame=0;
 		secondsInLesson=0;
 		secondsInSheetMusic=0;
+		
+		gradeDynamic=true;
+		gradePitch=true;
+		gradeTiming=true;
+		
+		songPreferences = new ArrayList<SongPreference>();
+	}
+	
+	
+	/**
+	 * getLastPlayedSong
+	 * 
+	 * @return the songpreference of the last played song
+	 */
+	public SongPreference getLastPlayedSong()
+	{
+		return lastPlayedSong;
+	}
+	
+	/**
+	 * setLastPlayedSong
+	 * 
+	 * @param lastPlayedSong - the songpreference of the last played song
+	 */
+	public void setLastPlayedSong(SongPreference lastPlayedSong)
+	{
+		this.lastPlayedSong = lastPlayedSong;
+	}
+	
+	/**
+	 * getSongPreferences
+	 * 
+	 * @return a list of song preferences
+	 */
+	public ArrayList<SongPreference> getSongPreferences()
+	{
+		return songPreferences;
+	}
+	
+	/**
+	 * getIsDynamicGraded
+	 * 
+	 * @return true if dynamic is graded
+	 */
+	public boolean getIsDynamicGraded()
+	{
+		return gradeDynamic;
+	}
+	
+	/**
+	 * setIsDynamicGraded
+	 * 
+	 * @param true if dynamic should be graded
+	 * @return 
+	 */
+	public void setIsDynamicGraded(boolean isGraded)
+	{
+		gradeDynamic = isGraded;
+	}
+	
+	/**
+	 * getIsPitchGraded
+	 * 
+	 * @return true if pitch is graded
+	 */
+	public boolean getIsPitchGraded()
+	{
+		return gradePitch;
+	}
+	
+	/**
+	 * setIsTimingGraded
+	 * 
+	 * @param true if Timing should be graded
+	 * @return 
+	 */
+	public void setIsTimingGraded(boolean isGraded)
+	{
+		gradeTiming = isGraded;
+	}
+	
+	/**
+	 * getIsTimingGraded
+	 * 
+	 * @return true if Timing is graded
+	 */
+	public boolean getIsTimingGraded()
+	{
+		return gradeTiming;
+	}
+	
+	/**
+	 * setIsPitchGraded
+	 * 
+	 * @param true if Pitch should be graded
+	 * @return 
+	 */
+	public void setIsPitchGraded(boolean isGraded)
+	{
+		gradePitch = isGraded;
 	}
 	
 	/**

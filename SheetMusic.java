@@ -42,18 +42,18 @@ public class SheetMusic extends Module{
 	
 	public SheetMusic(){
 		//TODO:Load up the UI
-		this.setSize(1024, 768);
+		//this.setSize(1024, 768);
 		
 		bottomBarContainer = new JPanel();
-		bottomBarContainer.setVisible(true);
+		//bottomBarContainer.setVisible(true);
 		
 		mainAreaTarget = new JScrollPane();
-		mainAreaTarget.setSize(1024, 500);
+		//mainAreaTarget.setSize(1024, 500);
 		mainAreaTarget.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		mainAreaTarget.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		mainAreaTarget.getHorizontalScrollBar().addAdjustmentListener(MyAdjustmentListener);
 		mainAreaTarget.getVerticalScrollBar().addAdjustmentListener(MyAdjustmentListener);
-		mainAreaTarget.setVisible(true);
+		//mainAreaTarget.setVisible(true);
 		
 		this.setLayout(new BorderLayout());
 		
@@ -65,13 +65,15 @@ public class SheetMusic extends Module{
 		// This method is called whenever the value of a scrollbar is changed,
 		// either by the user or programmatically.
 		public void adjustmentValueChanged(AdjustmentEvent evt) {
+			//updateUI();
+			repaint();
 			musicEngine.repaint();
-			SheetMusic.this.repaint();
-			mainAreaTarget.repaint();
-			bottomBarContainer.repaint();
-			SheetMusic.this.invalidate();
-			musicEngine.invalidate();
-			mainAreaTarget.invalidate();
+			//SheetMusic.this.repaint();
+			//mainAreaTarget.repaint();
+			//bottomBarContainer.repaint();
+			//SheetMusic.this.invalidate();
+			//musicEngine.invalidate();
+			//mainAreaTarget.invalidate();
 			
 			
 			System.out.println("imathing");
@@ -128,6 +130,7 @@ public class SheetMusic extends Module{
 	
 	public void showSongSelectionScreen(){
 		//load the song selection screen
+		mainAreaTarget.setViewportView(new SongSelectionScreen(600,100));
 	}
 
 	public void loadSong(String filename){
@@ -180,10 +183,10 @@ public class SheetMusic extends Module{
 		musicEngine = new MusicEngine(selectedSongModel);
 		
 		bottomBarContainer.add(adviceFeedbackFrame);
-		bottomBarContainer.setVisible(true);
+		//bottomBarContainer.setVisible(true);
 		
 		mainAreaTarget.setViewportView(musicEngine);
-		mainAreaTarget.setVisible(true);
+		//mainAreaTarget.setVisible(true);
 		
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
 		
@@ -194,7 +197,7 @@ public class SheetMusic extends Module{
 		
 		//Attach note events
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
-		songPlayer.attach(validator,50); //base this number in the huristics model
+		songPlayer.attach(validator,50); // TODO base this number in the heuristics model
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);

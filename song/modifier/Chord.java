@@ -6,7 +6,7 @@ import crescendo.base.song.Note;
 /**
  * Provides a structure to store chorded notes without interrupting the relative flow of the song.
  */
-public class Chord implements NoteModifier
+public class Chord extends NoteModifier
 {
 	/**
 	 * The notes that this chord contains.
@@ -21,11 +21,6 @@ public class Chord implements NoteModifier
 	public Chord(List<Note> notes)
 	{
 		this.notes=notes;
-	}
-	
-	public void execute()
-	{
-		//TODO Figure out wtf to do here
 	}
 	
 	/**

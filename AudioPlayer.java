@@ -23,6 +23,10 @@ import crescendo.base.song.Track;
  */
 public class AudioPlayer implements NoteEventListener,FlowController
 {
+	private static final boolean DEBUG = false;
+	
+	// Channel 10 (9 if zero-indexed) is always reserved for percussion
+	public static final int PERCUSSION_INDEX = 9;
 	public static Instrument[] instrumentList;
 	
 	static {
@@ -51,6 +55,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 * Signifies whether or not the audio is currently being suspended.
 	 */
 	private boolean suspended;
+	
+	/**
+	 * Percussion channel
+	 */
+	private AudioPlayerChannel percussionChannel;
 	
 	/**
 	 * Creates a new AudioPlayer, contructed around a specific song.
@@ -94,6 +103,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
+		this.percussionChannel=new AudioPlayerChannel(channels[PERCUSSION_INDEX]);
 		
 		// start off assuming we arent't suspended
 		this.suspended=false;
@@ -105,28 +115,41 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			{
 				if (currentChannel<channels.length)
 				{
-					Instrument instrument;
-					try
+					if (currentChannel==PERCUSSION_INDEX)
 					{
+						currentChannel++;
+					}
+					if (track.getVoice()<0)
+					{
+						channelMap.put(track,percussionChannel);
+						if (DEBUG) System.out.println(track.getName()+" -> Reserved as percussion");
+					}
+					else
+					{
+						Instrument instrument;
+						try
+						{
+							
+							instrument=instrumentList[track.getVoice()];
+							if (DEBUG) System.out.println(track.getName()+" -> "+instrument.getName());
+						}
+						catch (ArrayIndexOutOfBoundsException e)
+						{
+							instrument=instrumentList[0]; // this is probably drums
+							if (DEBUG) System.out.println("Defaulting instrument for "+track.getName());
+						}
 						
-						instrument=instrumentList[track.getVoice()];
+						MidiChannel channel=channels[currentChannel];
+						channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
+						
+						AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
+						
+						// add it to the map
+						this.channelMap.put(track,playerChannel);
+						
+						// don't forget to increment this... pretty sure someone did once
+						currentChannel++;
 					}
-					catch (ArrayIndexOutOfBoundsException e)
-					{
-						instrument=instrumentList[0];
-						System.err.println("No instrument found for '"+track.getName()+"' (index "+track.getVoice()+")");
-					}
-					
-					MidiChannel channel=channels[currentChannel];
-					channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
-					
-					AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
-					
-					// add it to the map
-					this.channelMap.put(track,playerChannel);
-					
-					// don't forget to increment this... pretty sure someone did once
-					currentChannel++;
 				}
 				else
 				{
@@ -144,7 +167,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 * @return The current delay between giving the MIDI subsystem a note and the time
 	 * it gets played, in milliseconds.
 	 */
-	public double getLatency()
+	public long getLatency()
 	{
 		// the division converts microseconds to milliseconds
 		return this.synth.getLatency()/1000;
@@ -162,8 +185,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		NoteAction action=noteEvent.getAction();
 		Track track=note.getTrack();
 		
-		// match the track to the proper channel object
-		AudioPlayerChannel channel=this.channelMap.get(track);
+		AudioPlayerChannel channel;
+		
+		channel=this.channelMap.get(track);
 		
 		if (channel!=null)
 		{
@@ -176,6 +200,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			{
 				channel.stopNote(note);
 			}
+		}
+		else
+		{
+			if (DEBUG) System.out.println("Could not find channel for "+track.getName());
 		}
 	}
 	

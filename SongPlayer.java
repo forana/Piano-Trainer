@@ -266,16 +266,11 @@ public class SongPlayer implements FlowController
 							activeNotes.put(neEnd,new LinkedList<NoteEventListener>());
 							offset+=note.getDuration();
 						}
-						// kludge while we make things work
+						// handle modifiers
 						for (NoteModifier modifier : note.getModifiers())
 						{
-							if (modifier instanceof Chord)
-							{
-								for (Note modNote : modifier.getNotes())
-								{
-									notes.add(modNote);
-								}
-							}
+							notes.addAll(modifier.getNotes());
+							modifier.execute(songState);
 						}
 					}
 				}
@@ -316,7 +311,7 @@ public class SongPlayer implements FlowController
 	 */
 	private class PlayerTimer implements Runnable {
 
-		private final int FRAMES_PER_SECOND = 200;
+		private final int FRAMES_PER_SECOND = 500;
 
 		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
 		/** number of milliseconds from the epoch of when the last frame started */
@@ -336,7 +331,7 @@ public class SongPlayer implements FlowController
 						//ensure that we get the correct frames, no matter how long update takes
 					} else {
 						try {
-							Thread.sleep(5); // Dont eat up all the processor
+							Thread.sleep(1); // Dont eat up all the processor
 						} 
 						catch (InterruptedException e) {}
 					}

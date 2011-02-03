@@ -66,8 +66,8 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 		this.patterns=new LinkedList<AdvicePattern>();
 		this.patterns.add(new QuietPattern());
 		this.patterns.add(new LoudPattern());
-		this.patterns.add(new EarlyPattern());
-		this.patterns.add(new LatePattern());
+		//this.patterns.add(new EarlyPattern());
+		//this.patterns.add(new LatePattern());
 	}
 	
 	/**

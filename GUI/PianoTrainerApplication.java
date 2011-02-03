@@ -14,6 +14,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
@@ -80,6 +82,18 @@ public class PianoTrainerApplication {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		try {
+	        UIManager.setLookAndFeel(
+	            UIManager.getSystemLookAndFeelClassName());
+	    } 
+	    catch (UnsupportedLookAndFeelException e) {
+	    }
+	    catch (ClassNotFoundException e) {
+	    }
+	    catch (InstantiationException e) {
+	    }
+	    catch (IllegalAccessException e) {
+	    }
 		PianoTrainerApplication.getInstance();
 	}
 	
@@ -166,7 +180,8 @@ public class PianoTrainerApplication {
 		sheetMusicButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {
 				sheetMusicModule = new SheetMusic();
-				sheetMusicModule.loadSong("Resources/drawtest2.mid");
+				sheetMusicModule.loadSong("resources/morrowind.mid");
+				//sheetMusicModule.showSongSelectionScreen();
 				switchModules(sheetMusicModule);	
 			}
 		});
@@ -282,7 +297,7 @@ public class PianoTrainerApplication {
 		mainWindow.remove(moduleFrame);
 		moduleFrame = c;
 		mainWindow.add(moduleFrame);
-		moduleFrame.repaint();
+		moduleFrame.updateUI();
 	}
 	
 	

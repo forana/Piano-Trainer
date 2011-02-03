@@ -23,6 +23,8 @@ import crescendo.base.song.Track;
  */
 public class AudioPlayer implements NoteEventListener,FlowController
 {
+	private static final boolean DEBUG = false;
+	
 	// Channel 10 (9 if zero-indexed) is always reserved for percussion
 	public static final int PERCUSSION_INDEX = 9;
 	public static Instrument[] instrumentList;
@@ -117,28 +119,37 @@ public class AudioPlayer implements NoteEventListener,FlowController
 					{
 						currentChannel++;
 					}
-					Instrument instrument;
-					try
+					if (track.getVoice()<0)
 					{
+						channelMap.put(track,percussionChannel);
+						if (DEBUG) System.out.println(track.getName()+" -> Reserved as percussion");
+					}
+					else
+					{
+						Instrument instrument;
+						try
+						{
+							
+							instrument=instrumentList[track.getVoice()];
+							if (DEBUG) System.out.println(track.getName()+" -> "+instrument.getName());
+						}
+						catch (ArrayIndexOutOfBoundsException e)
+						{
+							instrument=instrumentList[0]; // this is probably drums
+							if (DEBUG) System.out.println("Defaulting instrument for "+track.getName());
+						}
 						
-						instrument=instrumentList[track.getVoice()];
+						MidiChannel channel=channels[currentChannel];
+						channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
+						
+						AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
+						
+						// add it to the map
+						this.channelMap.put(track,playerChannel);
+						
+						// don't forget to increment this... pretty sure someone did once
+						currentChannel++;
 					}
-					catch (ArrayIndexOutOfBoundsException e)
-					{
-						instrument=instrumentList[0]; // this is probably drums
-						//System.err.println("No instrument found for '"+track.getName()+"' (index "+track.getVoice()+")");
-					}
-					
-					MidiChannel channel=channels[currentChannel];
-					channel.programChange(instrument.getPatch().getBank(),instrument.getPatch().getProgram());
-					
-					AudioPlayerChannel playerChannel=new AudioPlayerChannel(channel);
-					
-					// add it to the map
-					this.channelMap.put(track,playerChannel);
-					
-					// don't forget to increment this... pretty sure someone did once
-					currentChannel++;
 				}
 				else
 				{
@@ -176,16 +187,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		
 		AudioPlayerChannel channel;
 		
-		if (track.getVoice()>0)
-		{
-			// match the track to the proper channel object
-			channel=this.channelMap.get(track);
-		}
-		else
-		{
-			// use percussion channel
-			channel=this.percussionChannel;
-		}
+		channel=this.channelMap.get(track);
 		
 		if (channel!=null)
 		{
@@ -198,6 +200,10 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			{
 				channel.stopNote(note);
 			}
+		}
+		else
+		{
+			if (DEBUG) System.out.println("Could not find channel for "+track.getName());
 		}
 	}
 	

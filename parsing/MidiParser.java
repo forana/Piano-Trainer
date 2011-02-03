@@ -134,11 +134,6 @@ public class MidiParser implements SongFileParser
 					int opcode=stream.read();
 					int channel=opcode & 0x0F;
 					if (DEBUG) 	System.out.print(Integer.toHexString(channel)+"\t");
-					// if the channel is percussion, assume this whole track is percussion
-					if (channel==PERCUSSION_CHANNEL_INDEX)
-					{
-						trackVoices[i]=-1;
-					}
 					bytesRead++;
 					boolean dontReadInStop=false;
 					int notePitch=0;
@@ -197,6 +192,7 @@ public class MidiParser implements SongFileParser
 								if (note.getPitch()==notePitch)
 								{
 									iter.remove();
+									// if it's in the percussion channel, add it to that list instead
 									if (channel==PERCUSSION_CHANNEL_INDEX)
 									{
 										percussionNotes.add(note);
@@ -422,15 +418,38 @@ public class MidiParser implements SongFileParser
 			List<SkeletalNote> snotes=trackNotes.get(i);
 			// sort the notes by offset
 			Collections.sort(snotes);
-			// loop #1: normalize the lengths of all notes
-			for (SkeletalNote note : snotes)
-			{
-				note.normalize();
-			}
-			long currentTime=0;
-			long endOfSong=0;
+			
 			int modIndex=0;
 			int cbpm=bpm;
+			long currentTime=0;
+			long endOfSong=0;
+			// loop #1: normalize the lengths of all notes and collect some info
+			for (SkeletalNote note : snotes)
+			{
+				// make sure we're calculating with the right bpm
+				while (modIndex<modifiers.size() && currentTime<=modifiers.get(modIndex).getTime())
+				{
+					NoteModifier mod=modifiers.get(modIndex).getModifier();
+					if (mod instanceof TempoChange)
+					{
+						cbpm=((TempoChange)mod).getTargetTempo();
+						if (DEBUG) System.out.println("\tBPM = "+cbpm);
+					}
+					modIndex++;
+				}
+				
+				note.normalize(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,cbpm);
+				
+				// update where we are
+				currentTime=note.getOffset()+note.getDuration();
+				
+				// mark end of song
+				if (currentTime>endOfSong)
+				{
+					endOfSong=currentTime;
+				}
+			}
+			
 			Track track;
 			if (snotes==percussionNotes)
 			{
@@ -483,12 +502,6 @@ public class MidiParser implements SongFileParser
 				
 				// update where we are
 				currentTime=current.getOffset()+current.getDuration();
-				
-				// mark end of song
-				if (currentTime>endOfSong)
-				{
-					endOfSong=currentTime;
-				}
 			}
 			
 			// sort again, because we added notes (possibly)
@@ -589,6 +602,11 @@ public class MidiParser implements SongFileParser
 			// loop #5: add all notes to track
 			for (Note note : notes)
 			{
+				if (DEBUG)
+				{
+					System.out.print("\t"+(note.isPlayable()?"O":"-"));
+					System.out.println("\t"+note.getPitch()+" @\t"+note.getDuration()+" beats");
+				}
 				track.addNote(note);
 			}
 			
@@ -609,7 +627,7 @@ public class MidiParser implements SongFileParser
 		return model;
 	}
 	
-	private class TimedModifier
+	private static class TimedModifier
 	{
 		private long time;
 		private NoteModifier modifier;
@@ -636,7 +654,7 @@ public class MidiParser implements SongFileParser
 	 * 
 	 * @author forana
 	 */
-	private class SkeletalNote implements Comparable<SkeletalNote>
+	private static class SkeletalNote implements Comparable<SkeletalNote>
 	{
 		/** Pitch of the note (midi terms). */
 		private int pitch;
@@ -753,8 +771,9 @@ public class MidiParser implements SongFileParser
 		/**
 		 * Attempts to round this note's duration to a more recognizable duration. This method does not change the offset.
 		 */
-		public void normalize()
+		public void normalize(int timeMode,int ticksPerBeat,int ticksPerFrame,double framesPerSecond,int bpm)
 		{
+			this.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 			double testNum=this.numBeats*8;
 			if ((int)testNum==testNum)
 			{
@@ -818,14 +837,12 @@ public class MidiParser implements SongFileParser
 					}
 					SkeletalNote note=new SkeletalNote(this.pitch,this.velocity,sortedDivisions.get(i));
 					note.addDuration(cycles);
-					// do this here since this note will never have split() called on it
 					note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 					splitNotes.add(note);
 				}
 				
 				this.duration=(int)(sortedDivisions.get(0)-this.getOffset());
 			}
-			this.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 			
 			return splitNotes;
 		}

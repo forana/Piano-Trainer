@@ -1,8 +1,9 @@
 package crescendo.sheetmusic;
 
-import java.awt.Canvas;
+import javax.swing.JPanel;
 import java.awt.Graphics;
 import java.awt.List;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,7 +14,7 @@ import crescendo.base.ProcessedNoteEventListener;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 
-public class MusicEngine extends Canvas implements ProcessedNoteEventListener {
+public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	
 	private Thread timerThread;
 	private boolean isLooping;
@@ -38,7 +39,7 @@ public class MusicEngine extends Canvas implements ProcessedNoteEventListener {
 	
 
 	public MusicEngine(SongModel model){
-		this.setSize(1024, 8000);
+		this.setPreferredSize(new Dimension(1024, 8000));
 		timerThread = new Thread(new MusicEngineTimer());
 		isLooping = false;
 		songModel = model;

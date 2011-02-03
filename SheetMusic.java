@@ -51,8 +51,6 @@ public class SheetMusic extends Module{
 		//mainAreaTarget.setSize(1024, 500);
 		mainAreaTarget.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		mainAreaTarget.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		mainAreaTarget.getHorizontalScrollBar().addAdjustmentListener(MyAdjustmentListener);
-		mainAreaTarget.getVerticalScrollBar().addAdjustmentListener(MyAdjustmentListener);
 		//mainAreaTarget.setVisible(true);
 		
 		this.setLayout(new BorderLayout());
@@ -60,62 +58,6 @@ public class SheetMusic extends Module{
 		add(mainAreaTarget,BorderLayout.CENTER);
 		add(bottomBarContainer,BorderLayout.SOUTH);
 	}
-	
-	AdjustmentListener MyAdjustmentListener = new AdjustmentListener(){
-		// This method is called whenever the value of a scrollbar is changed,
-		// either by the user or programmatically.
-		public void adjustmentValueChanged(AdjustmentEvent evt) {
-			//updateUI();
-			repaint();
-			musicEngine.repaint();
-			//SheetMusic.this.repaint();
-			//mainAreaTarget.repaint();
-			//bottomBarContainer.repaint();
-			//SheetMusic.this.invalidate();
-			//musicEngine.invalidate();
-			//mainAreaTarget.invalidate();
-			
-			
-			System.out.println("imathing");
-			Adjustable source = evt.getAdjustable();
-			
-			// getValueIsAdjusting() returns true if the user is currently
-			// dragging the scrollbar's knob and has not picked a final value
-			if (evt.getValueIsAdjusting()) {
-				return;
-		}
-		
-		// Determine which scrollbar fired the event
-		int orient = source.getOrientation();
-		if (orient == Adjustable.HORIZONTAL) {
-			// Event from horizontal scrollbar
-		} else {
-			// Event from vertical scrollbar
-		}
-		
-		// Determine the type of event
-		int type = evt.getAdjustmentType();
-		switch (type) {
-			case AdjustmentEvent.UNIT_INCREMENT:
-				// Scrollbar was increased by one unit
-				break;
-			case AdjustmentEvent.UNIT_DECREMENT:
-				// Scrollbar was decreased by one unit
-				break;
-			case AdjustmentEvent.BLOCK_INCREMENT:
-				// Scrollbar was increased by one block
-				break;
-			case AdjustmentEvent.BLOCK_DECREMENT:
-				// Scrollbar was decreased by one block
-				break;
-			case AdjustmentEvent.TRACK:
-				// The knob on the scrollbar was dragged
-				break;
-			}
-			// Get current value
-			int value = evt.getValue();
-		}
-	};
 	
 	/**
 	 * Load the sheet music module with a previously saved state
@@ -130,7 +72,6 @@ public class SheetMusic extends Module{
 	
 	public void showSongSelectionScreen(){
 		//load the song selection screen
-		mainAreaTarget.setViewportView(new SongSelectionScreen(600,100));
 	}
 
 	public void loadSong(String filename){

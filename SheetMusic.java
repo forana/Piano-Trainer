@@ -152,14 +152,14 @@ public class SheetMusic extends Module{
 		//Show select current track dialog or figure out the preferred active track
 		//TODO: This is a temporary fix, ask the user to manually input the track number until they get a valid track number
 		int activeTrack = 1;
-		/*while(activeTrack < 1 || activeTrack > selectedSongModel.getTracks().size()){
+		while(activeTrack < 1 || activeTrack > selectedSongModel.getTracks().size()){
 			try{
 				activeTrack = Integer.parseInt(JOptionPane.showInputDialog(this, "What track would you like to play? (1 - "+selectedSongModel.getTracks().size()+")"));
 		
 			}catch(NumberFormatException formatException){
 				activeTrack = -1;
 			}
-		}*/
+		}
 		activeTrack-=1;
 		//End work-around
 		

@@ -165,7 +165,9 @@ public class PianoTrainerApplication {
 		
 		sheetMusicButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {
-				switchModules(new SheetMusic());	
+				sheetMusicModule = new SheetMusic();
+				sheetMusicModule.loadSong("Resources/drawtest2.mid");
+				switchModules(sheetMusicModule);	
 			}
 		});
 		
@@ -295,16 +297,6 @@ public class PianoTrainerApplication {
 			{
 				switchModules(profileModule);
 			}
-			
-			
-			//if they chose to go to sheet music module 
-			if(e.getSource().equals(sheetMusicButton))
-			{
-				sheetMusicModule = new SheetMusic();
-				sheetMusicModule.loadSong("Resources/drawtest2.mid");
-				switchModules(sheetMusicModule);
-			}
-			
 			
 			
 			//if they chose to add a new profile

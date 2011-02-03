@@ -55,6 +55,8 @@ public class SheetMusic extends Module{
 		mainAreaTarget.getVerticalScrollBar().addAdjustmentListener(MyAdjustmentListener);
 		//mainAreaTarget.setVisible(true);
 		
+		showSongSelectionScreen();
+		
 		this.setLayout(new BorderLayout());
 		
 		add(mainAreaTarget,BorderLayout.CENTER);
@@ -75,8 +77,6 @@ public class SheetMusic extends Module{
 			//musicEngine.invalidate();
 			//mainAreaTarget.invalidate();
 			
-			
-			System.out.println("imathing");
 			Adjustable source = evt.getAdjustable();
 			
 			// getValueIsAdjusting() returns true if the user is currently
@@ -130,41 +130,11 @@ public class SheetMusic extends Module{
 	
 	public void showSongSelectionScreen(){
 		//load the song selection screen
-		mainAreaTarget.setViewportView(new SongSelectionScreen(600,100));
+		mainAreaTarget.setViewportView(new SongSelectionScreen(this,600,100));
 	}
 
-	public void loadSong(String filename){
-		loadedSongPath = filename;
-		SongModel selectedSongModel = null;
-		int maxRetrys = 10;
-		int currentRetrys = 0;
-		try {
-			while(selectedSongModel==null && currentRetrys<maxRetrys){
-				selectedSongModel = SongFactory.generateSongFromFile(filename);
-			}
-		} catch (IOException e) {
-			Response response = ErrorHandler.showRetryFail("Could not load...", "Could not load song in file "+filename+". Would you like to try again?");
-			if(response==Response.RETRY){
-				currentRetrys++;
-			}else{
-				currentRetrys+=maxRetrys;
-			}
-		}
-		//don't continue if the song didnt load
-		
-		//Show select current track dialog or figure out the preferred active track
-		//TODO: This is a temporary fix, ask the user to manually input the track number until they get a valid track number
-		int activeTrack = 1;
-		while(activeTrack < 1 || activeTrack > selectedSongModel.getTracks().size()){
-			try{
-				activeTrack = Integer.parseInt(JOptionPane.showInputDialog(this, "What track would you like to play? (1 - "+selectedSongModel.getTracks().size()+")"));
-		
-			}catch(NumberFormatException formatException){
-				activeTrack = -1;
-			}
-		}
-		activeTrack-=1;
-		//End work-around
+	public void loadSong(SongModel model, int activeTrack){
+		SongModel selectedSongModel = model;
 		
 		// Initialize meta-things
 		boolean careAboutPitch=true;
@@ -182,12 +152,9 @@ public class SheetMusic extends Module{
 		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
 		musicEngine = new MusicEngine(selectedSongModel);
 		
-		bottomBarContainer.add(adviceFeedbackFrame);
-		//bottomBarContainer.setVisible(true);
-		
+		bottomBarContainer.add(adviceFeedbackFrame);		
 		mainAreaTarget.setViewportView(musicEngine);
-		//mainAreaTarget.setVisible(true);
-		
+
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
 		
 		//Add the progress frame to the bottom bar container...

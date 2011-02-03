@@ -56,7 +56,7 @@ public class MusicEngine extends Canvas implements ProcessedNoteEventListener {
 		
 		
 		//Get our drawables ready
-		LinkedList<Note> notes =(LinkedList<Note>) songModel.getTracks().get(1).getNotes();
+		LinkedList<Note> notes =(LinkedList<Note>) songModel.getTracks().get(0).getNotes();
 		
 		System.out.println("Notes : " + notes.size() + " \n");
 		

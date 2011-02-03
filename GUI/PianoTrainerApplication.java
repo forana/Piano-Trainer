@@ -180,8 +180,6 @@ public class PianoTrainerApplication {
 		sheetMusicButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {
 				sheetMusicModule = new SheetMusic();
-				sheetMusicModule.loadSong("resources/morrowind.mid");
-				//sheetMusicModule.showSongSelectionScreen();
 				switchModules(sheetMusicModule);	
 			}
 		});

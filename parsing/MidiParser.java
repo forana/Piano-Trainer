@@ -31,6 +31,7 @@ import crescendo.base.song.modifier.TempoChange;
 public class MidiParser implements SongFileParser
 {
 	private static final boolean DEBUG = false;
+	private static final boolean NORMALIZE = false;
 	
 	// this is set according to the midi spec
 	private static final int PERCUSSION_CHANNEL_INDEX=9;
@@ -438,7 +439,7 @@ public class MidiParser implements SongFileParser
 					modIndex++;
 				}
 				
-				note.normalize(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,cbpm);
+				note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 				
 				// update where we are
 				currentTime=note.getOffset()+note.getDuration();
@@ -599,15 +600,53 @@ public class MidiParser implements SongFileParser
 			
 			if (DEBUG) System.out.println("\t"+notes.size()+" notes after rests added");
 			
-			// loop #5: add all notes to track
+			// loop #5: normalize and add all notes to track
 			for (Note note : notes)
 			{
+				if (NORMALIZE)
+				{
+					if (DEBUG)
+					{
+						System.out.println("\t(before normalization)");
+						System.out.println("\t"+note.getPitch()+" @\t"+note.getDuration()+" beats");
+						System.out.println("\t(after)");
+					}
+					double duration=note.getDuration();
+					if (Math.floor(duration*3)!=duration*3           // triplet check
+						&& Math.floor(duration*4)!=duration*4)       // sixteenth check
+					{
+						// note is not a triplet nor a multiple of a sixteenth note
+						Note oldNote=note;
+						note=new Note(note.getPitch(),Math.round(duration*4)/4.0,note.getDynamic(),note.getTrack(),note.isPlayable());
+						// also add all modifiers that were there / round their notes as well
+						for (NoteModifier oldMod : oldNote.getModifiers())
+						{
+							if (oldMod instanceof Chord)
+							{
+								List<Note> newNotes=new LinkedList<Note>();
+								for (Note other : oldMod.getNotes())
+								{
+									newNotes.add(new Note(other.getPitch(),Math.round(other.getDuration()*4)/4.0,other.getDynamic(),other.getTrack(),other.isPlayable()));
+								}
+								Chord newChord=new Chord(newNotes);
+								note.addModifier(newChord);
+							}
+							else
+							{
+								note.addModifier(oldMod);
+							}
+						}
+					}
+				}
 				if (DEBUG)
 				{
 					System.out.print("\t"+(note.isPlayable()?"O":"-"));
 					System.out.println("\t"+note.getPitch()+" @\t"+note.getDuration()+" beats");
 				}
-				track.addNote(note);
+				if (note.getDuration()>0)
+				{
+					track.addNote(note);
+				}
 			}
 			
 			tracks.add(track);
@@ -766,36 +805,6 @@ public class MidiParser implements SongFileParser
 		public int compareTo(SkeletalNote other)
 		{
 			return 1000*(int)(this.getOffset()-other.getOffset())+(this.getPitch()-other.getPitch());
-		}
-		
-		/**
-		 * Attempts to round this note's duration to a more recognizable duration. This method does not change the offset.
-		 */
-		public void normalize(int timeMode,int ticksPerBeat,int ticksPerFrame,double framesPerSecond,int bpm)
-		{
-			this.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
-			double testNum=this.numBeats*8;
-			if ((int)testNum==testNum)
-			{
-				// brief step back here:
-				// what this is doing is saying that if the number of beats * 8 is an integer,
-				// then this note needs no adjusting. the side effect of this is that notes with
-				// factors of 8 as the beat divider (half, eighth, sixteenth, quarter, whole) also
-				// get skipped in this test, and that's ok
-				return;
-			}
-			// do the same thing for triplets (only quarter note triplets)
-			testNum=this.numBeats*3;
-			if ((int)testNum==testNum)
-			{
-				return;
-			}
-			// round to the nearest 16th (or 4th of a quarter), the fun way
-			double newLength=Math.round(4*this.numBeats)/4.0;
-			// make sure it updates the duration (in cycles) too
-			double ratio=newLength/numBeats;
-			this.duration*=ratio;
-			this.numBeats=newLength;
 		}
 		
 		/**

@@ -259,17 +259,25 @@ public class SongPlayer implements FlowController
 					for(int i=0; i<notes.size(); i++){ // changed from iterator so concurrentmodification doesn't happen
 						Note note=notes.get(i);
 						if(note.getDynamic()>0){
-							//Create the note events
-							NoteEvent ne = new NoteEvent(note, NoteAction.BEGIN, (long) ((2*longestListener)+offset+now));
-							NoteEvent neEnd = new NoteEvent(note,NoteAction.END, (long) ((2*longestListener)+offset+now+note.getDuration()/bpms));
-							activeNotes.put(ne,new LinkedList<NoteEventListener>());
-							activeNotes.put(neEnd,new LinkedList<NoteEventListener>());
+							Set<Note> playNotes=new HashSet<Note>();
+							playNotes.add(note);
+							for (NoteModifier modifier : note.getModifiers())
+							{
+								//playNotes.addAll(modifier.getNotes());
+							}
+							for (Note pnote : playNotes)
+							{
+								//Create the note events
+								NoteEvent ne = new NoteEvent(pnote, NoteAction.BEGIN, (long) ((2*longestListener)+offset+now));
+								NoteEvent neEnd = new NoteEvent(pnote,NoteAction.END, (long) ((2*longestListener)+offset+now+pnote.getDuration()/bpms));
+								activeNotes.put(ne,new LinkedList<NoteEventListener>());
+								activeNotes.put(neEnd,new LinkedList<NoteEventListener>());
+							}
 							offset+=note.getDuration();
 						}
 						// handle modifiers
 						for (NoteModifier modifier : note.getModifiers())
 						{
-							notes.addAll(modifier.getNotes());
 							modifier.execute(songState);
 						}
 					}

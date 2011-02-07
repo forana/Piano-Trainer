@@ -10,7 +10,11 @@ import javax.sound.midi.Instrument;
 import javax.sound.midi.MidiChannel;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Synthesizer;
+import javax.sound.midi.Soundbank;
+import java.io.File;
+import java.io.IOException;
 
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
@@ -28,28 +32,63 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	// Channel 10 (9 if zero-indexed) is always reserved for percussion
 	public static final int PERCUSSION_INDEX = 9;
 	public static Instrument[] instrumentList;
+	private static Synthesizer synth=null;
 	
 	static {
-		try {
-			Synthesizer tempSynth=MidiSystem.getSynthesizer();
-			tempSynth.open();
-			instrumentList=tempSynth.getDefaultSoundbank().getInstruments();
-			tempSynth.close();
-		}
-		catch (MidiUnavailableException e)
+		boolean retry=true;
+		boolean success=false;
+		
+		while (!success && retry)
 		{
-			instrumentList=new Instrument[0];
+			try {
+				synth=MidiSystem.getSynthesizer();
+				synth.open();
+				Soundbank bank=synth.getDefaultSoundbank();
+				if (bank==null)
+				{
+					bank=MidiSystem.getSoundbank(new File("resources/soundbank/soundbank-min.gm"));
+					synth.loadAllInstruments(bank);
+				}
+				instrumentList=bank.getInstruments();
+				success=true;
+			}
+			catch (IOException e)
+			{
+				success=false;
+			}
+			catch (MidiUnavailableException e)
+			{
+				success=false;
+			}
+			catch (InvalidMidiDataException e)
+			{
+				success=false;
+			}
+			
+			if (!success)
+			{
+				String title="MIDI Unavailable";
+				String message="A MIDI system could not be found. Press retry to check again, or fail to proceed.\n"
+					+ "If the program proceeds without a midi system, you will not be able to hear accompaniment.";
+				while (retry)
+				{
+					if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
+					{
+						retry=true;
+					}
+					else
+					{
+						retry=false;
+						synth=null;
+					}
+				}
+			}
 		}
 	}
 	/**
 	 * Associates track to channel and note data.
 	 */
 	private Map<Track,AudioPlayerChannel> channelMap;
-	
-	/**
-	 * The underlying synthesizer object.
-	 */
-	private Synthesizer synth;
 	
 	/**
 	 * Signifies whether or not the audio is currently being suspended.
@@ -72,34 +111,14 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// initialize relation map
 		this.channelMap=new HashMap<Track,AudioPlayerChannel>();
 		
-		boolean retry=false;
-		do
-		{
-			try
-			{
-				// get synthesizer object
-				this.synth=MidiSystem.getSynthesizer();
-				// open it so we can get, well, anything out of it
-				this.synth.open();
-				retry=false;
-			}
-			catch (MidiUnavailableException e)
-			{
-				String title="MIDI Unavailable";
-				String message="A MIDI system could not be found. The program will now exit.";
-				if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
-				{
-					retry=true;
-				}
-				else
-				{
-					System.exit(1);
-				}
-			}
-		} while (retry);
+		// get channels
+		MidiChannel[] channels=synth.getChannels();
 		
-		// get channels and instruments
-		MidiChannel[] channels=this.synth.getChannels();
+		// stop anything currently playing
+		for (int i=0; i<channels.length; i++)
+		{
+			channels[i].allSoundOff();
+		}
 		
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
@@ -170,7 +189,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	public long getLatency()
 	{
 		// the division converts microseconds to milliseconds
-		return this.synth.getLatency()/1000;
+		return synth.getLatency()/1000;
 	}
 	
 	/**
@@ -263,8 +282,6 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	{
 		// stop all playing notes
 		this.stop();
-		// close the synthesizer so it releases its resources
-		this.synth.close();
 	}
 	
 	/**

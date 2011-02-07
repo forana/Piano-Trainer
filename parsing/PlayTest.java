@@ -10,7 +10,7 @@ public class PlayTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		SongModel model=SongFactory.generateSongFromFile("resources/Otherside.mid");
+		SongModel model=SongFactory.generateSongFromFile("resources/aerials.mid");
 		SongPlayer player=new SongPlayer(model);
 		AudioPlayer audio=new AudioPlayer(model,null);
 		player.attach(audio,100);

@@ -127,5 +127,27 @@ public class SongPreference {
 		trackVolume.set(track,instrument);
 	}
 	
+	/** Sets the name of the song **/
+	public void setSongName(String name){
+		//TODO
+	}
+	
+	/**	returns the name of the song **/
+	public String getSongName(){
+		//TODO
+		return null;
+	}
+	
+	/** sets the artist for the song **/
+	public void setArtist(String artist){
+		//TODO
+	}
+	
+	/** returns the artist of the song **/
+	public String getArtist(){
+		//TODO
+		throw new UnsupportedOperationException();
+	}
+	
 	
 }

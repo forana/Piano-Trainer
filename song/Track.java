@@ -131,20 +131,16 @@ public class Track
 		}
 
 		public List<Note> next(double beats) {
-			if(beatOffset>0){
-				beatOffset-=beats;
-			}
-			double beatCount=0;
 			List<Note> nextNotes = new LinkedList<Note>();
-			if(beatOffset<=0){
-				while(iter.hasNext() && beatCount<(beats+beatOffset)){
-					Note current = iter.next();
-					nextNotes.add(current);
-					beatCount+=current.getDuration();
-				}
-				beatOffset = beatCount - (beats+beatOffset);
+			
+			beatOffset-=beats;
+			while (beatOffset<0 && iter.hasNext())
+			{
+				Note note=iter.next();
+				beatOffset+=note.getDuration();
+				nextNotes.add(note);
 			}
-			beatsPassed+=beats;
+						
 			return nextNotes;
 		}
 		

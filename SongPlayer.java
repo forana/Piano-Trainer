@@ -246,35 +246,35 @@ public class SongPlayer implements FlowController
 	private void update() {
 		long now = System.currentTimeMillis();
 
-		double bpms = (double)songState.getBPM()/(double)60000; //calculate the number of beats per millisecond
 		if(now>=nextPoll){
+			double bpms = (double)songState.getBPM()/(double)60000; //calculate the number of beats per millisecond
+			double beats= longestListener * bpms;
 			for(Iterator<TrackIterator> iterIter=iterators.values().iterator(); iterIter.hasNext();){
 				TrackIterator iter=iterIter.next();
-				double offset = iter.getOffset() * bpms;	//figure out the offset in milliseconds (rather than in beats)
+				double offset = iter.getOffset() / bpms;	//figure out the offset in milliseconds (rather than in beats)
 				//get the list of notes within the next amount of beats. 
 				//Get notes more than how many beats ahead the longest listener wants their beats
 				if (iter.hasNext())
 				{
-					List<Note> notes = iter.next(this.longestListener*bpms);
-					for(int i=0; i<notes.size(); i++){ // changed from iterator so concurrentmodification doesn't happen
-						Note note=notes.get(i);
+					List<Note> notes = iter.next(beats);
+					for(Note note : notes) {
 						if(note.getDynamic()>0){
 							Set<Note> playNotes=new HashSet<Note>();
 							playNotes.add(note);
 							for (NoteModifier modifier : note.getModifiers())
 							{
-								//playNotes.addAll(modifier.getNotes());
+								playNotes.addAll(modifier.getNotes());
 							}
 							for (Note pnote : playNotes)
 							{
 								//Create the note events
-								NoteEvent ne = new NoteEvent(pnote, NoteAction.BEGIN, (long) ((2*longestListener)+offset+now));
-								NoteEvent neEnd = new NoteEvent(pnote,NoteAction.END, (long) ((2*longestListener)+offset+now+pnote.getDuration()/bpms));
+								NoteEvent ne = new NoteEvent(pnote, NoteAction.BEGIN, (long) ((longestListener)+offset+nextPoll));
+								NoteEvent neEnd = new NoteEvent(pnote,NoteAction.END, (long) ((longestListener)+offset+nextPoll+pnote.getDuration()/bpms));
 								activeNotes.put(ne,new LinkedList<NoteEventListener>());
 								activeNotes.put(neEnd,new LinkedList<NoteEventListener>());
 							}
-							offset+=note.getDuration();
 						}
+						offset+=note.getDuration()/bpms;
 						// handle modifiers
 						for (NoteModifier modifier : note.getModifiers())
 						{
@@ -287,7 +287,7 @@ public class SongPlayer implements FlowController
 					iterIter.remove();
 				}
 			}
-			nextPoll = now+longestListener;
+			nextPoll = nextPoll+longestListener;
 		}
 
 		//Pump out note events
@@ -319,7 +319,7 @@ public class SongPlayer implements FlowController
 	 */
 	private class PlayerTimer implements Runnable {
 
-		private final int FRAMES_PER_SECOND = 500;
+		private final int FRAMES_PER_SECOND = 100;
 
 		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
 		/** number of milliseconds from the epoch of when the last frame started */

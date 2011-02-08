@@ -98,7 +98,7 @@ public class MidiParser implements SongFileParser
 		//  and the bottom 8 bits are the number of ticks per frame (subdivisions)
 		int timeMode=((timeDivisor & 0x8000) == 0 ? 0 : 1); // stupid conversion but it works
 		int ticksPerBeat=timeDivisor & 0x7FFF;
-		double framesPerSecond=timeDivisor>>8 & 0x7F;
+		double framesPerSecond=(timeDivisor>>8) & 0x7F;
 		if (framesPerSecond==29)
 		{
 			framesPerSecond=29.97;
@@ -439,7 +439,7 @@ public class MidiParser implements SongFileParser
 					modIndex++;
 				}
 				
-				note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
+				note.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,cbpm);
 				
 				// update where we are
 				currentTime=note.getOffset()+note.getDuration();
@@ -482,7 +482,7 @@ public class MidiParser implements SongFileParser
 				
 				// add in divisions
 				int k=j+1;
-				while (k<snotes.size())
+				while (k<stop)
 				{
 					SkeletalNote pnote=snotes.get(k);
 					// if the note is too far ahead, stop looking ahead
@@ -804,7 +804,7 @@ public class MidiParser implements SongFileParser
 		 */
 		public int compareTo(SkeletalNote other)
 		{
-			return 1000*(int)(this.getOffset()-other.getOffset())+(this.getPitch()-other.getPitch());
+			return (int)(this.getOffset()-other.getOffset());
 		}
 		
 		/**
@@ -851,6 +851,7 @@ public class MidiParser implements SongFileParser
 				}
 				
 				this.duration=(int)(sortedDivisions.get(0)-this.getOffset());
+				this.setNumBeats(timeMode,ticksPerBeat,ticksPerFrame,framesPerSecond,bpm);
 			}
 			
 			return splitNotes;

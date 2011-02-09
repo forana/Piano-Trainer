@@ -25,7 +25,7 @@ import crescendo.base.song.SongModel;
 public class SongSelectionScreen extends JPanel {
 
 	private JLabel Song1 = new JLabel("Song1");
-//	private JButton LoadFile = new JButton("Load Song File");
+	private JButton LoadFile = new JButton("Load Song File");
 	private EventListener l = new EventListener();
 	private SheetMusic module;
 	private List<SongPreference> s;
@@ -40,9 +40,9 @@ public class SongSelectionScreen extends JPanel {
 		Song1.setSize(width, height/10);
 
 		parseSongList();
-//		LoadFile.addActionListener(l);
+		LoadFile.addActionListener(l);
 
-//		this.add(LoadFile);
+		this.add(LoadFile);
 
 
 	}
@@ -62,7 +62,7 @@ public class SongSelectionScreen extends JPanel {
 		makeLabels(s.size());
 		for(int i = 0; i<s.size();i++){
 			songsLabelsList.get(i).setSongPath(s.get(i).getFilePath());
-			songsLabelsList.get(i).setText(s.get(i).getSongName()+"\n"+s.get(i).getArtist());
+			songsLabelsList.get(i).setText(s.get(i).getSongName()+"\n"+s.get(i).getCreator());
 			songsLabelsList.get(i).setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			songsLabelsList.get(i).addActionListener(l);
 			add(songsLabelsList.get(i));
@@ -89,7 +89,13 @@ public class SongSelectionScreen extends JPanel {
 			}
 		}
 		if(loadedSong!=null){
+			SongPreference newSong = new SongPreference(filename, loadedSong.getTracks().size(), 0);
+			newSong.setSongName(loadedSong.getTitle());
+			newSong.setCreator(loadedSong.getCreators().get(0).getName());
+			ProfileManager.getInstance().getActiveProfile().getSongPreferences().add(newSong);
+				
 			module.loadSong(loadedSong,0);
+			
 		}
 	}
 

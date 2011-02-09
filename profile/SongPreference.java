@@ -20,7 +20,7 @@ import java.util.ArrayList;
  * @author groszc
  *
  */
-public class SongPreference {
+public class SongPreference{
 
 	//The absolute path to the song file
 	private String filePath;
@@ -35,6 +35,11 @@ public class SongPreference {
 	//The instrument for each track
 	private ArrayList<Integer> trackInstrument;
 	
+	//TODO: Comment name and creator vars and gets/sets
+	
+	String name;
+	String creator;
+	
 	
 	/**
 	 * SongPreference
@@ -46,12 +51,15 @@ public class SongPreference {
 	 * @param numTracks - The number of tracks this song has
 	 * @param activeTrack - The default active track (Above 0 unless no tracks need to be played by the user)
 	 */
-	SongPreference(String filePath,int numTracks,int activeTrack)
+	public SongPreference(String filePath,int numTracks,int activeTrack)
 	{
 		//set filePath, numTracks, and activeTrack
 		this.filePath = filePath;
 		this.numTracks = numTracks;
 		this.activeTrack = activeTrack;
+		
+		trackVolume = new ArrayList<Integer>();
+		trackInstrument = new ArrayList<Integer>();
 		
 		//create defaults for volume and instrument
 		for(int i=0;i<numTracks;i++)
@@ -62,6 +70,9 @@ public class SongPreference {
 			//this one should be overridden after creation
 			trackInstrument.add(50);
 		}
+		
+		name = "";
+		creator = "";
 	}
 	
 	/** Returns the absolute file path of the song **/
@@ -129,24 +140,22 @@ public class SongPreference {
 	
 	/** Sets the name of the song **/
 	public void setSongName(String name){
-		//TODO
+		this.name = name;
 	}
 	
 	/**	returns the name of the song **/
 	public String getSongName(){
-		//TODO
-		return null;
+		return name;
 	}
 	
 	/** sets the artist for the song **/
-	public void setArtist(String artist){
-		//TODO
+	public void setCreator(String creator){
+		this.creator = creator;
 	}
 	
 	/** returns the artist of the song **/
-	public String getArtist(){
-		//TODO
-		throw new UnsupportedOperationException();
+	public String getCreator(){
+		return creator;
 	}
 	
 	

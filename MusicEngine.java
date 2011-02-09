@@ -1,6 +1,8 @@
 package crescendo.sheetmusic;
 
 import javax.swing.JPanel;
+
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.List;
 import java.awt.Dimension;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
+import crescendo.base.SongPlayer;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 
@@ -25,8 +28,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	private Note sectionEndNote;
 	private ArrayList<Drawable> drawables;
 	
+	private int activeTrack;
 	
 	
+	private long timeStarted;
 	
 	
 	int measuresPerLine = 4;
@@ -37,8 +42,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	double yMeasureDistance=300;
 	double noteOffset = 60/measuresPerLine; //so the first note isnt on the measure line
 	
+	double beatsPerMeasure;
+	double beatNote;
+	
 
-	public MusicEngine(SongModel model){
+	public MusicEngine(SongModel model,int activeTrack){
 		this.setPreferredSize(new Dimension(1024, 8000));
 		timerThread = new Thread(new MusicEngineTimer());
 		isLooping = false;
@@ -49,15 +57,17 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		sectionStartNote = null;
 		sectionEndNote = null;
 		
+		this.activeTrack = activeTrack;
 		
 		
+		timeStarted=0;
 
 		
 		
 		
 		
 		//Get our drawables ready
-		LinkedList<Note> notes =(LinkedList<Note>) songModel.getTracks().get(0).getNotes();
+		LinkedList<Note> notes =(LinkedList<Note>) songModel.getTracks().get(activeTrack).getNotes();
 		
 		System.out.println("Notes : " + notes.size() + " \n");
 		
@@ -65,8 +75,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		
 		
 		
-		double beatsPerMeasure = songModel.getTimeSignature().getBeatsPerMeasure();
-		double beatNote = songModel.getTimeSignature().getBeatNote();
+		beatsPerMeasure = songModel.getTimeSignature().getBeatsPerMeasure();
+		beatNote = songModel.getTimeSignature().getBeatNote();
 		
 		
 		
@@ -85,8 +95,25 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((currentBeatCount)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
 			y = (int) (300*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin);
 			
+			
+			
+			/************************** TRYME ************************************/
 			//if a "beat" is a half note
-			if(beatNote==2)
+			
+			if(notes.get(i).getDynamic()==0);//drawables.add(new Rest(notes.get(i),x));
+			else 
+			{
+				if(noteBeat==0.125*beatNote)drawables.add(new EighthNote(notes.get(i),x,y));
+				if(noteBeat==0.25*beatNote)drawables.add(new QuarterNote(notes.get(i),x,y));
+				if(noteBeat==0.5*beatNote)drawables.add(new HalfNote(notes.get(i),x,y));
+				if(noteBeat==1*beatNote)drawables.add(new WholeNote(notes.get(i),x,y));
+			}
+			
+			/***********************************************************************/
+		
+			
+			//if a "beat" is a half note
+			/*if(beatNote==2)
 			{
 				if(notes.get(i).getDynamic()==0);//drawables.add(new Rest(notes.get(i),x));
 				else 
@@ -120,7 +147,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					if(noteBeat==4)drawables.add(new HalfNote(notes.get(i),x,y));
 					if(noteBeat==8)drawables.add(new WholeNote(notes.get(i),x,y));
 				}
-			}
+			}*/
 			
 			currentBeatCount+=noteBeat;
 			while(currentBeatCount>=beatsPerMeasure)
@@ -131,19 +158,19 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		}
 	}
 
-	public MusicEngine(SongModel model, double currentPosition){
-		this(model);
+	public MusicEngine(SongModel model,int activeTrack, double currentPosition){
+		this(model,activeTrack);
 		this.currentPosition = currentPosition;
 		//use logic for finding the number of beats in a song
 	}
 	
-	public MusicEngine(SongModel model, Note currentNote){
-		this(model);
+	public MusicEngine(SongModel model,int activeTrack, Note currentNote){
+		this(model,activeTrack);
 		this.sectionStartNote = currentNote;
 	}
 	
-	public MusicEngine(SongModel model, Note currentSectionBeginNote, Note currentSectionEndNote){
-		this(model);
+	public MusicEngine(SongModel model,int activeTrack, Note currentSectionBeginNote, Note currentSectionEndNote){
+		this(model,activeTrack);
 		sectionStartNote = currentSectionBeginNote;
 		sectionEndNote = currentSectionEndNote;
 	}
@@ -193,10 +220,21 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		
 		for(Drawable d: drawables)d.draw(g);
 		
+		
+		
+		double timeDelta = System.currentTimeMillis() - timeStarted;
+		double linePerMS = ((double)songModel.getBPM())/(beatsPerMeasure*((double)measuresPerLine))/60.0/1000.0;
+		
+		double line = Math.floor(timeDelta*linePerMS);
+		double offset = ((timeDelta-(line/linePerMS))*linePerMS)*measureWidth*measuresPerLine;
+		g.setColor(Color.red);
+		
+		g.drawLine((int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance), (int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance+194));
+		
 	}
 	
 	public void play(){
-		
+		timeStarted = System.currentTimeMillis();
 	}
 	
 	public void pause(){

@@ -78,6 +78,7 @@ public class SheetMusic extends Module{
 	}
 
 	public void loadSong(SongModel model, int activeTrack){
+	
 		SongModel selectedSongModel = model;
 		
 		// Initialize meta-things
@@ -94,7 +95,7 @@ public class SheetMusic extends Module{
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
-		musicEngine = new MusicEngine(selectedSongModel);
+		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
 		
 		bottomBarContainer.add(adviceFeedbackFrame);		
 		mainAreaTarget.setViewportView(musicEngine);
@@ -119,6 +120,7 @@ public class SheetMusic extends Module{
 		validator.attach(scoreFeedbackFrame);
 		validator.attach(musicEngine);
 	
+		play();
 	}
 
 	public void play(){

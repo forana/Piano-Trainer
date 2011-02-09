@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -15,15 +17,21 @@ import javax.swing.JPanel;
 
 import crescendo.base.ErrorHandler;
 import crescendo.base.ErrorHandler.Response;
+import crescendo.base.profile.ProfileManager;
+import crescendo.base.profile.SongPreference;
 import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
 
 public class SongSelectionScreen extends JPanel {
 
 	private JLabel Song1 = new JLabel("Song1");
-	private JButton LoadFile = new JButton("Load Song File");
+//	private JButton LoadFile = new JButton("Load Song File");
 	private EventListener l = new EventListener();
 	private SheetMusic module;
+	private List<SongPreference> s;
+	private List<SongLabel> songsLabelsList = new ArrayList<SongLabel>();
+	private int width, height;
+	
 	public SongSelectionScreen(SheetMusic module,int width, int height){
 		this.module = module;
 		this.setSize(width, height);
@@ -31,22 +39,35 @@ public class SongSelectionScreen extends JPanel {
 		Song1.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		Song1.setSize(width, height/10);
 
-		Map songs = null;// = ProfileManager.getInstance().getSongList();
+		parseSongList();
+//		LoadFile.addActionListener(l);
 
-		parseSongList(songs);
-		LoadFile.addActionListener(l);
-
-		this.add(LoadFile);
+//		this.add(LoadFile);
 
 
+	}
+	
+	private void makeLabels(int i){
+		for(int j = 0; j<i; j++){
+			songsLabelsList.add(new SongLabel());
+		}
 	}
 	
 	private JPanel getPane(){
 		return this;
 	}
 
-	private void parseSongList(Map songs) {
-		// TODO Parse out the Filename, and the meta information.
+	private void parseSongList() {
+		s = ProfileManager.getInstance().getActiveProfile().getSongPreferences();
+		makeLabels(s.size());
+		for(int i = 0; i<s.size();i++){
+			songsLabelsList.get(i).setSongPath(s.get(i).getFilePath());
+			songsLabelsList.get(i).setText(s.get(i).getSongName()+"\n"+s.get(i).getArtist());
+			songsLabelsList.get(i).setBorder(BorderFactory.createLineBorder(Color.BLACK));
+			songsLabelsList.get(i).addActionListener(l);
+			add(songsLabelsList.get(i));
+			songsLabelsList.get(i).setBounds(0, (i*(height/10)), width, height);
+		}
 
 	}
 	
@@ -77,6 +98,11 @@ public class SongSelectionScreen extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
+			if(e.getSource() instanceof SongLabel){
+				String songPath = ((SongLabel)(e.getSource())).getSongPath();
+				loadSong(songPath);
+			}
 
 			if(e.getSource() == LoadFile){
 				JFileChooser jfc = new JFileChooser();
@@ -92,6 +118,20 @@ public class SongSelectionScreen extends JPanel {
 
 		}
 
+	}
+	
+	@SuppressWarnings("serial")
+	private class SongLabel extends JButton{
+		
+		private String songPath;
+		
+		public String getSongPath(){
+			return songPath;
+		}
+		
+		public void setSongPath(String p){
+			songPath = p;
+		}
 	}
 
 

@@ -1,5 +1,6 @@
 package crescendo.base.profile;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
@@ -20,7 +21,7 @@ import java.util.ArrayList;
  * @author groszc
  *
  */
-public class SongPreference{
+public class SongPreference implements Serializable{
 
 	//The absolute path to the song file
 	private String filePath;

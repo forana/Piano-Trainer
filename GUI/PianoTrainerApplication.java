@@ -5,6 +5,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -135,6 +137,21 @@ public class PianoTrainerApplication {
 		mainWindow.setTitle("Piano Trainer");
 
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainWindow.addWindowListener(new WindowListener(){
+
+			
+			@Override
+			public void windowClosed(WindowEvent arg0) {}
+			public void windowActivated(WindowEvent arg0) {}
+			public void windowClosing(WindowEvent arg0) {
+				ProfileManager.getInstance().saveToFile("pianoData.PT");
+			}
+			public void windowDeactivated(WindowEvent arg0) {}
+			public void windowDeiconified(WindowEvent arg0) {}
+			public void windowIconified(WindowEvent arg0) {}
+			public void windowOpened(WindowEvent arg0) {}
+			
+		});
 		
 		//initialize the profile manager
 		profileManager = ProfileManager.getInstance();
@@ -243,9 +260,10 @@ public class PianoTrainerApplication {
 			String profileName = JOptionPane.showInputDialog("Welcome to PianoTrainer! Please enter a name for your profile.");
 			
 			if(profileName!=null)profileManager.getActiveProfile().setName(profileName);
-			updateProfileMenu();
+			
 		}
 		
+		updateProfileMenu();
 		
 	}
 	

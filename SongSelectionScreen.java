@@ -7,9 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -31,11 +31,11 @@ public class SongSelectionScreen extends JPanel {
 	private List<SongPreference> s;
 	private List<SongLabel> songsLabelsList = new ArrayList<SongLabel>();
 	private int width, height;
-	
+
 	public SongSelectionScreen(SheetMusic module,int width, int height){
 		this.module = module;
 		this.setSize(width, height);
-
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Song1.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		Song1.setSize(width, height/10);
 
@@ -46,13 +46,13 @@ public class SongSelectionScreen extends JPanel {
 
 
 	}
-	
+
 	private void makeLabels(int i){
 		for(int j = 0; j<i; j++){
 			songsLabelsList.add(new SongLabel());
 		}
 	}
-	
+
 	private JPanel getPane(){
 		return this;
 	}
@@ -63,14 +63,12 @@ public class SongSelectionScreen extends JPanel {
 		for(int i = 0; i<s.size();i++){
 			songsLabelsList.get(i).setSongPath(s.get(i).getFilePath());
 			songsLabelsList.get(i).setText(s.get(i).getSongName()+"\n"+s.get(i).getCreator());
-			songsLabelsList.get(i).setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			songsLabelsList.get(i).addActionListener(l);
 			add(songsLabelsList.get(i));
-			songsLabelsList.get(i).setBounds(0, (i*(height/10)), width, height);
 		}
 
 	}
-	
+
 	private void loadSong(String filename){
 		File file = new File(filename);
 		SongModel loadedSong = null;
@@ -92,10 +90,18 @@ public class SongSelectionScreen extends JPanel {
 			SongPreference newSong = new SongPreference(filename, loadedSong.getTracks().size(), 0);
 			newSong.setSongName(loadedSong.getTitle());
 			newSong.setCreator(loadedSong.getCreators().get(0).getName());
-			ProfileManager.getInstance().getActiveProfile().getSongPreferences().add(newSong);
-				
+			boolean doAdd = true;
+			for(SongPreference p : ProfileManager.getInstance().getActiveProfile().getSongPreferences()){
+				if(p.getFilePath().equals(filename)){
+					doAdd=false;
+				}
+			}
+			if(doAdd){
+				ProfileManager.getInstance().getActiveProfile().getSongPreferences().add(newSong);
+			}
+
 			module.loadSong(loadedSong,0);
-			
+
 		}
 	}
 
@@ -104,7 +110,7 @@ public class SongSelectionScreen extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			
+
 			if(e.getSource() instanceof SongLabel){
 				String songPath = ((SongLabel)(e.getSource())).getSongPath();
 				loadSong(songPath);
@@ -112,7 +118,7 @@ public class SongSelectionScreen extends JPanel {
 
 			if(e.getSource() == LoadFile){
 				JFileChooser jfc = new JFileChooser();
-				
+
 				int returnVal = jfc.showOpenDialog(SongSelectionScreen.this);
 
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -125,16 +131,16 @@ public class SongSelectionScreen extends JPanel {
 		}
 
 	}
-	
+
 	@SuppressWarnings("serial")
 	private class SongLabel extends JButton{
-		
+
 		private String songPath;
-		
+
 		public String getSongPath(){
 			return songPath;
 		}
-		
+
 		public void setSongPath(String p){
 			songPath = p;
 		}

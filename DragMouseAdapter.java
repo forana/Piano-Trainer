@@ -36,7 +36,7 @@ public class DragMouseAdapter extends JPanel implements MouseListener {
 		this.addMouseListener(this);
 		this.setVisible(true);
 		musicEngine = m;
-		selectedNoteList = m.getDrawables();
+		//selectedNoteList = m.getDrawables();
 	}
 
 	public void mousePressed(MouseEvent e){

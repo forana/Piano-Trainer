@@ -44,13 +44,11 @@ public class ThreadPool {
 		
 		//Needed for matching threads to their runnable expirators in the exception handler
 		Map<Thread,Expirator> threadMap = new HashMap<Thread,Expirator>(); 
-		ExpiratorExceptionHandler exceptionHandler = new ExpiratorExceptionHandler(threadMap);
 		
 		//Start up all of the threads
 		for(int i=0;i<threadCount;i++) {
-			Expirator e = new Expirator(this.threadTimeout);
+			Expirator e = new Expirator(validator, this.threadTimeout);
 			Thread t = new Thread(e);
-			t.setUncaughtExceptionHandler(exceptionHandler);
 			expirators.add(e);
 			threadMap.put(t, e);
 			t.start();
@@ -125,43 +123,5 @@ public class ThreadPool {
 			e.stop();
 		}
 		expirators.clear();
-	}
-
-	/**
-	 * Handles all of the exceptions thrown by expirators
-	 * Expirators throw a NoteExpiredException to notify the thread pool
-	 * that their current note has expired. This Exception handler catches
-	 * those exceptions and translates that into a call to validator's
-	 * noteExpired method
-	 * @author nickgartmann
-	 *
-	 */
-	private class ExpiratorExceptionHandler implements UncaughtExceptionHandler {
-		
-		private Map<Thread,Expirator> threadMap;
-
-		/**
-		 * Constructor
-		 * save thread map attribute
-		 * @param threadMap HashMap to relate threads to the expirators they are running
-		 */
-		public ExpiratorExceptionHandler(Map<Thread,Expirator> threadMap) {
-			this.threadMap = threadMap;
-		}
-
-		/**
-		 * catches all of the NoteExpiredExceptions in Expirator
-		 * this method ignores all other exceptions
-		 */
-		@Override
-		public void uncaughtException(Thread t, Throwable e) {
-			if(e instanceof NoteExpiredException) {
-				Expirator ex = threadMap.get(t);
-				if (!ex.isFlagged())
-				{
-					validator.noteExpired(ex.getNoteEvent());
-				}
-			}
-		}
 	}
 }

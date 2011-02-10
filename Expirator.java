@@ -17,13 +17,15 @@ public class Expirator implements Runnable{
 	private long initialMilliseconds; //Timestamp of when we started expiring the note
 	private NoteEvent currentEvent;
 	private boolean isFlagged;
+	private SongValidator validator;
+	
 	
 	/**
 	 * Constructor
 	 * sets up the initial values
 	 * @param timeout amount of time in milliseconds to wait before throwing a NoteTimeoutException
 	 */
-	public Expirator(int timeout)
+	public Expirator(SongValidator validator, int timeout)
 	{
 		if(timeout<1) {
 			throw new IllegalArgumentException("Timeout must be at least one");
@@ -34,6 +36,7 @@ public class Expirator implements Runnable{
 		isBusy = false;
 		isFlagged=false;
 		initialMilliseconds = 0;
+		this.validator = validator;
 	}
 	
 	/**
@@ -171,7 +174,7 @@ public class Expirator implements Runnable{
 	private void expire() {
 		isBusy = false;
 		currentTimeout = TIMEOUT;
-		throw new NoteExpiredException();
+		validator.noteExpired(currentEvent);
 	}
 	
 	

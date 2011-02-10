@@ -48,7 +48,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	public SongValidator(SongModel model,Track activeTrack,HeuristicsModel heuristics)
 	{
 		this.activeTrack=activeTrack;
-		this.timeout=(int)(heuristics.getTimingInterval()*model.getBPM()*60*1000);
+		this.timeout=(int)(heuristics.getTimingInterval()*model.getBPM());
 		this.pool=new ThreadPool(this,POOL_SIZE,this.timeout);
 		this.processedListeners=new LinkedList<ProcessedNoteEventListener>();
 	}

@@ -89,7 +89,10 @@ public class SongSelectionScreen extends JPanel {
 		if(loadedSong!=null){
 			SongPreference newSong = new SongPreference(filename, loadedSong.getTracks().size(), 0);
 			newSong.setSongName(loadedSong.getTitle());
-			newSong.setCreator(loadedSong.getCreators().get(0).getName());
+			if(loadedSong.getCreators().size()>0)
+				newSong.setCreator(loadedSong.getCreators().get(0).getName());
+			else
+				newSong.setCreator("");
 			boolean doAdd = true;
 			for(SongPreference p : ProfileManager.getInstance().getActiveProfile().getSongPreferences()){
 				if(p.getFilePath().equals(filename)){

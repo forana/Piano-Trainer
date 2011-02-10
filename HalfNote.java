@@ -17,6 +17,7 @@ public class HalfNote extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
+		g.setColor(color);
 		//draw the base circle
 		g.drawOval((int)(x-4), (int)(y-4), 8, 8);
 		

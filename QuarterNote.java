@@ -17,7 +17,7 @@ public class QuarterNote extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
-		
+		g.setColor(color);
 		g.fillOval((int)(x-4),(int)( y-4), 8, 8);
 				
 		//draw the line attached to it

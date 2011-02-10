@@ -3,7 +3,6 @@ package crescendo.sheetmusic;
 import java.awt.Color;
 import java.awt.Graphics;
 
-import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.song.Note;
 
 /**
@@ -24,8 +23,7 @@ public abstract class DrawableNote extends Drawable{
 	
 	protected NoteType noteType;
 	
-	
-	
+	protected Color color;
 
 	
 	/**
@@ -45,6 +43,13 @@ public abstract class DrawableNote extends Drawable{
 	Note getNote()
 	{
 		return note;
+	}
+	
+	protected void setCorrect(boolean correct){
+		if(correct)
+			color = Color.green;
+		else
+			color = Color.red;
 	}
 	
 	/**

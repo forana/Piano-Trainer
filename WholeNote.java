@@ -17,6 +17,7 @@ public class WholeNote extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
+		g.setColor(color);
 		for(int i=0;i<5;i++)
 			g.drawOval((int)(x-4+i), (int)(y-4), 8, 8);
 		

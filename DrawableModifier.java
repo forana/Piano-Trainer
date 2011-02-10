@@ -18,23 +18,6 @@ import crescendo.base.song.Note;
  *
  */
 public abstract class DrawableModifier extends Drawable{
-
-	
-	/** the Notes this DrawableModifier "wraps" **/
-	private List<Note> notes;
-
-	
-	/**
-	 * DrawableModifier
-	 * 
-	 * Basic constructor, take Notes as parameters.
-	 * 
-	 * @param n - the Notes this DrawableModifier "wraps"
-	 */
-	protected DrawableModifier(List<Note> n)
-	{
-		notes = n;
-	}
 	
 	/**
 	 * draw

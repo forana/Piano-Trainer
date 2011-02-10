@@ -7,9 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -35,7 +35,7 @@ public class SongSelectionScreen extends JPanel {
 	public SongSelectionScreen(SheetMusic module,int width, int height){
 		this.module = module;
 		this.setSize(width, height);
-
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Song1.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		Song1.setSize(width, height/10);
 
@@ -63,10 +63,8 @@ public class SongSelectionScreen extends JPanel {
 		for(int i = 0; i<s.size();i++){
 			songsLabelsList.get(i).setSongPath(s.get(i).getFilePath());
 			songsLabelsList.get(i).setText(s.get(i).getSongName()+"\n"+s.get(i).getCreator());
-			songsLabelsList.get(i).setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			songsLabelsList.get(i).addActionListener(l);
 			add(songsLabelsList.get(i));
-			songsLabelsList.get(i).setBounds(0, (i*(height/10)), width, height);
 		}
 
 	}

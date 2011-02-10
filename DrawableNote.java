@@ -35,6 +35,7 @@ public abstract class DrawableNote extends Drawable{
 	 */
 	protected DrawableNote(Note n,int x,int y)
 	{
+		color = Color.black;
 		note = n;
 		this.x = x;
 		this.y = y+yPositionOfNote(n.getPitch());

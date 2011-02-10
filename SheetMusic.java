@@ -83,7 +83,7 @@ public class SheetMusic extends Module{
 		
 		// Initialize meta-things
 		boolean careAboutPitch=true;
-		boolean careAboutDynamic=true;
+		boolean careAboutDynamic=false;
 		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
 		
 		//Hook up song processor pieces

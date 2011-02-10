@@ -12,9 +12,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import crescendo.base.NoteAction;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
 import crescendo.base.SongPlayer;
+import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 
@@ -48,7 +50,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	double yOffset; //used if bass clef only
 	double noteOffset = 60/measuresPerLine; //so the first note isnt on the measure line
 	private boolean showTitle=true;
-
+	
+	private LinkedList<Drawable> drawQueue;
+	
 	boolean bassClefNeeded; 
 	boolean trebleClefNeeded; 
 
@@ -76,9 +80,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		currentPosition = 0.0;
 		sectionStartNote = null;
 		sectionEndNote = null;
-
 		this.activeTrack = activeTrack;
 
+		drawQueue = new LinkedList<Drawable>();
 
 		timeStarted=0;
 
@@ -404,7 +408,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		}
 
 
-
+		for(Drawable d:drawQueue){
+			drawables.add(d);
+		}
+		drawQueue.clear();
 		for(Drawable d: drawables)d.draw(g);
 
 
@@ -447,11 +454,32 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
+		System.out.println(e.isCorrect());
 		if(e.getExpectedNote()==null){
+			if(e.getPlayedNote().getAction()==ActionType.PRESS){
+				drawWrongNote(e);
+			}
 			//Create a new incorrect note
-		}else{
-			//notes.get(e.getExpectedNote()).setCorrect(e.isCorrect());
+		}else if(e.getPlayedNote()==null && e.getExpectedNote().getAction() == NoteAction.BEGIN){
+			noteMap.get(e.getExpectedNote().getNote()).get(0).setCorrect(e.isCorrect());
+		}else if(e.getExpectedNote()!=null && e.getPlayedNote()!=null){
+			if(noteMap.containsKey(e.getExpectedNote().getNote())){
+				noteMap.get(e.getExpectedNote().getNote()).get(0).setCorrect(e.isCorrect());
+			}else{
+				drawWrongNote(e);
+			}
 		}
+	}
+	
+	private void drawWrongNote(ProcessedNoteEvent e){
+		double timeDelta = System.currentTimeMillis() - timeStarted;
+		double linePerMS = ((double)songModel.getBPM())/(beatsPerMeasure*((double)measuresPerLine))/60.0/1000.0;
+
+		double line = Math.floor(timeDelta*linePerMS);
+		double offset = ((timeDelta-(line/linePerMS))*linePerMS)*measureWidth*measuresPerLine;
+		DrawableNote note = new QuarterNote(new Note(e.getPlayedNote().getNote(), 1, e.getPlayedNote().getVelocity(), this.songModel.getTracks().get(activeTrack)),(int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance));
+		note.setCorrect(false);
+		drawQueue.add(note);
 	}
 
 	private class MusicEngineTimer implements Runnable{

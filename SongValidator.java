@@ -61,7 +61,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	 */
 	public void handleNoteEvent(NoteEvent e)
 	{
-		if (e.getNote().getTrack()!=this.activeTrack)
+		if (e.getNote().getTrack()==this.activeTrack)
 		{
 			boolean tryAgain=true;
 			while (tryAgain)

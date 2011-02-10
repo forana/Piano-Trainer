@@ -40,7 +40,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	double xMargin=80;
 	double yMargin=80;
 	double yMeasureDistance=300;
+	double yOffset; //used if bass clef only
 	double noteOffset = 60/measuresPerLine; //so the first note isnt on the measure line
+	
+	boolean bassClefNeeded; 
+	boolean trebleClefNeeded; 
 	
 	double beatsPerMeasure;
 	double beatNote;
@@ -83,77 +87,158 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		double currentBeatCount = 0;
 		double currentMeasure=0;
 		
+		double restBeatStartTop=0;
+		double restBeatStartBottom=0;
+		
+		
 		int x=0;
 		int y=0;
+		
+		
+		//PREPROCESS 1: Remove Base/Treble Clef if unused
+		bassClefNeeded = false; 
+		trebleClefNeeded = false; 
+		for(int i=0;i<notes.size();i++)
+		{
+			if(notes.get(i).getDynamic()>0)
+			{
+				if(notes.get(i).getPitch()>=60)trebleClefNeeded = true;
+				if(notes.get(i).getPitch()<60)bassClefNeeded = true;
+			}
+		}
+		
+		yOffset=0;
+		if((trebleClefNeeded)&&(!bassClefNeeded))
+		{
+			yMeasureDistance=150;
+		}
+		if((bassClefNeeded)&&(!trebleClefNeeded))
+		{
+			yMeasureDistance=150;
+			yOffset = -130;
+		}
+		
 		
 		for(int i=0;i<notes.size();i++)
 		{
 			double noteBeat = notes.get(i).getDuration();
 			
-//			if(notes.get(i).getDynamic()==0)pitch = 66;
+			
 			
 			x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((currentBeatCount)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
-			y = (int) (300*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin);
+			y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin + yOffset);
 			
 			
 			
-			/************************** TRYME ************************************/
-			//if a "beat" is a half note
 			
-			if(notes.get(i).getDynamic()==0);//drawables.add(new Rest(notes.get(i),x));
+			if(notes.get(i).getDynamic()==0)
+			{
+				//drawables.add(new WholeRest(notes.get(i),x,y));
+			}
 			else 
 			{
 				if(noteBeat==0.125*beatNote)drawables.add(new EighthNote(notes.get(i),x,y));
 				if(noteBeat==0.25*beatNote)drawables.add(new QuarterNote(notes.get(i),x,y));
 				if(noteBeat==0.5*beatNote)drawables.add(new HalfNote(notes.get(i),x,y));
 				if(noteBeat==1*beatNote)drawables.add(new WholeNote(notes.get(i),x,y));
+				
+				if(trebleClefNeeded)
+				{
+					if((restBeatStartTop!=currentBeatCount)&&(notes.get(i).getPitch()>=60))
+					{
+						double restDurationTop = currentBeatCount-restBeatStartTop;
+						
+						x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartTop)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
+						y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin + yOffset);
+						
+						int restLocation=66;
+						
+						if(restDurationTop==0.125*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						if(restDurationTop==0.25*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						if(restDurationTop==0.5*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						if(restDurationTop==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						
+						restBeatStartTop=currentBeatCount + noteBeat;
+					}
+					else if(notes.get(i).getPitch()>=60)restBeatStartTop = currentBeatCount + noteBeat;
+				}
+				
+				if(bassClefNeeded)
+				{
+					if((restBeatStartBottom!=currentBeatCount)&&(notes.get(i).getPitch()<60))
+					{
+						double restDurationBottom = currentBeatCount-restBeatStartBottom;
+						
+						x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartBottom)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
+						y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin + yOffset);
+						
+						int restLocation=53;
+						if(!trebleClefNeeded)restLocation = 66;
+						
+						if(restDurationBottom==0.125*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						if(restDurationBottom==0.25*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						if(restDurationBottom==0.5*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						if(restDurationBottom==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						
+						restBeatStartBottom=currentBeatCount + noteBeat;
+					}
+					else if(notes.get(i).getPitch()<60)restBeatStartBottom = currentBeatCount + noteBeat;
+				}
 			}
-			
-			/***********************************************************************/
 		
 			
-			//if a "beat" is a half note
-			/*if(beatNote==2)
-			{
-				if(notes.get(i).getDynamic()==0);//drawables.add(new Rest(notes.get(i),x));
-				else 
-				{
-					if(noteBeat==0.25)drawables.add(new EighthNote(notes.get(i),x,y));
-					if(noteBeat==0.5)drawables.add(new QuarterNote(notes.get(i),x,y));
-					if(noteBeat==1)drawables.add(new HalfNote(notes.get(i),x,y));
-					if(noteBeat==2)drawables.add(new WholeNote(notes.get(i),x,y));
-				}
-			}
-			//if a "beat" is a quarter note
-			else if(beatNote==4)
-			{
-				if(notes.get(i).getDynamic()==0);//drawables.add(new Rest(notes.get(i),x));
-				else 
-				{
-					if(noteBeat==0.5)drawables.add(new EighthNote(notes.get(i),x,y));
-					if(noteBeat==1)drawables.add(new QuarterNote(notes.get(i),x,y));
-					if(noteBeat==2)drawables.add(new HalfNote(notes.get(i),x,y));
-					if(noteBeat==4)drawables.add(new WholeNote(notes.get(i),x,y));
-				}
-			}
-			//if a "beat" is a eighth note
-			else if(beatNote==8)
-			{
-				if(notes.get(i).getDynamic()==0);//drawables.add(new Rest(notes.get(i),x));
-				else 
-				{
-					if(noteBeat==1)drawables.add(new EighthNote(notes.get(i),x,y));
-					if(noteBeat==2)drawables.add(new QuarterNote(notes.get(i),x,y));
-					if(noteBeat==4)drawables.add(new HalfNote(notes.get(i),x,y));
-					if(noteBeat==8)drawables.add(new WholeNote(notes.get(i),x,y));
-				}
-			}*/
 			
 			currentBeatCount+=noteBeat;
 			while(currentBeatCount>=beatsPerMeasure)
 			{
+				
+				if(trebleClefNeeded)
+				{
+					if(restBeatStartTop!=currentBeatCount)
+					{
+						double restDurationTop = currentBeatCount-restBeatStartTop;
+						
+						x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartTop)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
+						y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin + yOffset);
+						
+						int restLocation=66;
+						
+						if(restDurationTop==0.125*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						if(restDurationTop==0.25*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						if(restDurationTop==0.5*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						if(restDurationTop==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
+						
+					}
+				}
+				
+				if(bassClefNeeded)
+				{
+					if(restBeatStartBottom!=currentBeatCount)
+					{
+						double restDurationBottom = currentBeatCount-restBeatStartBottom;
+						
+						x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartBottom)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
+						y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin + yOffset);
+						
+						int restLocation=53;
+						if(!trebleClefNeeded)restLocation = 66;
+						
+						if(restDurationBottom==0.125*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						if(restDurationBottom==0.25*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						if(restDurationBottom==0.5*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						if(restDurationBottom==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
+						
+					}
+				}
+				
+				
 				currentBeatCount-=beatsPerMeasure;
 				currentMeasure++;
+				
+				restBeatStartTop=0;
+				restBeatStartBottom=0;
+				
+				
 			}
 		}
 	}
@@ -203,17 +288,27 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		//draw staffs
 		for(int j=0;j<20;j++)
 		{	
-			g.drawLine((int)xMargin,(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin),(int)(yMargin+194+(yMeasureDistance*j)));
-			for(int k=1;k<=measuresPerLine;k++)
-				g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+194+(yMeasureDistance*j)));
+			//g.drawLine((int)xMargin,(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin),(int)(yMargin+194+(yMeasureDistance*j)));
 			
-			//draw top staff
+			
+			
+			//draw top staff lines
 			for(int i=0;i<5;i++)
 				g.drawLine((int)(xMargin),(int)(yMargin+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+(16*i)+(yMeasureDistance*j)));
+			//draw top measure lines
+			for(int k=0;k<=measuresPerLine;k++)
+				g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+64+(yMeasureDistance*j)));
 			
-			//draw bottom staff
-			for(int i=0;i<5;i++)
-				g.drawLine((int)(xMargin),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)));
+			//draw bottom staff if needed 
+			if(trebleClefNeeded&&bassClefNeeded)
+			{
+				//draw bottom staff lines
+				for(int i=0;i<5;i++)
+					g.drawLine((int)(xMargin),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)));
+				//draw bottom measure lines
+				for(int k=0;k<=measuresPerLine;k++)
+					g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+64+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+194+(yMeasureDistance*j)));
+			}
 		}
 		
 		

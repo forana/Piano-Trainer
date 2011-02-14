@@ -25,4 +25,24 @@ public class LessonData implements Serializable
 			this.gradeMap.put(item.getCode(),new LessonGrade());
 		}
 	}
+	
+	public String getPath()
+	{
+		return this.filePath;
+	}
+	
+	public String getTitle()
+	{
+		return this.title;
+	}
+	
+	public GradingScale getScale()
+	{
+		return this.scale;
+	}
+	
+	public LessonGrade getGrade(int code)
+	{
+		return this.gradeMap.get(code);
+	}
 }

@@ -4,17 +4,17 @@ import java.util.List;
 import java.util.LinkedList;
 import javax.swing.JPanel;
 
-public class Chapter implements BookItem,BookItemReceiver
+public class Chapter implements BookItem
 {
 	private String title;
 	private List<BookItem> contents;
 	private List<PageItem> items;
 	
-	public Chapter(String title)
+	public Chapter(String title,List<BookItem> contents,List<PageItem> items)
 	{
 		this.title=title;
-		this.contents=new LinkedList<BookItem>();
-		this.items=new LinkedList<PageItem>();
+		this.contents=contents;
+		this.items=items;
 	}
 	
 	public List<BookItem> getContents()
@@ -25,10 +25,6 @@ public class Chapter implements BookItem,BookItemReceiver
 	public List<PageItem> getItems()
 	{
 		return this.items;
-	}
-	
-	public void loadChildren()
-	{
 	}
 	
 	public JPanel getPanel()

@@ -1,7 +1,6 @@
 package crescendo.lesson;
 
 import java.util.List;
-import java.util.Collections;
 
 public class GradingScale
 {
@@ -10,7 +9,6 @@ public class GradingScale
 	public GradingScale(List<Grade> grades)
 	{
 		this.grades=grades;
-		Collections.sort(this.grades);
 	}
 	
 	public Grade getGrade(double score)

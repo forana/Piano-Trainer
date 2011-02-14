@@ -6,5 +6,4 @@ import javax.swing.JPanel;
 public interface LessonTreeNode// extends TreeNode
 {
 	public JPanel getPanel();
-	public void loadChildren();
 }

@@ -13,7 +13,7 @@ public class Grade implements Comparable<Grade>
 	
 	public int compareTo(Grade other)
 	{
-		double res=this.minimum-other.minimum;
+		double res=other.minimum-this.minimum;
 		if (res>0)
 		{
 			return 1;

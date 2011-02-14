@@ -8,9 +8,10 @@ public class Lesson implements BookItem
 	private String title;
 	private List<PageItem> items;
 	
-	public Lesson(String title)
+	public Lesson(String title,List<PageItem> items)
 	{
 		this.title=title;
+		this.items=items;
 	}
 	
 	public List<PageItem> getItems()
@@ -25,5 +26,10 @@ public class Lesson implements BookItem
 	public JPanel getPanel()
 	{
 		return null;
+	}
+	
+	public String toString()
+	{
+		return this.title;
 	}
 }

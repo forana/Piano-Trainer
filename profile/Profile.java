@@ -2,6 +2,10 @@ package crescendo.base.profile;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import crescendo.lesson.LessonData;
 
 /**
  * Profile
@@ -33,6 +37,8 @@ public class Profile implements Serializable,Comparable{
 	ArrayList<SongPreference> songPreferences;
 	SongPreference lastPlayedSong;
 	
+	List<LessonData> lessonDataList;
+	
 	/**
 	 * Profile
 	 * 
@@ -52,8 +58,14 @@ public class Profile implements Serializable,Comparable{
 		gradeTiming=true;
 		
 		songPreferences = new ArrayList<SongPreference>();
+		
+		lessonDataList=new LinkedList<LessonData>();
 	}
 	
+	public List<LessonData> getLessonData()
+	{
+		return this.lessonDataList;
+	}
 	
 	/**
 	 * getLastPlayedSong

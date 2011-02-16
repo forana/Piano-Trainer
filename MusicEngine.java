@@ -167,7 +167,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					noteQeue.add(new Note(notes.get(i).getPitch(), beatsPerMeasure, notes.get(i).getDynamic(), songModel.getTracks().get(activeTrack)));
 					noteDuration-=beatsPerMeasure;
 				}
-				System.out.println(noteDuration);
 				//after finishing the measure and checking for more full measures, if there is something left add it too
 				if(noteDuration>0.0)
 				{
@@ -454,7 +453,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
-		System.out.println(e.isCorrect());
 		if(e.getExpectedNote()==null){
 			if(e.getPlayedNote().getAction()==ActionType.PRESS){
 				drawWrongNote(e);

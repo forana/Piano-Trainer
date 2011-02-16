@@ -17,7 +17,7 @@ import java.util.LinkedList;
 public class SongValidator implements NoteEventListener,FlowController,MidiEventListener
 {
 	/** The maximum number of note events that can be simultaneously expired. */
-	private static final int POOL_SIZE = 20; // theoretically more than 10 notes should never happen
+	private static final int POOL_SIZE = 30; // theoretically more than 10 notes should never happen
 	
 	/** The track that the user is playing. */
 	private Track activeTrack;
@@ -48,7 +48,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	public SongValidator(SongModel model,Track activeTrack,HeuristicsModel heuristics)
 	{
 		this.activeTrack=activeTrack;
-		this.timeout=(int)(heuristics.getTimingInterval()*model.getBPM());
+		this.timeout=(int)(heuristics.getTimingInterval()/model.getBPM()*60000);
 		this.pool=new ThreadPool(this,POOL_SIZE,this.timeout);
 		this.processedListeners=new LinkedList<ProcessedNoteEventListener>();
 		this.heuristics = heuristics;

@@ -109,7 +109,7 @@ public class SheetMusic extends Module{
 		
 		//Attach note events
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
-		songPlayer.attach(validator,50); // TODO base this number in the heuristics model
+		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)); // TODO base this number in the heuristics model
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);

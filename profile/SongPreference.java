@@ -35,6 +35,8 @@ public class SongPreference implements Serializable{
 	private ArrayList<Integer> trackVolume;
 	//The instrument for each track
 	private ArrayList<Integer> trackInstrument;
+	//The top 10 scores for this song
+	private ArrayList<Integer> songScores;
 	
 	//TODO: Comment name and creator vars and gets/sets
 	
@@ -74,6 +76,12 @@ public class SongPreference implements Serializable{
 		
 		name = "";
 		creator = "";
+	}
+	
+	/** Returns the scores of the song **/
+	public ArrayList<Integer> getScores()
+	{
+		return songScores;
 	}
 	
 	/** Returns the absolute file path of the song **/

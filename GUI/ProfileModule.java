@@ -12,7 +12,7 @@ import javax.swing.JTabbedPane;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
-
+import crescendo.base.module.Module;
 
 /**
  * ProfileModule
@@ -24,8 +24,12 @@ import crescendo.base.profile.ProfileManager;
  * @author groszc
  *
  */
-public class ProfileModule extends JPanel{
+public class ProfileModule extends Module{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -505754189840407725L;
 	//general app pref elements
 	JButton renameProfileButton;
 	JButton deleteProfileButton;
@@ -154,5 +158,16 @@ public class ProfileModule extends JPanel{
 			}
 		}
 	};
+
+	@Override
+	public String saveState() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void cleanUp() {
+		
+	}
 	
 }

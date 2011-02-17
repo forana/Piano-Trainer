@@ -23,6 +23,7 @@ import javax.swing.JLabel;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
+import crescendo.base.module.Module;
 import crescendo.sheetmusic.SheetMusic;
 //import crescendo.lesson.LessonModule;
 
@@ -318,10 +319,14 @@ public class PianoTrainerApplication {
 	/**
 	 * Handles the switching between different modules
 	 */
-	public void switchModules(JPanel c){
+	public void switchModules(Module m){
 		//TODO: handle set-up and tear-down for modules
 		mainWindow.remove(moduleFrame);
-		moduleFrame = c;
+		if (moduleFrame instanceof Module)
+		{
+			((Module)moduleFrame).cleanUp();
+		}
+		moduleFrame = m;
 		mainWindow.add(moduleFrame);
 		moduleFrame.updateUI();
 	}

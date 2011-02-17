@@ -228,7 +228,7 @@ public class MidiParser implements SongFileParser
 							{
 								trackVoices[i]=programNumber;
 							}
-							if (DEBUG) System.out.println("(wtf voice changed)");
+							if (DEBUG) System.out.println("(voice changed)");
 							break;
 						case 0xD: // Channel aftertouch
 							// not handling aftertouch
@@ -257,18 +257,18 @@ public class MidiParser implements SongFileParser
 								{
 									case 0x00: // Sequence number
 										// not handling - sequence number is irrelevant
-										/*int sequenceNumber=*/stream.readBytes(metaLength);
-										if (DEBUG) System.out.println("changed sequence");
+										int sequenceNumber=stream.readBytes(metaLength);
+										if (DEBUG) System.out.println("changed sequence: "+sequenceNumber);
 										break;
 									case 0x01: // Text event
 										// not handling
-										/*String eventText=*/stream.readString(metaLength);
-										if (DEBUG) System.out.println("read some text");
+										String eventText=stream.readString(metaLength);
+										if (DEBUG) System.out.println("read text: "+eventText);
 										break;
 									case 0x02: // Copyright notice
 										String copyright=stream.readString(metaLength);
 										license=copyright;
-										if (DEBUG) System.out.println(copyright);
+										if (DEBUG) System.out.println("Copyright: "+copyright);
 										break;
 									case 0x03: // Sequence / track name
 										String trackName=stream.readString(metaLength);
@@ -287,23 +287,23 @@ public class MidiParser implements SongFileParser
 									case 0x05: // Lyrics
 										// not handling
 										/*String lyrics=*/stream.readString(metaLength);
-										if (DEBUG) System.out.println("lyrics lol");
+										if (DEBUG) System.out.println("lyrics happened");
 										break;
 									case 0x06: // Marker
 										// not handling markers
-										/*String markerName=*/stream.readString(metaLength);
-										if (DEBUG) System.out.println("read a marker");
+										String markerName=stream.readString(metaLength);
+										if (DEBUG) System.out.println("read a marker: "+markerName);
 										break;
 									case 0x07: // Cue point
 										// not handling markers
-										/*String cueName=*/stream.readString(metaLength);
-										if (DEBUG) System.out.println("read a cue point");
+										String cueName=stream.readString(metaLength);
+										if (DEBUG) System.out.println("read a cue point: "+cueName);
 										break;
 									case 0x20: // Midi channel prefix
 									case 0x21: // Midi port prefix
 										       // found at http://www.omega-art.com/midi/mfiles.html
 										/*int prefixChannel=*/stream.read();
-										if (DEBUG) System.out.println("midi port prefix");
+										if (DEBUG) System.out.println("midi port prefixed");
 										break;
 									case 0x2F: // End of track
 										// to handle this would just break things more; use for debug only

@@ -3,6 +3,7 @@ package crescendo.base.GUI;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -18,10 +19,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.JLabel;
 
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
 import crescendo.sheetmusic.SheetMusic;
+//import crescendo.lesson.LessonModule;
 
 
 /**
@@ -177,7 +180,7 @@ public class PianoTrainerApplication {
 		buttonContainer.setLayout(new BorderLayout());
 		
 		//set up the profile/preferences button
-		preferencesButton = new JButton("***");
+		preferencesButton = new JButton("Options");
 		preferencesButton.addActionListener(al);
 		preferencesButton.setSize(50, -1);
 		
@@ -198,6 +201,12 @@ public class PianoTrainerApplication {
 			public void actionPerformed(ActionEvent arg0) {
 				sheetMusicModule = new SheetMusic();
 				switchModules(sheetMusicModule);	
+			}
+		});
+		
+		lessonButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				//switchModules(new LessonModule());
 			}
 		});
 		
@@ -247,7 +256,8 @@ public class PianoTrainerApplication {
 		
 		//for now create a button on a "default" module for startup
 		moduleFrame = new JPanel();
-		moduleFrame.add(new JButton("ASDF"));
+		moduleFrame.setBackground(Color.WHITE);
+		moduleFrame.add(new JLabel("Select a mode above to get started."));
 		
 		//add the module to the main window
 		mainWindow.add(moduleFrame);

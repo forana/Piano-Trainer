@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import crescendo.base.AudioPlayer;
 import crescendo.base.HeuristicsModel;
@@ -51,6 +52,7 @@ public class SheetMusic extends Module{
 		this.setLayout(new BorderLayout());
 		
 		add(mainAreaTarget,BorderLayout.CENTER);
+		mainAreaTarget.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
 	}
 	
@@ -101,8 +103,7 @@ public class SheetMusic extends Module{
 		
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
 		add(bottomBarContainer,BorderLayout.SOUTH);
-		
-		
+	
 		
 		//Add the progress frame to the bottom bar container...
 		
@@ -119,7 +120,6 @@ public class SheetMusic extends Module{
 		songPlayer.attach(audioPlayer);
 		songPlayer.attach(validator);
 		
-		
 		//Attach processed note events
 		validator.attach(adviceFeedbackFrame);
 		validator.attach(scoreFeedbackFrame);
@@ -129,7 +129,7 @@ public class SheetMusic extends Module{
 		
 		EventDispatcher.getInstance().registerComponent(musicEngine);
 	}
-
+	
 	public void play(){
 		songPlayer.play();
 		musicEngine.play();

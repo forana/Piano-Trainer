@@ -1,22 +1,22 @@
 package crescendo.sheetmusic;
 
-import javax.swing.JPanel;
-
-import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.List;
-import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import javax.swing.JPanel;
+
+import org.w3c.dom.css.Rect;
+
 import crescendo.base.NoteAction;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
-import crescendo.base.SongPlayer;
 import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
@@ -83,7 +83,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		sectionStartNote = null;
 		sectionEndNote = null;
 		this.activeTrack = activeTrack;
-
 		drawQueue = new LinkedList<Drawable>();
 
 		timeStarted=0;
@@ -359,7 +358,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	@Override
 	public void paint(Graphics g){
 		super.paint(g);
-		
 		if(showTitle){
 			//Song title
 			String title="Untitled";
@@ -523,6 +521,15 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		if(trebleClefNeeded&&bassClefNeeded)
 		{
 			g.drawLine((int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance)+64, (int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance+194));
+		}
+		
+		
+		if(!isPaused){
+			Rectangle rv = this.getVisibleRect();
+			if(!rv.contains(rv.x,(int)((yMargin) + line*yMeasureDistance+ (194*2)))){
+				rv.setLocation(rv.x, (int)((yMargin)  + line*yMeasureDistance - (64)));
+			}
+			this.scrollRectToVisible(rv);
 		}
 
 	}

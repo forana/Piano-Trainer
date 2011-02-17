@@ -97,36 +97,6 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 	
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e)
 	{
-		int actual=0;
-		if (this.listeningDynamic)
-		{
-			this.perfectTotal+=SCORE_DYNAMIC_PERFECT;
-			int dynamicScore=(int)Math.round(1.0*(SCORE_DYNAMIC_MAX_DISTANCE
-				-Math.min(Math.abs(e.getExpectedNote().getNote().getDynamic()-e.getPlayedNote().getVelocity()),
-					SCORE_DYNAMIC_MAX_DISTANCE))
-				/SCORE_DYNAMIC_MAX_DISTANCE
-				* SCORE_DYNAMIC_PERFECT);
-			actual+=dynamicScore;
-		}
-		if (this.listeningPitch)
-		{
-			this.perfectTotal+=SCORE_PITCH_PERFECT;
-			int pitchScore=(int)Math.round(1.0*(SCORE_PITCH_MAX_DISTANCE
-				-Math.min(Math.abs(e.getExpectedNote().getNote().getPitch()-e.getPlayedNote().getNote()),
-					SCORE_PITCH_MAX_DISTANCE))
-				/SCORE_PITCH_MAX_DISTANCE
-				* SCORE_PITCH_PERFECT);
-			actual+=pitchScore;
-		}
-		this.perfectTotal+=SCORE_TIMING_PERFECT;
-		int interval=(int)(this.model.getTimingInterval()/(1.0*this.songState.getBPM()/60/1000));
-		int rhythmScore=(int)Math.round(1.0*(interval
-			-Math.min(Math.abs(e.getExpectedNote().getTimestamp()-e.getPlayedNote().getTimestamp()),
-				interval))
-			/interval
-			* SCORE_TIMING_PERFECT);
-		actual+=rhythmScore;
-		
 		if (e.isCorrect())
 		{
 			this.streak++;
@@ -135,8 +105,42 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 		{
 			this.streak=0;
 		}
-		//int streakMod=Math.min(Math.max(1,this.streak/STREAK_STEP),STREAK_MAX);
-		this.actualTotal+=actual;
+		
+		if (e.getExpectedNote()!=null && e.getPlayedNote()!=null)
+		{
+			int actual=0;
+			if (this.listeningDynamic)
+			{
+				this.perfectTotal+=SCORE_DYNAMIC_PERFECT;
+				int dynamicScore=(int)Math.round(1.0*(SCORE_DYNAMIC_MAX_DISTANCE
+					-Math.min(Math.abs(e.getExpectedNote().getNote().getDynamic()-e.getPlayedNote().getVelocity()),
+						SCORE_DYNAMIC_MAX_DISTANCE))
+					/SCORE_DYNAMIC_MAX_DISTANCE
+					* SCORE_DYNAMIC_PERFECT);
+				actual+=dynamicScore;
+			}
+			if (this.listeningPitch)
+			{
+				this.perfectTotal+=SCORE_PITCH_PERFECT;
+				int pitchScore=(int)Math.round(1.0*(SCORE_PITCH_MAX_DISTANCE
+					-Math.min(Math.abs(e.getExpectedNote().getNote().getPitch()-e.getPlayedNote().getNote()),
+						SCORE_PITCH_MAX_DISTANCE))
+					/SCORE_PITCH_MAX_DISTANCE
+					* SCORE_PITCH_PERFECT);
+				actual+=pitchScore;
+			}
+			this.perfectTotal+=SCORE_TIMING_PERFECT;
+			int interval=(int)(this.model.getTimingInterval()/(1.0*this.songState.getBPM()/60/1000));
+			int rhythmScore=(int)Math.round(1.0*(interval
+				-Math.min(Math.abs(e.getExpectedNote().getTimestamp()-e.getPlayedNote().getTimestamp()),
+					interval))
+				/interval
+				* SCORE_TIMING_PERFECT);
+			actual+=rhythmScore;
+			
+			//int streakMod=Math.min(Math.max(1,this.streak/STREAK_STEP),STREAK_MAX);
+			this.actualTotal+=actual;
+		}
 	}
 	
 	private static class Grade

@@ -79,6 +79,7 @@ public class ScoreFrame extends JPanel implements ProcessedNoteEventListener {
 	 * Respond to a processed note being pumped out, altering the streak and potentially the 
 	 */
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
+		this.score.handleProcessedNoteEvent(e);
 		this.scorePercentLabel.setText(Double.toString(this.score.getCurrentPercent()));
 		this.streakLabel.setText(Integer.toString(this.score.getStreak()));
 		repaint();

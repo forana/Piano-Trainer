@@ -197,9 +197,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				else 
 				{
 					if(noteBeat==0.125*beatNote)drawables.add(new EighthNote(noteQeue.get(j),x,y));
-					if(noteBeat==0.25*beatNote)drawables.add(new QuarterNote(noteQeue.get(j),x,y));
-					if(noteBeat==0.5*beatNote)drawables.add(new HalfNote(noteQeue.get(j),x,y));
-					if(noteBeat==1*beatNote)drawables.add(new WholeNote(noteQeue.get(j),x,y));
+					else if(noteBeat==0.25*beatNote)drawables.add(new QuarterNote(noteQeue.get(j),x,y));
+					else if(noteBeat==0.5*beatNote)drawables.add(new HalfNote(noteQeue.get(j),x,y));
+					else if(noteBeat==1*beatNote)drawables.add(new WholeNote(noteQeue.get(j),x,y));
+					else drawables.add(new DrawableNote(noteQeue.get(j),x,y){public void draw(Graphics g){}});
 					
 					if(trebleClefNeeded)
 					{
@@ -514,7 +515,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			}
 			//Create a new incorrect note
 		}else if(e.getPlayedNote()==null && e.getExpectedNote().getAction() == NoteAction.BEGIN){
-			noteMap.get(e.getExpectedNote().getNote()).get(0).setCorrect(e.isCorrect());
+			if(noteMap.containsKey(e.getExpectedNote().getNote()))
+				noteMap.get(e.getExpectedNote().getNote()).get(0).setCorrect(e.isCorrect());
 		}else if(e.getExpectedNote()!=null && e.getPlayedNote()!=null){
 			if(noteMap.containsKey(e.getExpectedNote().getNote())){
 				noteMap.get(e.getExpectedNote().getNote()).get(0).setCorrect(e.isCorrect());

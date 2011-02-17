@@ -2,6 +2,7 @@ package crescendo.sheetmusic;
 
 import javax.swing.JPanel;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -398,12 +399,48 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			//draw bottom staff if needed 
 			if(trebleClefNeeded&&bassClefNeeded)
 			{
+				//draw the treble clef
+				int x = (int) (xMargin-45);
+				int y =(int) (yMargin+(yMeasureDistance*j)-13);
+				double scale = .75;
+				g.fillOval(x+(int)(25*scale), y+(int)(110*scale), (int)(10*scale), (int)(10*scale));
+				g.drawArc(x+(int)(27*scale), y+(int)(102*scale), (int)(13*scale), (int)(20*scale), (int)(40), (int)(-200));
+				g.drawLine(x+(int)(38*scale), y+(int)(105*scale), x+(int)(27*scale), y+(int)(20*scale));
+				g.drawArc(x+(int)(27*scale),y-(int)(5*scale),(int)(13*scale),(int)(50*scale),(int)(90),(int)(90));
+				g.drawArc(x+(int)(27*scale),y-(int)(5*scale),(int)(13*scale),(int)(30*scale),(int)(90),(int)(-90));
+				g.drawArc(x+(int)(10*scale),y-(int)(22*scale),(int)(30*scale),(int)(70*scale),0,(int)(-80));
+				g.drawArc(x+(int)(7*scale),y+(int)(47*scale),(int)(55*scale),(int)(55*scale),(int)(-50),(int)(-200));
+				g.drawArc(x+(int)(22*scale),y+(int)(65*scale),(int)(34*scale),(int)(35*scale),(int)(160),(int)(-200));
+
+				
+				
+				//draw the bass clef
+				x = (int) (xMargin-65);
+				y =(int) (yMargin+(yMeasureDistance*j)+130);
+				g.fillOval(x+25, y+10, (int)(10), (int)(10));
+				g.drawArc(x+25, y,25,32,0,180);
+				g.drawArc(x, y-16,50,64,270,360-270);
+				g.fillOval(x+55, y+5, (int)(8), (int)(8));
+				g.fillOval(x+55, y+21, (int)(8), (int)(8));
+				
+				
 				//draw bottom staff lines
 				for(int i=0;i<5;i++)
 					g.drawLine((int)(xMargin),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)));
 				//draw bottom measure lines
 				for(int k=0;k<=measuresPerLine;k++)
 					g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+64+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+194+(yMeasureDistance*j)));
+			}
+			else
+			{
+				if(trebleClefNeeded)
+				{
+					g.drawLine((int)(xMargin)/2,(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin)*0,(int)(yMargin+64+(yMeasureDistance*j)));
+				}
+				else if(bassClefNeeded)
+				{
+					g.drawLine((int)(xMargin)*0,(int)(yMargin+130+(yMeasureDistance*j)),(int)(xMargin)/2,(int)(yMargin+194+(yMeasureDistance*j)));
+				}
 			}
 		}
 

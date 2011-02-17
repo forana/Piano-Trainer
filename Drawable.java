@@ -41,7 +41,7 @@ public abstract class Drawable {
 		
 		double getY()
 		{
-			return x;
+			return y;
 		}
 		
 		

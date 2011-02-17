@@ -58,7 +58,7 @@ public class SheetMusic extends Module{
 		this.setLayout(new BorderLayout());
 		
 		add(mainAreaTarget,BorderLayout.CENTER);
-		add(bottomBarContainer,BorderLayout.SOUTH);
+		
 	}
 	
 	/**
@@ -83,14 +83,14 @@ public class SheetMusic extends Module{
 		
 		// Initialize meta-things
 		boolean careAboutPitch=true;
-		boolean careAboutDynamic=false;
+		boolean careAboutDynamic=true;
 		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
 		
 		//Hook up song processor pieces
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
 		songPlayer = new SongPlayer(selectedSongModel);
 		SongValidator validator = new SongValidator(selectedSongModel,selectedSongModel.getTracks().get(activeTrack),heuristics);
-		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, selectedSongModel.getTracks().get(activeTrack));
+		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, null /*selectedSongModel.getTracks().get(activeTrack)*/);//TODO make this be the actual active track (uncomment and remove the null)
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
@@ -99,28 +99,36 @@ public class SheetMusic extends Module{
 		
 		bottomBarContainer.add(adviceFeedbackFrame);		
 		mainAreaTarget.setViewportView(musicEngine);
-
+		FlowControllerBar bar = new FlowControllerBar(0, 0, 500, 50, this,model);
+		bottomBarContainer.add(bar);
+		bottomBarContainer.setSize(bottomBarContainer.getWidth(), 200);
+		
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
+		add(bottomBarContainer,BorderLayout.SOUTH);
+		
+		
 		
 		//Add the progress frame to the bottom bar container...
+		
 		
 		//Attach input events
 		dispatcher.attach(validator);
 		
 		//Attach note events
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
-		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)); // TODO base this number in the heuristics model
+		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)/2);
+		songPlayer.attach(bar,20);
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);
 		songPlayer.attach(validator);
 		
+		
 		//Attach processed note events
 		validator.attach(adviceFeedbackFrame);
 		validator.attach(scoreFeedbackFrame);
 		validator.attach(musicEngine);
-	
-		play();
+		this.updateUI();
 	}
 
 	public void play(){

@@ -15,7 +15,7 @@ public class FlowControllerTest {
 		DragMouseAdapter m = new DragMouseAdapter(800,505, null);
 		e.getContentPane().add(m);
 		
-		FlowControllerBar f = new FlowControllerBar(0,505, 800,60, null);
+		FlowControllerBar f = new FlowControllerBar(0,505, 800,60, null,null);
 		//f.setSize(800,60);
 		//f.setLocation(0,50);
 		e.add(f);

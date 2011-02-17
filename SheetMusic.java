@@ -58,7 +58,7 @@ public class SheetMusic extends Module{
 		this.setLayout(new BorderLayout());
 		
 		add(mainAreaTarget,BorderLayout.CENTER);
-		add(bottomBarContainer,BorderLayout.SOUTH);
+		
 	}
 	
 	/**
@@ -99,29 +99,36 @@ public class SheetMusic extends Module{
 		
 		bottomBarContainer.add(adviceFeedbackFrame);		
 		mainAreaTarget.setViewportView(musicEngine);
-
+		FlowControllerBar bar = new FlowControllerBar(0, 0, 500, 50, this,model);
+		bottomBarContainer.add(bar);
+		bottomBarContainer.setSize(bottomBarContainer.getWidth(), 200);
+		
 		add(scoreFeedbackFrame,BorderLayout.NORTH);
+		add(bottomBarContainer,BorderLayout.SOUTH);
+		
+		
 		
 		//Add the progress frame to the bottom bar container...
+		
 		
 		//Attach input events
 		dispatcher.attach(validator);
 		
 		//Attach note events
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
-		System.out.println((int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000));
 		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)/2);
+		songPlayer.attach(bar,20);
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);
 		songPlayer.attach(validator);
 		
+		
 		//Attach processed note events
 		validator.attach(adviceFeedbackFrame);
 		validator.attach(scoreFeedbackFrame);
 		validator.attach(musicEngine);
-	
-		play();
+		this.updateUI();
 	}
 
 	public void play(){

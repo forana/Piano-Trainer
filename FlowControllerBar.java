@@ -2,20 +2,21 @@ package crescendo.sheetmusic;
 
 import java.awt.Color;
 import java.awt.Font;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
 import java.util.List;
 
-
 import javax.swing.JButton;
-
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
+import crescendo.base.NoteAction;
 import crescendo.base.NoteEvent;
 import crescendo.base.NoteEventListener;
 import crescendo.base.song.Note;
+import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
 
 
 public class FlowControllerBar extends JPanel implements NoteEventListener {
@@ -37,18 +38,20 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 	private JButton speedUpButton;
 	private JButton slowDownButton;
 	private JProgressBar songProgressBar;
-	private MusicEngine musicEngine;
+	private SheetMusic musicEngine;
 	private boolean isPlaying = false;
 	private int totalBeats;
 	private int currentBeatCount = 0;
-	private List<Long> timestampList;
+	private List<Note> timestampList;
 	private FlowButtonEventListener fBEL= new FlowButtonEventListener();
+	private Track listenTrack;
 
-	public FlowControllerBar(int widthOffset, int heightOffset, int width, int height, MusicEngine m){
+	public FlowControllerBar(int widthOffset, int heightOffset, int width, int height, SheetMusic m, SongModel model){
 		musicEngine = m;
-
+		totalBeats = (int) model.getDuration();
+		listenTrack = model.getTracks().get(0);
 		this.setBackground(new Color(BACKGROUND_COLOR));
-		this.setLayout(null);
+		timestampList = new LinkedList<Note>();
 		this.setBounds(widthOffset,heightOffset,width, height);
 
 		songProgressBar = new JProgressBar();
@@ -130,11 +133,12 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 	@Override
 	public void handleNoteEvent(NoteEvent e) {
 		Note n = e.getNote();
-
-		if(!timestampList.contains(e.getTimestamp())){
-			timestampList.add(e.getTimestamp());
+		
+		if(!timestampList.contains(n) && e.getNote().getTrack().equals(listenTrack)){
+			timestampList.add(n);
 			currentBeatCount += n.getDuration();
 		}
+		songProgressBar.setValue(Math.round(100*currentBeatCount/totalBeats));
 	}
 }
 

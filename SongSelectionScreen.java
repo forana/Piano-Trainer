@@ -3,6 +3,10 @@ package crescendo.sheetmusic;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Insets;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,7 +17,13 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import crescendo.base.ErrorHandler;
 import crescendo.base.ErrorHandler.Response;
@@ -29,28 +39,28 @@ public class SongSelectionScreen extends JPanel {
 	private EventListener l = new EventListener();
 	private SheetMusic module;
 	private List<SongPreference> s;
-	private List<SongLabel> songsLabelsList = new ArrayList<SongLabel>();
+	private JList list;
 	private int width, height;
 
 	public SongSelectionScreen(SheetMusic module,int width, int height){
+		this.setBackground(Color.WHITE);
 		this.module = module;
 		this.setSize(width, height);
-		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		this.setLayout(new BorderLayout());
 		Song1.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		Song1.setSize(width, height/10);
+		//Song1.setSize(width, height/10);
 
-		parseSongList();
 		LoadFile.addActionListener(l);
 
-		this.add(LoadFile);
+		this.add(LoadFile,BorderLayout.NORTH);
+		
+		list=new JList();
+		list.addListSelectionListener(l);
+		list.setCellRenderer(new CustomCellRenderer());
+		list.setFixedCellHeight(32);
+		this.add(list,BorderLayout.CENTER);
 
-
-	}
-
-	private void makeLabels(int i){
-		for(int j = 0; j<i; j++){
-			songsLabelsList.add(new SongLabel());
-		}
+		parseSongList();
 	}
 
 	private JPanel getPane(){
@@ -59,14 +69,12 @@ public class SongSelectionScreen extends JPanel {
 
 	private void parseSongList() {
 		s = ProfileManager.getInstance().getActiveProfile().getSongPreferences();
-		makeLabels(s.size());
-		for(int i = 0; i<s.size();i++){
-			songsLabelsList.get(i).setSongPath(s.get(i).getFilePath());
-			songsLabelsList.get(i).setText(s.get(i).getSongName()+"\n"+s.get(i).getCreator());
-			songsLabelsList.get(i).addActionListener(l);
-			add(songsLabelsList.get(i));
+		Object[] items=new Object[s.size()];
+		for (int i=0; i<items.length; i++)
+		{
+			items[i]=new ListItem(s.get(i));
 		}
-
+		list.setListData(items);
 	}
 
 	private void loadSong(String filename){
@@ -109,17 +117,12 @@ public class SongSelectionScreen extends JPanel {
 	}
 
 
-	private class EventListener implements ActionListener{
+	private class EventListener implements ActionListener,ListSelectionListener{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-			if(e.getSource() instanceof SongLabel){
-				String songPath = ((SongLabel)(e.getSource())).getSongPath();
-				loadSong(songPath);
-			}
-
-			if(e.getSource() == LoadFile){
+			if(e.getSource() == LoadFile) {
 				JFileChooser jfc = new JFileChooser();
 
 				int returnVal = jfc.showOpenDialog(SongSelectionScreen.this);
@@ -133,21 +136,46 @@ public class SongSelectionScreen extends JPanel {
 
 		}
 
-	}
-
-	@SuppressWarnings("serial")
-	private class SongLabel extends JButton{
-
-		private String songPath;
-
-		public String getSongPath(){
-			return songPath;
+		@Override
+		public void valueChanged(ListSelectionEvent e) {
+			Object obj=list.getModel().getElementAt(e.getFirstIndex());
+			if(obj instanceof ListItem){
+				String songPath = ((ListItem)(obj)).getPath();
+				loadSong(songPath);
+			}
 		}
 
-		public void setSongPath(String p){
-			songPath = p;
-		}
 	}
 
-
+	private class ListItem
+	{
+		private String title;
+		private String path;
+		
+		public ListItem(SongPreference pref)
+		{
+			this.title=pref.getSongName()+(pref.getCreator()==null?"":" - "+pref.getCreator());
+			this.path=pref.getFilePath();
+		}
+		
+		public String getPath()
+		{
+			return this.path;
+		}
+		
+		public String toString()
+		{
+			return this.title;
+		}
+	}
+	
+	private class CustomCellRenderer extends JLabel implements ListCellRenderer
+	{
+		public Component getListCellRendererComponent(JList list, Object obj, int index, boolean selected, boolean hasFocus) {
+			this.setText(obj.toString());
+			this.setBorder(new LineBorder(new Color(0x99,0x99,0x99)));
+			
+			return this;
+		}
+	}
 }

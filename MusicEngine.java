@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -60,6 +61,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	double beatsPerMeasure;
 	double beatNote;
 
+	
+	private static Class[] classes = new Class[64];
+	private static Class[] restClasses = new Class[64];
+	private static Class[] args  = new Class[]{Note.class,Integer.TYPE,Integer.TYPE};
 
 	public MusicEngine(SongModel model,int activeTrack,boolean showTitle){
 		this.showTitle = showTitle;
@@ -67,6 +72,15 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	}
 	
 	public MusicEngine(SongModel model,int activeTrack){
+		classes[1]=WholeNote.class;
+		classes[2]=HalfNote.class;
+		classes[4]=QuarterNote.class;
+		classes[8]=EighthNote.class;
+		
+		restClasses[1]=WholeRest.class;
+		//restClasses[2]=HalfRest.class;
+		//restClasses[4]=QuarterRest.class;
+		//restClasses[8]=EighthRest.class;
 		setUp(model,activeTrack);
 	}
 	
@@ -196,6 +210,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				}
 				else 
 				{
+					/*
 					if(noteBeat==0.125*beatNote)drawables.add(new EighthNote(noteQeue.get(j),x,y));
 					else if(noteBeat==0.125*1.5*beatNote)
 					{
@@ -225,6 +240,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 						drawables.add(new Dot(note));
 					}
 					else drawables.add(new DrawableNote(noteQeue.get(j),x,y){public void draw(Graphics g){}});
+					*/
+					drawables.add(calculateNote(noteQeue.get(j),x,y));
 					
 					if(trebleClefNeeded)
 					{
@@ -558,6 +575,39 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			this.scrollRectToVisible(rv);
 		}
 
+	}
+	
+	private Drawable calculateNote(Note n, int x, int y){
+		Drawable returnValue = null;
+		int currentDivision = 1;
+		while(returnValue==null){
+			if(beatNote/currentDivision==n.getDuration()){
+				Object[] arglist = new Object[]{n,new Integer(x),new Integer(y)};
+				try {
+					returnValue = (Drawable)classes[currentDivision].getConstructor(args).newInstance(arglist);
+				} catch (IllegalArgumentException e) {
+				} catch (SecurityException e) {
+				} catch (InstantiationException e) {
+				} catch (IllegalAccessException e) {
+				} catch (InvocationTargetException e) {
+				} catch (NoSuchMethodException e) {}
+			}else if(beatNote/currentDivision<n.getDuration()){
+				Object[] arglist = new Object[]{n,new Integer(x),new Integer(y)};
+				try {
+					System.out.println(currentDivision);
+					returnValue = (Drawable)classes[currentDivision].getConstructor(args).newInstance(arglist);
+					drawables.add(new Dot(returnValue));
+				} catch (IllegalArgumentException e) {
+				} catch (SecurityException e) {
+				} catch (InstantiationException e) {
+				} catch (IllegalAccessException e) {
+				} catch (InvocationTargetException e) {
+				} catch (NoSuchMethodException e) {}
+			}else if(beatNote/currentDivision>n.getDuration()){
+				currentDivision*=2;
+			}
+		}
+		return returnValue;
 	}
 
 	public void play(){

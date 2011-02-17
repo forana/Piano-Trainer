@@ -1,20 +1,21 @@
 package crescendo.sheetmusic;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import crescendo.base.AudioPlayer;
 import crescendo.base.HeuristicsModel;
+import crescendo.base.NoteAction;
+import crescendo.base.NoteEvent;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
+import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 
 public class SheetMusic extends Module{
@@ -26,12 +27,13 @@ public class SheetMusic extends Module{
 	private AdviceFrame adviceFeedbackFrame;
 	private MusicEngine musicEngine;
 	private ScoreFrame scoreFeedbackFrame;
-	
+	private AudioPlayer audioPlayer;
 	private SongPlayer songPlayer;
 	
 	private JPanel bottomBarContainer;
 	
 	private JScrollPane mainAreaTarget;
+
 	
 	public SheetMusic(){
 		
@@ -85,7 +87,7 @@ public class SheetMusic extends Module{
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
 		songPlayer = new SongPlayer(selectedSongModel);
 		SongValidator validator = new SongValidator(selectedSongModel,selectedSongModel.getTracks().get(activeTrack),heuristics);
-		AudioPlayer audioPlayer = new AudioPlayer(selectedSongModel, null /*selectedSongModel.getTracks().get(activeTrack)*/);//TODO make this be the actual active track (uncomment and remove the null)
+		audioPlayer = new AudioPlayer(selectedSongModel, null /*selectedSongModel.getTracks().get(activeTrack)*/);//TODO make this be the actual active track (uncomment and remove the null)
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
@@ -131,6 +133,7 @@ public class SheetMusic extends Module{
 	}
 	
 	public void play(){
+		playIntro();
 		songPlayer.play();
 		musicEngine.play();
 	}
@@ -141,6 +144,7 @@ public class SheetMusic extends Module{
 	}
 	
 	public void resume(){
+		playIntro();
 		songPlayer.resume();
 		musicEngine.resume();
 	}
@@ -148,6 +152,21 @@ public class SheetMusic extends Module{
 	public void stop(){
 		songPlayer.stop();
 		musicEngine.stop();
+	}
+	
+	private void playIntro(){
+		Note n = new Note(60, 1, 90, audioPlayer.getMetronomeTrack());
+		NoteEvent bne = new NoteEvent(n, NoteAction.BEGIN,0 );
+		NoteEvent ene = new NoteEvent(n, NoteAction.BEGIN,0 );
+		for(int i=0;i<songPlayer.getSongState().getTimeSignature().getBeatsPerMeasure();i++){
+			try {
+				audioPlayer.handleNoteEvent(bne);
+				Thread.sleep(10);
+				audioPlayer.handleNoteEvent(ene);
+				System.out.println();
+				Thread.sleep((int)1000/(songPlayer.getSongState().getBPM()/60));
+			} catch (InterruptedException e) {}
+		}
 	}
 
 
@@ -159,6 +178,7 @@ public class SheetMusic extends Module{
 	@Override
 	public void cleanUp() {
 		// TODO Auto-generated method stub
+		stop();
 		
 	}
 

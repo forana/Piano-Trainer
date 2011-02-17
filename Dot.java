@@ -5,19 +5,19 @@ import java.awt.Graphics;
 import crescendo.base.song.Note;
 
 public class Dot extends DrawableModifier{
-	private DrawableNote dNote;
+	private Drawable note;
 	
 	public Dot(DrawableNote n){
-		x =n.getX();
-		y =n.getY();
-		dNote = n;
+		note = n;
+	}
 
+	public Dot(Drawable n){
+		note = n;
 	}
 
 	@Override
 	public void draw(Graphics g) {
-		dNote.draw(g);
-		g.fillOval((int)x+10, (int)y-2, 5, 5);
+		g.fillOval((int)note.getX()+10, (int)note.getY()-3, 4, 4);
 		
 	}
 }

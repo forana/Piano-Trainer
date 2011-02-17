@@ -6,10 +6,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.List;
+import java.awt.Toolkit;
+import javax.swing.ImageIcon;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.Icon;
 
 import crescendo.base.NoteAction;
 import crescendo.base.NoteEvent;
@@ -46,6 +49,8 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 	private List<Note> timestampList;
 	private FlowButtonEventListener fBEL= new FlowButtonEventListener();
 	private Track listenTrack;
+	private Icon playIcon;
+	private Icon pauseIcon;
 
 	public FlowControllerBar(int widthOffset, int heightOffset, int width, int height, SheetMusic m, SongModel model){
 		musicEngine = m;
@@ -63,22 +68,28 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 		slowDownButton = new JButton();
 		add(slowDownButton);
 		slowDownButton.setBounds(width*3/20, 10, width/20, width/20);
-		this.slowDownButton.setText("<<");
+		//this.slowDownButton.setText("<<");
+		this.slowDownButton.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/backward.png")));
 
 		playButton = new JButton();
 		add(playButton);
 		playButton.setBounds(width*3/20+width/10, 10, width/20, width/20);
-		this.playButton.setText("P");
+		//this.playButton.setText("");
+		playIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/play.png"));
+		pauseIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/pause.png"));
+		playButton.setIcon(playIcon);
 
 		speedUpButton = new JButton();
 		add(speedUpButton);
 		speedUpButton.setBounds(width*3/20+(2*width/10), 10, width/20, width/20);
-		speedUpButton.setText(">>");
+		//speedUpButton.setText(">>");
+		this.speedUpButton.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/forward.png")));
 
 		stopButton = new JButton();
 		this.add(stopButton);
 		stopButton.setBounds(width*3/20+(3*width/10), 10, width/20, width/20);
-		stopButton.setText("S");
+		//stopButton.setText("S");
+		this.stopButton.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/stop.png")));
 		
 		playButton.addActionListener(fBEL);
 		stopButton.addActionListener(fBEL);
@@ -92,6 +103,7 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 		if(isPlaying){
 			musicEngine.pause();
 			isPlaying = false;
+			playButton.setIcon(playIcon);
 		}else{
 			if(canPlay){
 				musicEngine.play(); 
@@ -101,6 +113,7 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 				musicEngine.resume();
 			}
 			isPlaying = true;
+			playButton.setIcon(pauseIcon);
 		}
 	}
 
@@ -146,7 +159,14 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 			timestampList.add(n);
 			currentBeatCount += n.getDuration();
 		}
+		
 		songProgressBar.setValue(Math.round(100*currentBeatCount/totalBeats));
+		if(n.equals(listenTrack.getNotes().get(listenTrack.getNotes().size()-1)) && e.getAction()==NoteAction.END){
+			songProgressBar.setValue(100);
+			musicEngine.pause();
+			musicEngine.stop();
+		}
+		
 	}
 }
 

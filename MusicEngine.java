@@ -488,7 +488,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		
 		if(!isPaused){
 			Rectangle rv = this.getVisibleRect();
-			rv.setLocation(rv.x, (int)((yMargin)  + line*yMeasureDistance - 194));
+			if(!rv.contains(rv.x,(int)((yMargin) + line*yMeasureDistance+ (194*2)))){
+				rv.setLocation(rv.x, (int)((yMargin)  + line*yMeasureDistance - (64)));
+			}
 			this.scrollRectToVisible(rv);
 		}
 

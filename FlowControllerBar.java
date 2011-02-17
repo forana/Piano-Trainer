@@ -40,6 +40,7 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 	private JProgressBar songProgressBar;
 	private SheetMusic musicEngine;
 	private boolean isPlaying = false;
+	private boolean canPlay = true;
 	private int totalBeats;
 	private int currentBeatCount = 0;
 	private List<Note> timestampList;
@@ -52,7 +53,7 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 		listenTrack = model.getTracks().get(0);
 		this.setBackground(new Color(BACKGROUND_COLOR));
 		timestampList = new LinkedList<Note>();
-		this.setBounds(widthOffset,heightOffset,width, height);
+		//this.setBounds(widthOffset,heightOffset,width, height);
 
 		songProgressBar = new JProgressBar();
 		add(songProgressBar);
@@ -92,7 +93,13 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 			musicEngine.pause();
 			isPlaying = false;
 		}else{
-			musicEngine.play();
+			if(canPlay){
+				musicEngine.play(); 
+				canPlay = false;
+			}
+			else {
+				musicEngine.resume();
+			}
 			isPlaying = true;
 		}
 	}
@@ -100,6 +107,7 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 	private void stop(){
 		musicEngine.stop();
 		isPlaying = false;
+		canPlay = true;
 	}
 
 	private void speedUpPlayback(){

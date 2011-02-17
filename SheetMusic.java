@@ -1,27 +1,19 @@
 package crescendo.sheetmusic;
 
-import java.awt.Adjustable;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.io.IOException;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import crescendo.base.AudioPlayer;
-import crescendo.base.ErrorHandler;
-import crescendo.base.ErrorHandler.Response;
 import crescendo.base.HeuristicsModel;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
-import crescendo.base.GUI.PianoTrainerApplication;
 import crescendo.base.module.Module;
-import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
 
 public class SheetMusic extends Module{
@@ -96,11 +88,13 @@ public class SheetMusic extends Module{
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
 		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
-		
-		bottomBarContainer.add(adviceFeedbackFrame);		
-		mainAreaTarget.setViewportView(musicEngine);
+		bottomBarContainer.setLayout(new GridLayout(1,2));
 		FlowControllerBar bar = new FlowControllerBar(0, 0, 500, 50, this,model);
 		bottomBarContainer.add(bar);
+		bottomBarContainer.add(adviceFeedbackFrame);		
+		
+		mainAreaTarget.setViewportView(musicEngine);
+
 		bottomBarContainer.setSize(bottomBarContainer.getWidth(), 200);
 		
 		add(scoreFeedbackFrame,BorderLayout.NORTH);

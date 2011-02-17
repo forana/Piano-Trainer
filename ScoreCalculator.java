@@ -1,9 +1,11 @@
 package crescendo.sheetmusic;
 
+import crescendo.base.NoteAction;
 import crescendo.base.ProcessedNoteEventListener;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.SongState;
 import crescendo.base.HeuristicsModel;
+import crescendo.base.EventDispatcher.ActionType;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -97,15 +99,15 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 	
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e)
 	{
+
 		if (e.isCorrect())
 		{
 			this.streak++;
 		}
-		else
+		else if((e.getExpectedNote()!=null && e.getExpectedNote().getAction()==NoteAction.BEGIN) || (e.getExpectedNote()==null && e.getPlayedNote().getAction()==ActionType.PRESS))
 		{
 			this.streak=0;
 		}
-		
 		if (e.getExpectedNote()!=null && e.getPlayedNote()!=null)
 		{
 			int actual=0;

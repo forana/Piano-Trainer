@@ -45,7 +45,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	int measuresPerLine = 4;
 	int sheetMusicWidth = 860;
 	double measureWidth = sheetMusicWidth/measuresPerLine;
-	double xMargin=80;
+	double xMargin=100;
 	double yMargin=80;
 	double yMeasureDistance=300;
 	double yOffset; //used if bass clef only
@@ -73,6 +73,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	
 	public void setUp(SongModel model,int activeTrack){
 		this.setPreferredSize(new Dimension(1024, 8000));
+		this.setBackground(Color.WHITE);
 		timerThread = new Thread(new MusicEngineTimer());
 		isLooping = false;
 		songModel = model;
@@ -391,16 +392,17 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 			//draw top staff lines
 			for(int i=0;i<5;i++)
-				g.drawLine((int)(xMargin),(int)(yMargin+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+(16*i)+(yMeasureDistance*j)));
+				g.drawLine((int)(xMargin)-80,(int)(yMargin+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+(16*i)+(yMeasureDistance*j)));
 			//draw top measure lines
-			for(int k=0;k<=measuresPerLine;k++)
+			for(int k=1;k<=measuresPerLine;k++)
 				g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+64+(yMeasureDistance*j)));
-
+			g.drawLine((int)(xMargin-80),(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin-80),(int)(yMargin+64+(yMeasureDistance*j)));
+			
 			//draw bottom staff if needed 
 			if(trebleClefNeeded&&bassClefNeeded)
 			{
 				//draw the treble clef
-				int x = (int) (xMargin-45);
+				int x = (int) (xMargin-75);
 				int y =(int) (yMargin+(yMeasureDistance*j)-13);
 				double scale = .75;
 				g.fillOval(x+(int)(25*scale), y+(int)(110*scale), (int)(10*scale), (int)(10*scale));
@@ -415,28 +417,45 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				
 				
 				//draw the bass clef
-				x = (int) (xMargin-65);
+				x = (int) (xMargin-95);
 				y =(int) (yMargin+(yMeasureDistance*j)+130);
 				g.fillOval(x+25, y+10, (int)(10), (int)(10));
 				g.drawArc(x+25, y,25,32,0,180);
 				g.drawArc(x, y-16,50,64,270,360-270);
 				g.fillOval(x+55, y+5, (int)(8), (int)(8));
 				g.fillOval(x+55, y+21, (int)(8), (int)(8));
+
+				
+				//time signature treble
+				x = (int) (xMargin-30);
+				y =(int) (yMargin+(yMeasureDistance*j)+22);
+				g.setFont(new Font("Georgia", Font.PLAIN, 32));
+				g.drawString((int)beatsPerMeasure+"", x, y);
+				g.drawLine(x, y+10, x+20, y+10);
+				g.drawString((int)beatNote+"", x, y+32);
+				
+				//time signature bass
+				y =(int) (yMargin+(yMeasureDistance*j)+22+130);
+				g.setFont(new Font("Georgia", Font.PLAIN, 32));
+				g.drawString((int)beatsPerMeasure+"", x, y);
+				g.drawLine(x, y+10, x+20, y+10);
+				g.drawString((int)beatNote+"", x, y+32);
 				
 				
 				//draw bottom staff lines
 				for(int i=0;i<5;i++)
-					g.drawLine((int)(xMargin),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)));
+					g.drawLine((int)(xMargin)-80,(int)(yMargin+130+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)));
 				//draw bottom measure lines
-				for(int k=0;k<=measuresPerLine;k++)
+				for(int k=1;k<=measuresPerLine;k++)
 					g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+64+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+194+(yMeasureDistance*j)));
+				g.drawLine((int)(xMargin-80),(int)(yMargin+64+(yMeasureDistance*j)),(int)(xMargin-80),(int)(yMargin+194+(yMeasureDistance*j)));
 			}
 			else
 			{
 				if(trebleClefNeeded)
 				{
 					//draw the treble clef
-					int x = (int) (xMargin-45);
+					int x = (int) (xMargin-75);
 					int y =(int) (yMargin+(yMeasureDistance*j)-13);
 					double scale = .75;
 					g.fillOval(x+(int)(25*scale), y+(int)(110*scale), (int)(10*scale), (int)(10*scale));
@@ -447,22 +466,41 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					g.drawArc(x+(int)(10*scale),y-(int)(22*scale),(int)(30*scale),(int)(70*scale),0,(int)(-80));
 					g.drawArc(x+(int)(7*scale),y+(int)(47*scale),(int)(55*scale),(int)(55*scale),(int)(-50),(int)(-200));
 					g.drawArc(x+(int)(22*scale),y+(int)(65*scale),(int)(34*scale),(int)(35*scale),(int)(160),(int)(-200));
+					
+					//time signature treble
+					x = (int) (xMargin-30);
+					y =(int) (yMargin+(yMeasureDistance*j)+22);
+					g.setFont(new Font("Georgia", Font.PLAIN, 32));
+					g.drawString((int)beatsPerMeasure+"", x, y);
+					g.drawLine(x, y+10, x+20, y+10);
+					g.drawString((int)beatNote+"", x, y+32);
 				}
 				else if(bassClefNeeded)
 				{
+					
+					
 					//draw the bass clef
-					int x = (int) (xMargin-65);
+					int x = (int) (xMargin-95);
 					int y =(int) (yMargin+(yMeasureDistance*j)-3);
 					g.fillOval(x+25, y+10, (int)(10), (int)(10));
 					g.drawArc(x+25, y,25,32,0,180);
 					g.drawArc(x, y-16,50,64,270,360-270);
 					g.fillOval(x+55, y+5, (int)(8), (int)(8));
 					g.fillOval(x+55, y+21, (int)(8), (int)(8));
+					
+					
+					//time signature treble
+					x = (int) (xMargin-30);
+					y =(int) (yMargin+(yMeasureDistance*j)+22);
+					g.setFont(new Font("Georgia", Font.PLAIN, 32));
+					g.drawString((int)beatsPerMeasure+"", x, y);
+					g.drawLine(x, y+10, x+20, y+10);
+					g.drawString((int)beatNote+"", x, y+32);
 				}
 			}
 		}
 
-
+		g.setFont(new Font("Georgia", Font.PLAIN, 18));
 		for(Drawable d:drawQueue){
 			drawables.add(d);
 		}
@@ -552,6 +590,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		public void run() {
 			while(doContinue) {
 				long now = System.currentTimeMillis();
+				MusicEngine.this.grabFocus();
 				if(!isPaused) {
 					if(now > (lastFrame + MS_DELAY)) {
 						repaint();

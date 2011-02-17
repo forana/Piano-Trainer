@@ -33,6 +33,7 @@ public class SheetMusic extends Module{
 	private JScrollPane mainAreaTarget;
 	
 	public SheetMusic(){
+		
 		//TODO:Load up the UI
 		//this.setSize(1024, 768);
 		
@@ -75,7 +76,7 @@ public class SheetMusic extends Module{
 		
 		// Initialize meta-things
 		boolean careAboutPitch=true;
-		boolean careAboutDynamic=true;
+		boolean careAboutDynamic=false;
 		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
 		
 		//Hook up song processor pieces
@@ -89,6 +90,7 @@ public class SheetMusic extends Module{
 		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
 		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
 		bottomBarContainer.setLayout(new GridLayout(1,2));
+		
 		FlowControllerBar bar = new FlowControllerBar(0, 0, 500, 50, this,model);
 		bottomBarContainer.add(bar);
 		bottomBarContainer.add(adviceFeedbackFrame);		
@@ -123,6 +125,9 @@ public class SheetMusic extends Module{
 		validator.attach(scoreFeedbackFrame);
 		validator.attach(musicEngine);
 		this.updateUI();
+		
+		
+		EventDispatcher.getInstance().registerComponent(musicEngine);
 	}
 
 	public void play(){

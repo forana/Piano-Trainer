@@ -101,6 +101,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	private AudioPlayerChannel percussionChannel;
 	
 	/**
+	 * Guaranteed percussion track
+	 */
+	private Track percussionTrack;
+	
+	/**
 	 * Creates a new AudioPlayer, contructed around a specific song.
 	 * 
 	 * @param songModel The song to tailor the AudioPlayer to.
@@ -123,6 +128,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// match channels to AudioPlayerChannel objects, but don't add the active track
 		int currentChannel=0;
 		this.percussionChannel=new AudioPlayerChannel(channels[PERCUSSION_INDEX]);
+		
+		this.percussionTrack=new Track("Reserved Percussion",0);
+		this.channelMap.put(this.percussionTrack,this.percussionChannel);
 		
 		// start off assuming we arent't suspended
 		this.suspended=false;
@@ -190,6 +198,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	{
 		// the division converts microseconds to milliseconds
 		return synth.getLatency()/1000;
+	}
+	
+	public Track getMetronomeTrack()
+	{
+		return this.percussionTrack;
 	}
 	
 	/**

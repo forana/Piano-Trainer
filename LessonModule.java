@@ -1,22 +1,10 @@
 package crescendo.lesson;
 
-<<<<<<< local
-=======
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.tree.TreeNode;
-
->>>>>>> other
 import crescendo.base.module.Module;
 
-<<<<<<< local
 import java.awt.Dimension;
 import java.util.Enumeration;
-=======
->>>>>>> other
 
-<<<<<<< local
 import javax.swing.JScrollPane;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -25,10 +13,7 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.tree.TreeNode;
 import javax.swing.JButton;
-=======
->>>>>>> other
 
-<<<<<<< local
 public class LessonModule extends Module
 {
 	private RootNode root;
@@ -50,52 +35,20 @@ public class LessonModule extends Module
 		leftPanel.add(button);
 		leftPanel.add(leftScroll);
 		this.add(leftPanel);
-		JScrollPane rightScroll=new JScrollPane(new JLabel("fuck"),JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane rightScroll=new JScrollPane(new JLabel("main pane"),JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		this.add(rightScroll);
-=======
-/**
- *
- */
-public class LessonModule extends Module {
-
-	private JPanel display;
-	private JTree lessonTree;
-	private JButton loadButton;
-	public TreeNode treeNode;
-
-	public LessonModule(){
-		//TODO
->>>>>>> other
 	}
-<<<<<<< local
 	
 	public String saveState() {
 		return null;
-=======
-
-
-	public void cleanUp(){
-		//TODO
->>>>>>> other
 	}
-<<<<<<< local
 	
 	public void cleanUp() {
-=======
-
-	public String saveState(){
-		//TODO
-		return "";
->>>>>>> other
 	}
-<<<<<<< local
 	
 	private class RootNode implements TreeNode
 	{
-=======
->>>>>>> other
 
-<<<<<<< local
 		@Override
 		public Enumeration children() {
 			// TODO Auto-generated method stub
@@ -139,5 +92,3 @@ public class LessonModule extends Module {
 		}
 	}
 }
-=======
-}>>>>>>> other

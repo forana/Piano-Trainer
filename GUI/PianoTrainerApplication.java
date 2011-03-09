@@ -25,7 +25,7 @@ import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
 import crescendo.base.module.Module;
 import crescendo.sheetmusic.SheetMusic;
-//import crescendo.lesson.LessonModule;
+import crescendo.lesson.LessonModule;
 
 
 /**
@@ -207,7 +207,7 @@ public class PianoTrainerApplication {
 		
 		lessonButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				//switchModules(new LessonModule());
+				switchModules(new LessonModule());
 			}
 		});
 		

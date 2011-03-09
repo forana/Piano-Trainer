@@ -207,7 +207,7 @@ public class ProfileManager implements Serializable{
 		}
 		catch(IOException ex)
 		{
-			//ex.printStackTrace();
+			ex.printStackTrace();
 			toRet = false;
 		}
 		

@@ -1,6 +1,8 @@
 package crescendo.lesson;
 
-public class LessonGrade
+import java.io.Serializable;
+
+public class LessonGrade implements Serializable
 {
 	private boolean complete;
 	private double grade;

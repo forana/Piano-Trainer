@@ -36,6 +36,11 @@ public class LessonData implements Serializable
 		return this.title;
 	}
 	
+	public void setTitle(String title)
+	{
+		this.title=title;
+	}
+	
 	public GradingScale getScale()
 	{
 		return this.scale;

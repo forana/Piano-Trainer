@@ -1,8 +1,9 @@
 package crescendo.lesson;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class GradingScale
+public class GradingScale implements Serializable
 {
 	private List<Grade> grades;
 	

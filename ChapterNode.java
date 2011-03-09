@@ -11,10 +11,10 @@ import javax.swing.tree.TreeNode;
 /**
  * 
  */
-public class ChapterNode implements BookItem {
-
-	private List<LessonNode> lessonNodes;
-	private String name;
+public class ChapterNode implements BookItem
+{
+	private LessonBook book;
+	private LessonData data;
 
 	public ChapterNode(){
 		//TODO
@@ -29,58 +29,26 @@ public class ChapterNode implements BookItem {
 		//TODO
 		return null;
 	}
-
-	public void loadChildren(){
-		//TODO
-	}
-
-	public Enumeration children(){
-		//TODO
-		return null;
-	}
-
-	public boolean getAllowsChildren(){
-		//TODO
-		return false;
-	}
-
-	/**
-	 * 
-	 * @param index
-	 */
-	public TreeNode getChildAt(int index){
-		//TODO
-		return null;
-	}
-
-	public int getChildCount(){
-		//TODO
-		return 0;
-	}
-
-	/**
-	 * 
-	 * @param node
-	 */
-	public int getIndex(TreeNode node){
-		//TODO
-		return 0;
-	}
-
-	public TreeNode getParent(){
-		//TODO
-		return null;
-	}
-
-	public boolean isLeaf(){
-		//TODO
-		return false;
-	}
-
-	@Override
+	
 	public List<PageItem> getItems() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	public TreeNode getChildAt(int childIndex) {
+		return null;
+	}
+	
+	public boolean isLeaf() {
+		return false;
+	}
+	
+	public int getChildCount() {
+		return 0;
+	}
+
+	public boolean getAllowsChildren() {return false;}
+	public int getIndex(TreeNode node) {return 0;}
+	public TreeNode getParent() {return null;}
+	public Enumeration<TreeNode> children() {return null;}
 }

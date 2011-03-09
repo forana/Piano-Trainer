@@ -1,6 +1,8 @@
 package crescendo.lesson;
 
-public class Grade implements Comparable<Grade>
+import java.io.Serializable;
+
+public class Grade implements Comparable<Grade>,Serializable
 {
 	public final double minimum;
 	public final String label;

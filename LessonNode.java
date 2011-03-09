@@ -6,12 +6,10 @@ import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.tree.TreeNode;
 
-
-
 /**
  * 
  */
-public class LessonNode implements BookItem {
+public class LessonNode implements LessonTreeNode {
 
 	public LessonNode(){
 		//TODO
@@ -29,7 +27,6 @@ public class LessonNode implements BookItem {
 
 	public void loadChildren(){
 		//TODO
-
 	}
 
 	public Enumeration children(){
@@ -74,11 +71,4 @@ public class LessonNode implements BookItem {
 		//TODO
 		return false;
 	}
-
-	@Override
-	public List<PageItem> getItems() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

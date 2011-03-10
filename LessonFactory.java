@@ -29,6 +29,8 @@ public class LessonFactory
 	private static final List<Grade> DEFAULT_GRADES = new LinkedList<Grade>();
 	private static final GradingScale DEFAULT_SCALE;
 	
+	private static List<File> tempFiles=new LinkedList<File>();
+	
 	// add grades to list
 	static
 	{
@@ -67,6 +69,8 @@ public class LessonFactory
 		// http://stackoverflow.com/questions/617414/create-a-temporary-directory-in-java)
 		tempDir=new File(tempDir.getAbsolutePath()+".lesson");
 		tempDir.mkdir();
+		// add the file to our list so it gets cleared out later
+		tempFiles.add(tempDir);
 		
 		// step 3 - begin extracting zip to temp
 		ZipEntry entry;
@@ -401,5 +405,30 @@ public class LessonFactory
 		
 		HeuristicsModel heuristics=new HeuristicsModel(interval,velocityTolerance,pitch,dynamic);
 		return new MusicItem(source,heuristics,usedScale);
+	}
+	
+	public static void clean()
+	{
+		for (File file : tempFiles)
+		{
+			if (file.isDirectory())
+			{
+				cleanDir(file);
+			}
+			file.delete();
+		}
+		tempFiles.clear();
+	}
+	
+	private static void cleanDir(File dir)
+	{
+		for (File file : dir.listFiles())
+		{
+			if (file.isDirectory())
+			{
+				cleanDir(file);
+			}
+			file.delete();
+		}
 	}
 }

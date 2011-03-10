@@ -90,6 +90,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 	}
 	
 	public void cleanUp() {
+		LessonFactory.clean();
 	}
 	
 	public void actionPerformed(ActionEvent e) {

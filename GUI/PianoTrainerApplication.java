@@ -153,6 +153,10 @@ public class PianoTrainerApplication {
 			public void windowActivated(WindowEvent arg0) {}
 			public void windowClosing(WindowEvent arg0) {
 				ProfileManager.getInstance().saveToFile("pianoData.PT");
+				if (moduleFrame instanceof Module)
+				{
+					((Module)moduleFrame).cleanUp();
+				}
 			}
 			public void windowDeactivated(WindowEvent arg0) {}
 			public void windowDeiconified(WindowEvent arg0) {}

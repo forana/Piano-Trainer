@@ -15,6 +15,7 @@ public class LinkItem implements PageItem
 	
 	public JPanel getPanel()
 	{
-		return null;
+		// TODO Barry
+		return new JPanel();
 	}
 }

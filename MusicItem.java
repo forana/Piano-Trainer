@@ -1,5 +1,8 @@
 package crescendo.lesson;
 
+import java.awt.Color;
+
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import crescendo.base.HeuristicsModel;
 
@@ -23,6 +26,9 @@ public class MusicItem implements PageItem
 	
 	public JPanel getPanel()
 	{
-		return null;
+		JPanel panel=new JPanel();
+		panel.setBackground(Color.WHITE);
+		panel.add(new JLabel("Placeholder MusicItem"));
+		return panel;
 	}
 }

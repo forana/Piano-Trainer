@@ -16,6 +16,4 @@ public class ImagePanel extends JPanel {
 	public ImagePanel(){
 		//TODO
 	}
-
-
 }

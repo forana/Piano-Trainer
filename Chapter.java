@@ -1,9 +1,13 @@
 package crescendo.lesson;
 
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.LinkedList;
 
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.TreeNode;
@@ -34,7 +38,19 @@ public class Chapter implements BookItem,LessonTreeNode
 	public JPanel getPanel()
 	{
 		JPanel panel=new JPanel();
-		panel.add(new JLabel("I am a chapter"));
+		panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+		panel.setBackground(Color.WHITE);
+		JPanel header=new JPanel();
+		header.setLayout(new FlowLayout(FlowLayout.CENTER));
+		header.setBackground(Color.WHITE);
+		JLabel titleLabel=new JLabel(this.title);
+		titleLabel.setFont(new Font(Font.SERIF,Font.BOLD,20));
+		header.add(titleLabel);
+		panel.add(header);
+		for (PageItem item : this.items)
+		{
+			panel.add(item.getPanel());
+		}
 		return panel;
 	}
 	

@@ -1,8 +1,14 @@
 package crescendo.lesson;
 
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -39,24 +45,80 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 	}
 
 	public JPanel getPanel(){
-		JPanel panel=new JPanel();
 		if (this.book==null) {
 			try {
 				this.book=LessonFactory.createLessonBook(this.data);
 			}
 			catch (IOException e) {
 				ErrorHandler.showNotification("Lesson Load Error","There was an error loading the lesson book.\nError: "+e.getMessage());
-				return panel;
+				return new JPanel();
 			}
 		}
+		
+		class LabelPanel extends JPanel {
+			public LabelPanel(String text,boolean bold,int size) {
+				this(text,bold,size,false);
+			}
+			public LabelPanel(String text,boolean bold,int size,boolean link) {
+				JLabel label=new JLabel(text);
+				Font font=new Font(Font.SERIF,bold?Font.BOLD:Font.PLAIN,size);
+				if (link) {
+					label.setForeground(Color.BLUE);
+					label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				}
+				label.setFont(font);
+				this.add(label);
+				this.setBackground(Color.WHITE);
+			}
+		}
+		
+		JPanel panel=new JPanel();
 		panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
 		panel.setBackground(Color.WHITE);
-		JLabel titleLabel=new JLabel(data.getTitle());
-		titleLabel.setFont(new Font(Font.SERIF,Font.BOLD,24));
-		panel.add(titleLabel);
-		JLabel authorLabel=new JLabel(book.getAuthor());
-		authorLabel.setFont(new Font(Font.SERIF,Font.PLAIN,16));
-		panel.add(authorLabel);
+		
+		panel.add(new LabelPanel(this.book.getTitle(),true,32));
+		if (this.book.getAuthor()!=null) {
+			panel.add(new LabelPanel(this.book.getAuthor(),true,18));
+		}
+		if (this.book.getLicense()!=null) {
+			JPanel license=new LabelPanel(this.book.getLicense(),false,16,this.book.getLicenseURL()!=null);
+			if (this.book.getLicenseURL()!=null) {
+				license.addMouseListener(new MouseAdapter() {
+						public void mouseClicked(MouseEvent e) {
+							if (e.getButton()==MouseEvent.BUTTON1) {
+								Desktop desktop = Desktop.getDesktop();
+								URI uri;
+								try {
+									uri = new URI(book.getLicenseURL());
+									desktop.browse( uri );
+								} catch (Exception ex) {
+									ErrorHandler.showNotification("Error","Error opening link");
+								}
+							}
+						}
+					});
+			}
+			panel.add(license);
+		}
+		if (this.book.getWebsite()!=null) {
+			JPanel website=new LabelPanel(this.book.getWebsite(),false,16,true);
+			website.addMouseListener(new MouseAdapter() {
+					public void mouseClicked(MouseEvent e) {
+						if (e.getButton()==MouseEvent.BUTTON1) {
+							Desktop desktop = Desktop.getDesktop();
+							URI uri;
+							try {
+								uri = new URI(book.getWebsite());
+								desktop.browse( uri );
+							} catch (Exception ex) {
+								ErrorHandler.showNotification("Error","Error opening link");
+							}
+						}
+					}
+				});
+			panel.add(website);
+		}
+		
 		return panel;
 	}
 

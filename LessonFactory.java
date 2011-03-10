@@ -214,7 +214,7 @@ public class LessonFactory
 			}
 			data=new LessonData(path,title,defaultScale,music);
 		}
-		return new LessonBook(author,license,licenseURL,website,items,data);
+		return new LessonBook(title,author,license,licenseURL,website,items,data);
 	}
 	
 	private static GradingScale parseScale(Node n)

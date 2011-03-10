@@ -4,6 +4,7 @@ import java.util.List;
 
 public class LessonBook
 {
+	private String title;
 	private String author;
 	private String license;
 	private String licenseURL;
@@ -11,8 +12,9 @@ public class LessonBook
 	private List<BookItem> items;
 	private LessonData data;
 	
-	public LessonBook(String author,String license,String licenseURL,String website,List<BookItem> items,LessonData data)
+	public LessonBook(String title,String author,String license,String licenseURL,String website,List<BookItem> items,LessonData data)
 	{
+		this.title=title;
 		this.author=author;
 		this.license=license;
 		this.licenseURL=licenseURL;
@@ -24,6 +26,11 @@ public class LessonBook
 	public List<BookItem> getContents()
 	{
 		return this.items;
+	}
+	
+	public String getTitle()
+	{
+		return this.title;
 	}
 	
 	public String getAuthor()

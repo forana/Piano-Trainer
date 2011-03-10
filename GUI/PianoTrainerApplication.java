@@ -2,12 +2,15 @@ package crescendo.base.GUI;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -21,6 +24,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.JLabel;
 
+import crescendo.base.ErrorHandler;
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
 import crescendo.base.module.Module;
@@ -375,7 +379,7 @@ public class PianoTrainerApplication {
 			//Launching HTML pages in the default browser.
 			//TODO change the system.out.JOptionPanes.
 			if(e.getSource().equals(helpItem)){
-				if( !java.awt.Desktop.isDesktopSupported() ) {
+				if( !Desktop.isDesktopSupported() ) {
 
 		            System.err.println( "Desktop is not supported (fatal)" );
 		            System.exit( 1 );
@@ -383,24 +387,23 @@ public class PianoTrainerApplication {
 
 		        
 
-		        java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+		       Desktop desktop = Desktop.getDesktop();
 
-		        if( !desktop.isSupported( java.awt.Desktop.Action.BROWSE ) ) {
+		        if( !desktop.isSupported(Desktop.Action.BROWSE ) ) {
 
 		            System.err.println( "Desktop doesn't support the browse action (fatal)" );
 		            System.exit( 1 );
 		        }
 
 		        
-				java.net.URI uri;
+				URI uri;
 				try {
-					uri = new java.net.URI( "http://johnbokma.com/mexit/2008/08/19/java-open-url-default-browser.html" );
+					uri = new URI( "http://johnbokma.com/mexit/2008/08/19/java-open-url-default-browser.html" );
 				 
-                desktop.browse( uri );
+					desktop.browse( uri );
                 
-				}catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (Exception ex) {
+					ErrorHandler.showNotification("Error","Error opening link");
 				}
 		    }
 

@@ -50,4 +50,9 @@ public class LessonData implements Serializable
 	{
 		return this.gradeMap.get(code);
 	}
+	
+	public Map<Integer,LessonGrade> getGradeMap()
+	{
+		return this.gradeMap;
+	}
 }

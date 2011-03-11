@@ -185,7 +185,7 @@ public class LessonFactory
 			}
 		}
 		
-		// step 5 - instantiate full book and return
+		// step 5 - instantiate full book
 		if (data==null)
 		{
 			// need to round up the music items so that the data knows how many to count
@@ -218,6 +218,36 @@ public class LessonFactory
 			}
 			data=new LessonData(path,title,defaultScale,music);
 		}
+		
+		//step 6 link music items to the data so they can be scored
+		for (BookItem item : items)
+		{
+			if (item instanceof Chapter)
+			{
+				for (BookItem lesson : ((Chapter)item).getContents())
+				{
+					for (PageItem page : lesson.getItems())
+					{
+						if (page instanceof MusicItem)
+						{
+							((MusicItem)page).linkLessonData(data);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (PageItem page : item.getItems())
+				{
+					if (page instanceof MusicItem)
+					{
+						((MusicItem)page).linkLessonData(data);
+					}
+				}
+			}
+		}
+		
+		//step 7 return
 		return new LessonBook(title,author,license,licenseURL,website,items,data);
 	}
 	
@@ -404,7 +434,7 @@ public class LessonFactory
 		}
 		
 		HeuristicsModel heuristics=new HeuristicsModel(interval,velocityTolerance,pitch,dynamic);
-		return new MusicItem(source,heuristics,usedScale);
+		return new MusicItem(source,heuristics,usedScale,null);
 	}
 	
 	public static void clean()

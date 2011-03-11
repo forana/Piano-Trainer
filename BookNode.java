@@ -148,7 +148,28 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 	}
 	
 	public String toString() {
-		return this.data.getTitle();
+		String title=this.data.getTitle();
+		
+		if (this.data.getGradeMap().keySet().size()>0)
+		{
+			title+=" - ";
+			double total=0;
+			int count=0;
+			int complete=0;
+			for (Integer code : this.data.getGradeMap().keySet())
+			{
+				count++;
+				LessonGrade grade=this.data.getGrade(code);
+				if (grade.isComplete())
+				{
+					complete++;
+					total+=grade.getGrade();
+				}
+			}
+			title+=Math.round(1000*total/complete)/10.0+"% ("+(1000*complete/count)/10+"% complete)";
+		}
+		
+		return title;
 	}
 
 	public boolean getAllowsChildren() {return true;}

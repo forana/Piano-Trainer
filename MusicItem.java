@@ -11,17 +11,34 @@ public class MusicItem implements PageItem
 	private String source;
 	private HeuristicsModel heuristics;
 	private GradingScale scale;
+	private LessonData data;
 	
-	public MusicItem(String source,HeuristicsModel heuristics,GradingScale scale)
+	public MusicItem(String source,HeuristicsModel heuristics,GradingScale scale,LessonData data)
 	{
 		this.source=source;
 		this.heuristics=heuristics;
 		this.scale=scale;
 	}
 	
+	/**
+	 * A unique identifier for this item.
+	 * For now this assumes that a single file will not appear multiple times.
+	 * 
+	 * @return
+	 */
 	public int getCode()
 	{
-		return 4;
+		return this.source.hashCode();
+	}
+	
+	public void linkLessonData(LessonData data)
+	{
+		this.data=data;
+	}
+	
+	public LessonData getLessonData()
+	{
+		return this.data;
 	}
 	
 	public JPanel getPanel()

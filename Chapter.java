@@ -67,7 +67,26 @@ public class Chapter implements BookItem,LessonTreeNode
 	}
 	
 	public String toString() {
-		return this.title;
+		String t=this.title;
+		int count=0;
+		int complete=0;
+		double total=0;
+		for (BookItem item : this.contents)
+		{
+			if (item instanceof Lesson)
+			{
+				Lesson l=(Lesson)item;
+				count+=l.getMusicItemCount();
+				complete+=l.getMusicItemCompleteCount();
+				total+=l.getMusicItemTotal();
+			}
+		}
+		if (count>0)
+		{
+			t+=" - ";
+			t+=Math.round(1000*total/complete)/10.0+"% ("+(1000*complete/count)/10+"% complete)";
+		}
+		return t;
 	}
 
 	public boolean getAllowsChildren() {return true;}

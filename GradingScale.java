@@ -5,6 +5,8 @@ import java.util.List;
 
 public class GradingScale implements Serializable
 {
+	private static final long serialVersionUID=1L;
+	
 	private List<Grade> grades;
 	
 	public GradingScale(List<Grade> grades)
@@ -17,9 +19,9 @@ public class GradingScale implements Serializable
 		Grade grade=null;
 		for (Grade p : this.grades)
 		{
+			grade=p;
 			if (p.minimum<=score)
 			{
-				grade=p;
 				break;
 			}
 		}

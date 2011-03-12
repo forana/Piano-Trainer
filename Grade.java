@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public class Grade implements Comparable<Grade>,Serializable
 {
+	private static final long serialVersionUID=1L;
+	
 	public final double minimum;
 	public final String label;
 	

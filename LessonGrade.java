@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public class LessonGrade implements Serializable
 {
+	private static final long serialVersionUID=1L;
+	
 	private boolean complete;
 	private double grade;
 	

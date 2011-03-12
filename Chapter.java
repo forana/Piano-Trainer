@@ -5,7 +5,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.LinkedList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;

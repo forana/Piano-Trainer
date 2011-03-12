@@ -6,11 +6,9 @@ import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Enumeration;
-import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -19,15 +17,12 @@ import javax.swing.tree.TreeNode;
 
 import crescendo.base.ErrorHandler;
 
-
-
 /**
  *
  */
 public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 
 	private LessonBook book;
-	private List<LessonTreeNode> children;
 	private LessonData data;
 	
 	public BookNode(LessonData data){
@@ -56,6 +51,8 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 		}
 		
 		class LabelPanel extends JPanel {
+			private static final long serialVersionUID=1L;
+			
 			public LabelPanel(String text,boolean bold,int size) {
 				this(text,bold,size,false);
 			}
@@ -166,7 +163,12 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 					total+=grade.getGrade();
 				}
 			}
-			title+=Math.round(1000*total/complete)/10.0+"% ("+(1000*complete/count)/10+"% complete)";
+			if (this.data.getScale().getGrade(100*total/complete)==null)
+			{
+				System.out.println("dammit");
+			}
+			title+=this.data.getScale().getGrade(100*total/complete).label;
+			title+=" ("+Math.round(1000*total/complete)/10.0+"%) ("+(1000*complete/count)/10+"% complete)";
 		}
 		
 		return title;

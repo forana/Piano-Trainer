@@ -1,5 +1,6 @@
 package crescendo.base.profile;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -39,6 +40,8 @@ public class Profile implements Serializable,Comparable{
 	
 	List<LessonData> lessonDataList;
 	
+	File lastDirectoryFile;
+	
 	/**
 	 * Profile
 	 * 
@@ -60,6 +63,8 @@ public class Profile implements Serializable,Comparable{
 		songPreferences = new ArrayList<SongPreference>();
 		
 		lessonDataList=new LinkedList<LessonData>();
+		
+		this.lastDirectoryFile=null;
 	}
 	
 	public List<LessonData> getLessonData()
@@ -178,6 +183,16 @@ public class Profile implements Serializable,Comparable{
 	public void setName(String n)
 	{
 		name = n;
+	}
+	
+	public File getLastDirectory()
+	{
+		return this.lastDirectoryFile;
+	}
+	
+	public void setLastDirectory(File dir)
+	{
+		this.lastDirectoryFile=dir;
 	}
 	
 	/**

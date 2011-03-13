@@ -175,6 +175,9 @@ public class SongPlayer implements FlowController
 	 */	
 	public void attach(NoteEventListener listener, int time) {
 		listeners.put(listener, time);
+		if (listener instanceof FlowController) {
+			this.attach((FlowController)listener);
+		}
 		if(time>this.longestListener){
 			longestListener = time;
 		}

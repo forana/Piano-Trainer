@@ -34,7 +34,8 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	/** The heuristics that will judge notes correct or incorrect. */
 	private HeuristicsModel heuristics;
 	
-	/** This constructor is kludge for ThreadPoolTest until we figure out something better. */
+	/** This constructor is kludge for ThreadPoolTest until we figure out something better.
+	 * @deprecated */
 	public SongValidator()
 	{
 	}

@@ -40,7 +40,6 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 	
 	private List<BookNode> books;
 	private JButton loadButton;
-	private File currentDirectory=null;
 	private JTree tree;
 	private RootNode root;
 	private JScrollPane rightScroll;
@@ -48,7 +47,6 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 	public LessonModule()
 	{
 		this.loadTree();
-		this.currentDirectory=null;
 		
 		this.setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
 		JPanel leftPanel=new JPanel();
@@ -63,7 +61,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		this.tree=new JTree(this.root);
 		this.tree.setRootVisible(true);
 		this.tree.addMouseListener(this);
-		JScrollPane leftScroll=new JScrollPane(this.tree,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		JScrollPane leftScroll=new JScrollPane(this.tree,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		leftPanel.add(this.loadButton);
 		leftPanel.add(leftScroll);
 		this.add(leftPanel);
@@ -76,7 +74,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		base.setBackground(Color.WHITE);
 		JLabel titleLabel=new JLabel("Add a lesson book or select a lesson.");
 		base.add(titleLabel);
-		this.rightScroll=new JScrollPane(base,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		this.rightScroll=new JScrollPane(base,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		this.add(this.rightScroll);
 	}
 	
@@ -103,18 +101,21 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==this.loadButton)
 		{
-			JFileChooser fc=new JFileChooser(this.currentDirectory);
-			fc.addChoosableFileFilter(new FileNameExtensionFilter("Lesson Books (*.tlb)","tlb"));
+			JFileChooser fc=new JFileChooser(ProfileManager.getInstance().getActiveProfile().getLastDirectory());
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("Lesson Books (*.tlb,*.zip)","tlb","zip"));
 			if (fc.showOpenDialog(this)==JFileChooser.APPROVE_OPTION)
 			{
 				File f=fc.getSelectedFile();
-				this.currentDirectory=f.getParentFile();
+				ProfileManager.getInstance().getActiveProfile().setLastDirectory(f.getParentFile());
 				try
 				{
 					LessonBook book=LessonFactory.createLessonBook(f.getAbsolutePath());
 					ProfileManager.getInstance().getActiveProfile().getLessonData().add(book.getData());
 					this.books.add(new BookNode(book));
-					this.loadTree();
+					Collections.sort(this.books);
+					if (this.tree!=null) {
+						this.tree.updateUI();
+					}
 				}
 				catch (IOException ex)
 				{

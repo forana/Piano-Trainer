@@ -82,13 +82,20 @@ public class LessonFactory
 			// make sure the containing folders exist
 			parentDir.mkdirs();
 			
-			FileOutputStream out=new FileOutputStream(file);
-			int n; // zip does not support EOF
-			while ((n=zip.read(buffer,0,buffer.length-1))>-1)
+			if (entry.isDirectory())
 			{
-				out.write(buffer,0,n);
+				file.mkdir();
 			}
-			out.close();
+			else
+			{
+				FileOutputStream out=new FileOutputStream(file);
+				int n; // zip does not support EOF
+				while ((n=zip.read(buffer,0,buffer.length-1))>-1)
+				{
+					out.write(buffer,0,n);
+				}
+				out.close();
+			}
 		}
 		zip.close();
 		
@@ -124,10 +131,11 @@ public class LessonFactory
 		Element root=doc.getDocumentElement();
 		String title="Untitled Book";
 		String author=null;
-		String license="Unspecified";
+		String license=null;
 		String licenseURL=null;
 		String website=null;
 		GradingScale defaultScale=DEFAULT_SCALE;
+		String temp=tempDir.getAbsolutePath()+"/";
 		List<BookItem> items=new LinkedList<BookItem>();
 		if (!root.getNodeName().toLowerCase().equals("book"))
 		{
@@ -175,11 +183,11 @@ public class LessonFactory
 					Node node=sectionNode.getChildNodes().item(j);
 					if (node.getNodeName().toLowerCase().equals("chapter"))
 					{
-						items.add(parseChapter(node,defaultScale));
+						items.add(parseChapter(node,defaultScale,temp));
 					}
 					else if (node.getNodeName().toLowerCase().equals("lesson"))
 					{
-						items.add(parseLesson(node,defaultScale));
+						items.add(parseLesson(node,defaultScale,temp));
 					}
 				}
 			}
@@ -279,7 +287,7 @@ public class LessonFactory
 		return new GradingScale(grades);
 	}
 	
-	private static Chapter parseChapter(Node n,GradingScale scale)
+	private static Chapter parseChapter(Node n,GradingScale scale,String tempDir)
 	{
 		List<BookItem> contents=new LinkedList<BookItem>();
 		List<PageItem> items=new LinkedList<PageItem>();
@@ -294,7 +302,7 @@ public class LessonFactory
 			Node child=n.getChildNodes().item(i);
 			if (child.getNodeName().toLowerCase().equals("lesson"))
 			{
-				contents.add(parseLesson(child,scale));
+				contents.add(parseLesson(child,scale,tempDir));
 			}
 			else if (child.getNodeName().toLowerCase().equals("#text"))
 			{
@@ -312,7 +320,7 @@ public class LessonFactory
 		return new Chapter(title,contents,items);
 	}
 	
-	private static Lesson parseLesson(Node n,GradingScale scale)
+	private static Lesson parseLesson(Node n,GradingScale scale,String tempDir)
 	{
 		List<PageItem> items=new LinkedList<PageItem>();
 		String title="Untitled Lesson";
@@ -338,7 +346,7 @@ public class LessonFactory
 			}
 			else if (child.getNodeName().toLowerCase().equals("music"))
 			{
-				items.add(parseMusicItem(child,scale));
+				items.add(parseMusicItem(child,scale,tempDir));
 			}
 		}
 		return new Lesson(title,items);
@@ -379,12 +387,13 @@ public class LessonFactory
 		return new ImageItem(source,alt,figure);
 	}
 	
-	private static MusicItem parseMusicItem(Node n,GradingScale scale)
+	private static MusicItem parseMusicItem(Node n,GradingScale scale,String tempDir)
 	{
 		boolean pitch=true;
 		boolean dynamic=true;
 		double interval=0.5;
 		int velocityTolerance=30;
+		int track=0;
 		GradingScale usedScale=scale;
 		String source=null;
 		for (int i=0; i<n.getChildNodes().getLength(); i++)
@@ -427,14 +436,25 @@ public class LessonFactory
 			{
 			}
 		}
+		Node tracknode=n.getAttributes().getNamedItem("track");
+		if (tracknode!=null)
+		{
+			try
+			{
+				track=Integer.parseInt(intervalnode.getTextContent());
+			}
+			catch (NumberFormatException e)
+			{
+			}
+		}
 		Node sourcenode=n.getAttributes().getNamedItem("source");
 		if (sourcenode!=null)
 		{
-			source=sourcenode.getTextContent();
+			source=tempDir+sourcenode.getTextContent();
 		}
 		
 		HeuristicsModel heuristics=new HeuristicsModel(interval,velocityTolerance,pitch,dynamic);
-		return new MusicItem(source,heuristics,usedScale,null);
+		return new MusicItem(source,heuristics,usedScale,track,null);
 	}
 	
 	public static void clean()

@@ -68,10 +68,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 	public MusicEngine(SongModel model,int activeTrack,boolean showTitle){
 		this.showTitle = showTitle;
-		setUp(model,activeTrack);
-	}
-	
-	public MusicEngine(SongModel model,int activeTrack){
 		classes[1]=WholeNote.class;
 		classes[2]=HalfNote.class;
 		classes[4]=QuarterNote.class;
@@ -84,6 +80,26 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		setUp(model,activeTrack);
 	}
 	
+	public MusicEngine(SongModel model,int activeTrack){
+		this(model,activeTrack,true);
+	}
+	
+	public MusicEngine(SongModel model,int activeTrack, double currentPosition){
+		this(model,activeTrack);
+		this.currentPosition = currentPosition;
+		//use logic for finding the number of beats in a song
+	}
+
+	public MusicEngine(SongModel model,int activeTrack, Note currentNote){
+		this(model,activeTrack);
+		this.sectionStartNote = currentNote;
+	}
+
+	public MusicEngine(SongModel model,int activeTrack, Note currentSectionBeginNote, Note currentSectionEndNote){
+		this(model,activeTrack);
+		sectionStartNote = currentSectionBeginNote;
+		sectionEndNote = currentSectionEndNote;
+	}
 	
 	public void setUp(SongModel model,int activeTrack){
 		this.setPreferredSize(new Dimension(1024, 8000));
@@ -351,23 +367,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			}
 			noteMap.put(notes.get(i), dNotes);
 		}
-	}
-
-	public MusicEngine(SongModel model,int activeTrack, double currentPosition){
-		this(model,activeTrack);
-		this.currentPosition = currentPosition;
-		//use logic for finding the number of beats in a song
-	}
-
-	public MusicEngine(SongModel model,int activeTrack, Note currentNote){
-		this(model,activeTrack);
-		this.sectionStartNote = currentNote;
-	}
-
-	public MusicEngine(SongModel model,int activeTrack, Note currentSectionBeginNote, Note currentSectionEndNote){
-		this(model,activeTrack);
-		sectionStartNote = currentSectionBeginNote;
-		sectionEndNote = currentSectionEndNote;
 	}
 
 	public void setLooping(boolean looping){

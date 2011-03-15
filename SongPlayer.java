@@ -120,6 +120,8 @@ public class SongPlayer implements FlowController
 		}
 		doContinue=false;
 		try {
+			// 3/15/11 added interrupt; apparently just joining will just block
+			timerContainer.interrupt();
 			timerContainer.join();
 		} catch (InterruptedException e) {}
 		timerContainer = new Thread(new PlayerTimer());
@@ -312,7 +314,17 @@ public class SongPlayer implements FlowController
 				}
 			}
 		}
-
+		
+		
+		// check if song is done
+		if (iterators.size()==0 && activeNotes.size()==0)
+		{
+			// Pump out songEnd events
+			for (FlowController controller : controllers)
+			{
+				controller.songEnd();
+			}
+		}
 	}
 
 	/**

@@ -7,6 +7,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.TreeNode;
@@ -31,7 +32,7 @@ public class Lesson implements BookItem,LessonTreeNode
 	{
 	}
 	
-	public JPanel getPanel()
+	public JPanel getPanel(JComponent module)
 	{
 		JPanel panel=new JPanel();
 		panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
@@ -45,7 +46,7 @@ public class Lesson implements BookItem,LessonTreeNode
 		panel.add(header);
 		for (PageItem item : this.items)
 		{
-			panel.add(item.getPanel());
+			panel.add(item.getPanel(module));
 		}
 		return panel;
 	}

@@ -3,6 +3,7 @@ package crescendo.lesson;
 import java.awt.Color;
 import java.io.IOException;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import crescendo.base.HeuristicsModel;
@@ -66,14 +67,14 @@ public class MusicItem implements PageItem
 		return this.data;
 	}
 	
-	public JPanel getPanel()
+	public JPanel getPanel(JComponent module)
 	{
 		JPanel panel=new JPanel();
 		panel.setBackground(Color.WHITE);
 		panel.add(new JLabel("Failure loading music for \""+this.relSource+"\"."));
 		try
 		{
-			panel=new MusicPanel(this);
+			panel=new MusicPanel(this,module);
 		}
 		catch (IOException e)
 		{

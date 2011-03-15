@@ -14,19 +14,25 @@ import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.LineBorder;
 
 import crescendo.base.AudioPlayer;
+import crescendo.base.FlowController;
+import crescendo.base.NoteAction;
+import crescendo.base.NoteEvent;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
+import crescendo.base.EventDispatcher.EventDispatcher;
+import crescendo.base.song.Note;
 import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
 import crescendo.sheetmusic.MusicEngine;
 
-public class MusicPanel extends JPanel implements ActionListener {
+public class MusicPanel extends JPanel implements ActionListener,FlowController {
 	private static final long serialVersionUID=1L;
 	
 	private Icon playIcon;
@@ -36,8 +42,13 @@ public class MusicPanel extends JPanel implements ActionListener {
 	private JLabel scoreLabel;
 	private SongPlayer player;
 	private LessonGrader grader;
+	private AudioPlayer audio;
+	private MusicItem item;
+	private JComponent module;
 
-	public MusicPanel(MusicItem item) throws IOException {
+	public MusicPanel(MusicItem item,JComponent module) throws IOException {
+		this.item=item;
+		this.module=module;
 		this.setBackground(Color.WHITE);
 		Font font=new Font(Font.SERIF,Font.BOLD,14);
 		JPanel panel=new JPanel();
@@ -51,6 +62,7 @@ public class MusicPanel extends JPanel implements ActionListener {
 		this.stopIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/stop.png"));
 		this.actionButton=new JButton(playIcon);
 		this.scoreLabel=new JLabel("Grade");
+		this.setScoreText();
 		this.scoreLabel.setFont(font);
 		JScrollPane music=new JScrollPane(this.engine,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		music.setPreferredSize(new Dimension(600,400));
@@ -76,15 +88,52 @@ public class MusicPanel extends JPanel implements ActionListener {
 		this.player=new SongPlayer(model);
 		SongValidator validator=new SongValidator(model,model.getTracks().get(item.getTrack()),item.getHeuristics());
 		this.player.attach(validator,100);
-		AudioPlayer audio=new AudioPlayer(model,model.getTracks().get(item.getTrack()));
-		this.player.attach(audio,(int)audio.getLatency());
+		this.audio=new AudioPlayer(model,model.getTracks().get(item.getTrack()));
+		this.player.attach(this.audio,(int)this.audio.getLatency());
+		this.player.attach(this);
 		validator.attach(this.grader);
+		validator.attach(this.engine);
+		EventDispatcher.getInstance().attach(validator);
 		
 		this.actionButton.addActionListener(this);
 	}
 	
+	private void setScoreText()
+	{
+		LessonGrade grade=this.item.getLessonData().getGrade(this.item.getCode());
+		if (!grade.isComplete())
+		{
+			this.scoreLabel.setText("Not yet performed");
+		}
+		else
+		{
+			double roundedScore=Math.round(grade.getGrade()*10)/10;
+			String letter=this.item.getScale().getGrade(roundedScore).label;
+			this.scoreLabel.setText("Highest grade: "+letter+" ("+roundedScore+"%)");
+		}
+		this.updateUI();
+		this.module.updateUI();
+	}
+	
+	private void playIntro(){
+		Note n = new Note(60, 1, 90, this.audio.getMetronomeTrack());
+		NoteEvent bne = new NoteEvent(n, NoteAction.BEGIN,0 );
+		NoteEvent ene = new NoteEvent(n, NoteAction.BEGIN,0 );
+		for(int i=0;i<this.player.getSongState().getTimeSignature().getBeatsPerMeasure();i++){
+			try {
+				this.audio.handleNoteEvent(bne);
+				Thread.sleep(10);
+				this.audio.handleNoteEvent(ene);
+				System.out.println();
+				Thread.sleep((int)1000/(this.player.getSongState().getBPM()/60));
+			} catch (InterruptedException e) {}
+		}
+	}
+	
 	public void actionPerformed(ActionEvent e) {
 		if (this.actionButton.getIcon()==this.playIcon) {
+			this.playIntro();
+			this.grader.reset();
 			this.engine.play();
 			this.player.play();
 			this.actionButton.setIcon(this.stopIcon);
@@ -94,4 +143,19 @@ public class MusicPanel extends JPanel implements ActionListener {
 			this.actionButton.setIcon(this.playIcon);
 		}
 	}
+	
+	public void songEnd()
+	{
+		this.player.stop();
+		this.engine.stop();
+		double score=this.grader.getScore();
+		this.item.getLessonData().getGrade(this.item.getCode()).setGrade(score);
+		this.setScoreText();
+		System.out.println("Set score: "+score);
+	}
+	
+	public void pause() {}
+	public void resume() {}
+	public void stop() {}
+	public void suspend() {}
 }

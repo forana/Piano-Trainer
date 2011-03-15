@@ -160,7 +160,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 				else if (e.getButton()==MouseEvent.BUTTON1)
 				{
 					LessonTreeNode node=(LessonTreeNode)item;
-					this.rightScroll.setViewportView(node.getPanel());
+					this.rightScroll.setViewportView(node.getPanel(this.tree));
 				}
 			}
 		}

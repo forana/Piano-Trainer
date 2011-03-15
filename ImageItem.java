@@ -1,5 +1,6 @@
 package crescendo.lesson;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 public class ImageItem implements PageItem
@@ -15,7 +16,7 @@ public class ImageItem implements PageItem
 		this.footer=footer;
 	}
 	
-	public JPanel getPanel()
+	public JPanel getPanel(JComponent module) // this call should not need the module parameter
 	{
 		// TODO Barry
 		return new JPanel();

@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.Enumeration;
 
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.TreeNode;
@@ -39,7 +40,7 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 		return this.data;
 	}
 
-	public JPanel getPanel(){
+	public JPanel getPanel(JComponent module){
 		if (this.book==null) {
 			try {
 				this.book=LessonFactory.createLessonBook(this.data);

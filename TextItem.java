@@ -1,5 +1,6 @@
 package crescendo.lesson;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 public class TextItem implements PageItem
@@ -11,7 +12,7 @@ public class TextItem implements PageItem
 		this.text=text;
 	}
 	
-	public JPanel getPanel()
+	public JPanel getPanel(JComponent module) // this call should not need the module parameter
 	{
 		// TODO Barry
 		return new JPanel();

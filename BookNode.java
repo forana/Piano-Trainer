@@ -164,12 +164,8 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 					total+=grade.getGrade();
 				}
 			}
-			if (this.data.getScale().getGrade(100*total/complete)==null)
-			{
-				System.out.println("dammit");
-			}
-			title+=this.data.getScale().getGrade(100*total/complete).label;
-			title+=" ("+Math.round(1000*total/complete)/10.0+"%) ("+(1000*complete/count)/10+"% complete)";
+			title+=this.data.getScale().getGrade(total/complete).label;
+			title+=" ("+Math.round(10*total/complete)/10.0+"%) ("+(1000*complete/count)/10+"% complete)";
 		}
 		
 		return title;

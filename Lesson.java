@@ -60,7 +60,7 @@ public class Lesson implements BookItem,LessonTreeNode
 		if (count>0)
 		{
 			t+=" - ";
-			t+=Math.round(1000*total/complete)/10.0+"% ("+(1000*complete/count)/10+"% complete)";
+			t+=Math.round(10*total/complete)/10.0+"% ("+(1000*complete/count)/10+"% complete)";
 		}
 		return t;
 	}

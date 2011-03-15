@@ -149,7 +149,6 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		this.player.stop();
 		this.engine.stop();
 		double score=this.grader.getScore();
-		score=60;
 		this.item.getLessonData().getGrade(this.item.getCode()).setGrade(score);
 		this.setScoreText();
 		System.out.println("Set score: "+score);

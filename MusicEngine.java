@@ -18,11 +18,13 @@ import org.w3c.dom.css.Rect;
 import crescendo.base.NoteAction;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
+import crescendo.base.Updatable;
+import crescendo.base.UpdateTimer;
 import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 
-public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
+public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Updatable {
 
 	private boolean isLooping;
 	private SongModel songModel;
@@ -36,7 +38,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	private int activeTrack;
 
 	private Thread timerThread;
-	private MusicEngineTimer timer;
+	private UpdateTimer timer;
 	private boolean doContinue=false;
 	private boolean isPaused;
 
@@ -104,7 +106,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	public void setUp(SongModel model,int activeTrack){
 		this.setPreferredSize(new Dimension(1024, 8000));
 		this.setBackground(Color.WHITE);
-		timerThread = new Thread(new MusicEngineTimer());
+		timer = new UpdateTimer(this);
+		timerThread = new Thread(timer);
 		isLooping = false;
 		songModel = model;
 		noteMap = new HashMap<Note,ArrayList<DrawableNote>>();
@@ -117,8 +120,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 		timeStarted=0;
 
-		timer = new MusicEngineTimer();
-		timerThread = new Thread(timer);
 		doContinue = false;
 
 		//if the title is to be displayed, make room for it by increasing the yMargin
@@ -131,11 +132,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 		//Get our drawables ready
 		LinkedList<Note> notes =(LinkedList<Note>) songModel.getTracks().get(activeTrack).getNotes();
-
-
-
-
-
 
 		beatsPerMeasure = songModel.getTimeSignature().getBeatsPerMeasure();
 		beatNote = songModel.getTimeSignature().getBeatNote();
@@ -360,7 +356,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	}
 
 
-
+	public void update(){
+		repaint();
+	}
 
 	@Override
 	public void paint(Graphics g){
@@ -391,10 +389,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		//draw staffs
 		for(int j=0;j<20;j++)
 		{	
-
-
-
-
 			//draw top staff lines
 			for(int i=0;i<5;i++)
 				g.drawLine((int)(xMargin)-80,(int)(yMargin+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+(16*i)+(yMeasureDistance*j)));
@@ -587,14 +581,17 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 	public void pause(){
 		isPaused = true;
+		timer.pause();
 	}
 
 	public void stop(){
 		doContinue=false;
+		timer.stop();
 	}
 
 	public void resume(){
 		isPaused = false;
+		timer.resume();
 	}
 
 	@Override
@@ -627,41 +624,5 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		drawQueue.add(note);
 	}
 
-	private class MusicEngineTimer implements Runnable{
-
-		private final int FRAMES_PER_SECOND = 300;
-
-		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
-		/** number of milliseconds from the epoch of when the last frame started */
-		private long lastFrame = 0;
-
-		/**
-		 * Method which get called by the thread, this is running while the song is playing or paused
-		 */
-		@Override
-		public void run() {
-			while(doContinue) {
-				long now = System.currentTimeMillis();
-				MusicEngine.this.grabFocus();
-				if(!isPaused) {
-					if(now > (lastFrame + MS_DELAY)) {
-						repaint();
-						lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-						//ensure that we get the correct frames, no matter how long update takes
-					} else {
-						try {
-							Thread.sleep(1); // Dont eat up all the processor
-						} 
-						catch (InterruptedException e) {}
-					}
-				}else{
-					try {
-						Thread.sleep(1); // Dont eat up all the processor
-					} 
-					catch (InterruptedException e) {}
-				}
-			}
-		}
-	}
 
 }

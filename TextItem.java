@@ -14,7 +14,8 @@ public class TextItem implements PageItem
 	
 	public JPanel getPanel(JComponent module) // this call should not need the module parameter
 	{
-		// TODO Barry
-		return new JPanel();
+		JPanel panel;
+		panel = new TextPanel(text);
+		return panel;
 	}
 }

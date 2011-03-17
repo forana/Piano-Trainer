@@ -1,7 +1,6 @@
 package crescendo.lesson;
 
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class ImageItem implements PageItem
@@ -19,14 +18,21 @@ public class ImageItem implements PageItem
 	
 	public JPanel getPanel(JComponent module) // this call should not need the module parameter
 	{
-		JPanel panel = new JPanel();
-		panel.add(new JLabel("Error Loading Image"));
-		try
-		{
-		panel = new ImagePanel(source);
-		}catch(Exception e)
-		{	
-		}
-		return panel;
+		return new ImagePanel(this);
+	}
+	
+	public String getSource()
+	{
+		return source;
+	}
+	
+	public String getAlt()
+	{
+		return alt;
+	}
+	
+	public String getFooter()
+	{
+		return footer;
 	}
 }

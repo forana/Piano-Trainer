@@ -310,7 +310,7 @@ public class LessonFactory
 			}
 			else if (child.getNodeName().toLowerCase().equals("image"))
 			{
-				items.add(parseImageItem(child));
+				items.add(parseImageItem(child,tempDir));
 			}
 			else if (child.getNodeName().toLowerCase().equals("link"))
 			{
@@ -338,7 +338,7 @@ public class LessonFactory
 			}
 			else if (child.getNodeName().toLowerCase().equals("image"))
 			{
-				items.add(parseImageItem(child));
+				items.add(parseImageItem(child,tempDir));
 			}
 			else if (child.getNodeName().toLowerCase().equals("link"))
 			{
@@ -369,7 +369,7 @@ public class LessonFactory
 		return new LinkItem(text,url);
 	}
 	
-	private static ImageItem parseImageItem(Node n)
+	private static ImageItem parseImageItem(Node n,String tempDir)
 	{
 		String figure=n.getTextContent();
 		String alt="Image";
@@ -382,7 +382,7 @@ public class LessonFactory
 		Node sourcenode=n.getAttributes().getNamedItem("source");
 		if (sourcenode!=null)
 		{
-			source=sourcenode.getTextContent();
+			source=tempDir+sourcenode.getTextContent();
 		}
 		return new ImageItem(source,alt,figure);
 	}

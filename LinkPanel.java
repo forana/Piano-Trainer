@@ -4,65 +4,48 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.net.URI;
 
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import crescendo.base.ErrorHandler;
 
-public class LinkPanel extends JPanel {
+public class LinkPanel extends JPanel implements MouseListener {
+	private static final long serialVersionUID = 1L;
 	
+	private String url;
 	
-	
-	
-	
-
-	public LinkPanel(final String url, String text) {
-		
-		class LabelPanel extends JPanel {
-			private static final long serialVersionUID=1L;
-			
-			public LabelPanel(String text,boolean bold,int size) {
-				this(text,bold,size,false);
-			}
-			public LabelPanel(String text,boolean bold,int size,boolean link) {
-				JLabel label=new JLabel(text);
-				Font font=new Font(Font.SERIF,bold?Font.BOLD:Font.PLAIN,size);
-				if (link) {
-					label.setForeground(Color.BLUE);
-					label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-				}
-				label.setFont(font);
-				this.add(label);
-				this.setBackground(Color.WHITE);
-			}
-		}
-		
-		
-		JPanel website=new LabelPanel(text,false,16,true);
-		website.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent e) {
-					if (e.getButton()==MouseEvent.BUTTON1) {
-						Desktop desktop = Desktop.getDesktop();
-						URI uri;
-						try {
-							uri = new URI(url);
-							desktop.browse( uri );
-						} catch (Exception ex) {
-							ErrorHandler.showNotification("Error","Error opening link");
-						}
-					}
-				}
-			});
-		this.add(website);
-
+	public LinkPanel(String url, String text) {
+		this.url=url;
+		this.setBackground(Color.WHITE);
+		JLabel label=new JLabel(text);
+		Font font=new Font(Font.SERIF,Font.PLAIN,12);
+		label.setForeground(Color.BLUE);
+		label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		label.setFont(font);
+		this.add(label);
+		label.addMouseListener(this);
+		this.add(label);
 	}
 	
+	public void mouseClicked(MouseEvent e) {
+		Desktop desktop = Desktop.getDesktop();
+		URI uri;
+		try {
+			uri = new URI(this.url);
+			desktop.browse( uri );
+		} catch (Exception ex) {
+			System.out.println(url);
+			ex.printStackTrace();
+			ErrorHandler.showNotification("Error","Error opening link");
+		}
+	}
 	
-
-
+	public void mouseReleased(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {}
 }

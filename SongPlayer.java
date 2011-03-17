@@ -22,7 +22,7 @@ import crescendo.base.song.modifier.Chord;
  * @author forana
  * @author gartmannn
  */
-public class SongPlayer implements FlowController
+public class SongPlayer implements FlowController,Updatable
 {
 
 
@@ -38,7 +38,7 @@ public class SongPlayer implements FlowController
 
 
 	/** Runnable which does timing */
-	private PlayerTimer timer;
+	private UpdateTimer timer;
 	/** Thread which holds our timer runnable */
 	private Thread timerContainer;
 
@@ -67,7 +67,7 @@ public class SongPlayer implements FlowController
 		this.songModel=songModel;
 		listeners = Collections.synchronizedMap(new HashMap<NoteEventListener,Integer>());
 		controllers = Collections.synchronizedSet(new HashSet<FlowController>());
-		timer = new PlayerTimer();
+		timer = new UpdateTimer(this);
 		timerContainer = new Thread(timer);
 		List<Track> tracks = songModel.getTracks();
 		this.songState=new SongState(songModel.getBPM(),songModel.getTimeSignature(),songModel.getKeySignature());
@@ -98,6 +98,7 @@ public class SongPlayer implements FlowController
 
 	public void pause() {
 		isPaused = true;
+		timer.pause();
 		for(FlowController controller : controllers) {
 			controller.pause();
 		}
@@ -112,6 +113,7 @@ public class SongPlayer implements FlowController
 		for(FlowController controller : controllers) {
 			controller.resume();
 		}
+		timer.resume();
 	}
 
 	public void stop() {
@@ -119,12 +121,13 @@ public class SongPlayer implements FlowController
 			controller.stop();
 		}
 		doContinue=false;
+		timer.stop();
 		try {
 			// 3/15/11 added interrupt; apparently just joining will just block
 			timerContainer.interrupt();
 			timerContainer.join();
 		} catch (InterruptedException e) {}
-		timerContainer = new Thread(new PlayerTimer());
+		timerContainer = new Thread(new UpdateTimer(this));
 		
 		//We have to do this here just in case the user presses play again
 		initializeIterators();
@@ -142,12 +145,14 @@ public class SongPlayer implements FlowController
 		for(FlowController controller : controllers) {
 			controller.songEnd();
 		}
+		timer.stop();
 		doContinue=false;
 	}
 
 	@Override
 	public void suspend() {
 		isPaused = true;
+		timer.pause();
 		for(FlowController controller : controllers) {
 			controller.suspend();
 		}		
@@ -242,13 +247,12 @@ public class SongPlayer implements FlowController
 		}
 	}
 
-
 	/**
 	 * Sends out notes to the listeners. Only sends them out if it is
 	 * within the requested time frame. This method also removes old notes 
 	 * from the list of active notes.
 	 */
-	private void update() {
+	public void update() {
 		long now = System.currentTimeMillis();
 
 		if(now>=nextPoll){
@@ -323,44 +327,6 @@ public class SongPlayer implements FlowController
 			for (FlowController controller : controllers)
 			{
 				controller.songEnd();
-			}
-		}
-	}
-
-	/**
-	 * Runnable class which calls update FRAMES_PER_SECOND times per second
-	 * or adds to the pause offset if the song is paused.
-	 * @author nickgartmann
-	 */
-	private class PlayerTimer implements Runnable {
-
-		private final int FRAMES_PER_SECOND = 100;
-
-		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
-		/** number of milliseconds from the epoch of when the last frame started */
-		private long lastFrame = 0;
-
-		/**
-		 * Method which get called by the thread, this is running while the song is playing or paused
-		 */
-		@Override
-		public void run() {
-			while(doContinue) {
-				long now = System.currentTimeMillis();
-				if(!isPaused) {
-					if(now > (lastFrame + MS_DELAY)) {
-						update();
-						lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-						//ensure that we get the correct frames, no matter how long update takes
-					} else {
-						try {
-							Thread.sleep(1); // Dont eat up all the processor
-						} 
-						catch (InterruptedException e) {}
-					}
-				}else{
-					pauseOffset/*+*/=(now-lastFrame);
-				}
 			}
 		}
 	}

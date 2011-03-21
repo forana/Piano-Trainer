@@ -44,12 +44,12 @@ public class ProfileModule extends Module implements ActionListener{
 	//sheet music pref elements
 	JButton deleteSheetMusicScoresButton;
 	
-	ProfileModule(int width, int height)
+	ProfileModule()
 	{
 		super();
 		
 		//set the size of this module
-		this.setSize(width, height);
+		//this.setSize(width, height);
 		this.setLayout(null);
 		
 		//set up the different tabs for the profile/prefs manager
@@ -79,8 +79,8 @@ public class ProfileModule extends Module implements ActionListener{
 		rows.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(renameProfileButton));
 		rows.addGroup(layout.createParallelGroup().addComponent(deleteProfileButton));
 		Group cols=layout.createSequentialGroup();
-		cols.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(deleteProfileButton));
-		cols.addGroup(layout.createParallelGroup().addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE));
+		cols.addGroup(layout.createParallelGroup().addComponent(renameLabel));
+		cols.addGroup(layout.createParallelGroup().addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(deleteProfileButton));
 		cols.addGroup(layout.createParallelGroup().addComponent(renameProfileButton));
 		layout.setHorizontalGroup(cols);
 		layout.setVerticalGroup(rows);

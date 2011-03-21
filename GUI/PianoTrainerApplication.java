@@ -82,9 +82,6 @@ public class PianoTrainerApplication {
 	private JButton lessonButton;
 	private JButton sheetMusicButton;
 	
-	/** the profileModule to display when asked to **/
-	private ProfileModule profileModule;
-	
 	private SheetMusic sheetMusicModule;
 	
 	/**
@@ -166,9 +163,6 @@ public class PianoTrainerApplication {
 		
 		//initialize the profile manager
 		profileManager = ProfileManager.getInstance();
-		
-		//initialize the profileModule for use
-		profileModule = new ProfileModule(1024, 768); // TODO why do we need the dimensions here?
 		
 		menuBar.setLayout(new GridBagLayout());
 		GridBagConstraints c=new GridBagConstraints();
@@ -333,7 +327,7 @@ public class PianoTrainerApplication {
 			//if they chose to go to profile preferences
 			if(e.getSource().equals(preferencesButton))
 			{
-				switchModules(profileModule);
+				switchModules(new ProfileModule());
 			}
 			
 			

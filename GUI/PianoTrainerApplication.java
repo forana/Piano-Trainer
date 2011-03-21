@@ -5,14 +5,15 @@ import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -71,9 +72,7 @@ public class PianoTrainerApplication {
 	private JPanel moduleFrame;
 	
 	/** containers for spacing the menu elements correctly **/
-	private Container buttonContainer;
 	private Container moduleButtonContainer;
-	private Container spacingContainer;
 	
 	/** the profile preferences/management button **/
 	private JButton preferencesButton;
@@ -169,35 +168,31 @@ public class PianoTrainerApplication {
 		profileManager = ProfileManager.getInstance();
 		
 		//initialize the profileModule for use
-		profileModule = new ProfileModule(1024, 768);
-
+		profileModule = new ProfileModule(1024, 768); // TODO why do we need the dimensions here?
 		
-		//create the menu bar on the top of the screen
-		menuBar.setLayout(new BorderLayout());
-		
+		menuBar.setLayout(new GridBagLayout());
+		GridBagConstraints c=new GridBagConstraints();
+		//c.fill=GridBagConstraints.VERTICAL;
+		c.anchor=GridBagConstraints.WEST;
+		c.weightx=0;
 		
 		//set up the profile selection menu
 		profileMenu = new JMenu(profileManager.getActiveProfile().getName());
 		updateProfileMenu();
 		
-		
 		//add the profile selection menu to the menu bar
-		menuBar.add(profileMenu, BorderLayout.BEFORE_LINE_BEGINS);
-		
-		//set up the spacing of the topbar
-		buttonContainer = new Container();
-		buttonContainer.setLayout(new BorderLayout());
+		menuBar.add(profileMenu,c);
 		
 		//set up the profile/preferences button
 		preferencesButton = new JButton("Options");
 		preferencesButton.addActionListener(al);
 		preferencesButton.setSize(50, -1);
 		
-		buttonContainer.add(preferencesButton, BorderLayout.WEST);
+		menuBar.add(preferencesButton,c);
 		
 		//set up the container of the module switching buttons
 		moduleButtonContainer = new Container();
-		moduleButtonContainer.setLayout(new BorderLayout());
+		moduleButtonContainer.setLayout(new FlowLayout(FlowLayout.CENTER));
 		
 		//create the module switching buttons
 		gameButton = new JButton("Game");
@@ -224,22 +219,14 @@ public class PianoTrainerApplication {
 		moduleButtonContainer.add(lessonButton,BorderLayout.CENTER);
 		moduleButtonContainer.add(sheetMusicButton,BorderLayout.EAST);
 		
-		// add the module button container to the spacing container
-		buttonContainer.add(moduleButtonContainer,BorderLayout.EAST);
+		c.weightx=1;
+		c.anchor=GridBagConstraints.CENTER;
+		menuBar.add(moduleButtonContainer,c);
+		
 		
 		//some more spacing work
 		Container spacing = new Container();
 		spacing.setPreferredSize(new Dimension(300,0));
-		
-		
-		spacingContainer = new Container();
-		spacingContainer.setLayout(new BoxLayout(spacingContainer,BoxLayout.X_AXIS));
-		
-		spacingContainer.add(buttonContainer);
-		spacingContainer.add(spacing);
-		
-		//add the spacing+modulebuttons+spacing container to the menubar
-		menuBar.add(spacingContainer, BorderLayout.CENTER);
 		
 		
 		//set up the help/about menu button
@@ -253,17 +240,14 @@ public class PianoTrainerApplication {
 		helpItem.addActionListener(al);
 		
 		//add the help/about menu button to the menu bar
-		menuBar.add(helpMenu,BorderLayout.EAST);
-		helpMenu.setAlignmentX((float) 500);
+		c.weightx=0;
+		c.anchor=GridBagConstraints.EAST;
+		menuBar.add(helpMenu,c);
 		
 		//set the menu bar of the main frame
 		mainWindow.setJMenuBar(menuBar);
 		
-		
-		
-		
-		
-		//for now create a button on a "default" module for startup
+		// "default" module for startup
 		moduleFrame = new JPanel();
 		moduleFrame.setBackground(Color.WHITE);
 		moduleFrame.add(new JLabel("Select a mode above to get started."));
@@ -378,54 +362,34 @@ public class PianoTrainerApplication {
 			}
 			
 			if(e.getSource().equals(helpAbout)){
-				JOptionPane.showMessageDialog(null, "Infinite Crescendo \n 2010 \n Insert Names");
+				JOptionPane.showMessageDialog(mainWindow, "Piano Trainer\nmade by Team Infinite Crescendo\n2010-2011\n\nAlex Foran\nNick Gartmann\nCorey Grosz\nPatrick Larkin");
 			}
 			//Launching HTML pages in the default browser.
 			//TODO change the system.out.JOptionPanes.
 			if(e.getSource().equals(helpItem)){
 				if( !Desktop.isDesktopSupported() ) {
-
-		            System.err.println( "Desktop is not supported (fatal)" );
-		            System.exit( 1 );
-		        }
-
-		        
-
-		       Desktop desktop = Desktop.getDesktop();
-
-		        if( !desktop.isSupported(Desktop.Action.BROWSE ) ) {
-
-		            System.err.println( "Desktop doesn't support the browse action (fatal)" );
-		            System.exit( 1 );
-		        }
-
-		        
+					System.err.println( "Desktop is not supported (fatal)" );
+					System.exit( 1 );
+				}
+				
+				Desktop desktop = Desktop.getDesktop();
+				
+				if( !desktop.isSupported(Desktop.Action.BROWSE ) ) {
+					System.err.println( "Desktop doesn't support the browse action (fatal)" );
+					System.exit( 1 );
+				}
+				
 				URI uri;
 				try {
-					uri = new URI( "http://johnbokma.com/mexit/2008/08/19/java-open-url-default-browser.html" );
-				 
+					uri = new URI("http://examepl.com/help"); // TODO change this
 					desktop.browse( uri );
-                
 				} catch (Exception ex) {
 					ErrorHandler.showNotification("Error","Error opening link");
 				}
-		    }
-
-				
-				
-				
-				
-				
-
+			}
 			
-			
-			
-			//
 			//reorganize the profile menu
-			//
-			
 			updateProfileMenu();
-			
 		}
 	};
 	

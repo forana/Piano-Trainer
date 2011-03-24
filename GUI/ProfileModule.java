@@ -3,10 +3,14 @@ package crescendo.base.GUI;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.sound.midi.MidiDevice;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -17,6 +21,7 @@ import javax.swing.GroupLayout.Group;
 import crescendo.base.ErrorHandler;
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
+import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
 
 /**
@@ -37,12 +42,15 @@ public class ProfileModule extends Module implements ActionListener{
 	private static final long serialVersionUID = -505754189840407725L;
 	
 	//general app pref elements
-	JTextField rename;
-	JButton renameProfileButton;
-	JButton deleteProfileButton;
+	private JTextField rename;
+	private JButton renameProfileButton;
+	private JButton deleteProfileButton;
+	private JComboBox deviceList;
+	private JButton deviceReload;
+	private JButton deviceDetect;
 	
 	//sheet music pref elements
-	JButton deleteSheetMusicScoresButton;
+	private JButton deleteSheetMusicScoresButton;
 	
 	ProfileModule()
 	{
@@ -75,13 +83,24 @@ public class ProfileModule extends Module implements ActionListener{
 		deleteProfileButton = new JButton("Delete Profile");
 		deleteProfileButton.addActionListener(this);
 		
+		JLabel deviceLabel=new JLabel("MIDI device:");
+		deviceList=new JComboBox();
+		this.populateDeviceList();
+		deviceList.addActionListener(this);
+		deviceReload=new JButton("Reload devices");
+		deviceReload.addActionListener(this);
+		deviceDetect=new JButton("Autodetect midi device");
+		deviceDetect.addActionListener(this);
+		
 		Group rows=layout.createSequentialGroup();
 		rows.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(renameProfileButton));
 		rows.addGroup(layout.createParallelGroup().addComponent(deleteProfileButton));
+		rows.addGroup(layout.createParallelGroup().addComponent(deviceLabel).addComponent(deviceList,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(deviceReload).addComponent(deviceDetect));
 		Group cols=layout.createSequentialGroup();
-		cols.addGroup(layout.createParallelGroup().addComponent(renameLabel));
-		cols.addGroup(layout.createParallelGroup().addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(deleteProfileButton));
-		cols.addGroup(layout.createParallelGroup().addComponent(renameProfileButton));
+		cols.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(deviceLabel));
+		cols.addGroup(layout.createParallelGroup().addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(deleteProfileButton).addComponent(deviceList,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE));
+		cols.addGroup(layout.createParallelGroup().addComponent(renameProfileButton).addComponent(deviceReload));
+		cols.addGroup(layout.createParallelGroup().addComponent(deviceDetect));
 		layout.setHorizontalGroup(cols);
 		layout.setVerticalGroup(rows);
 		
@@ -118,6 +137,23 @@ public class ProfileModule extends Module implements ActionListener{
 		add(tabbedPane);
 	}
 	
+	private void populateDeviceList()
+	{
+		MidiDeviceItem[] items=new MidiDeviceItem[EventDispatcher.getInstance().getTransmitterDevices().size()];
+		int selectedIndex=0;
+		for (int i=0; i<items.length; i++)
+		{
+			items[i]=new MidiDeviceItem(EventDispatcher.getInstance().getTransmitterDevices().get(i));
+			if (items[i].toString().equals(ProfileManager.getInstance().getActiveProfile().getMidiDeviceName()))
+			{
+				selectedIndex=i;
+			}
+		}
+		this.deviceList.setModel(new DefaultComboBoxModel(items));
+		this.deviceList.setSelectedIndex(selectedIndex);
+		this.deviceList.updateUI();
+	}
+	
 	/**
 	 * Profile/prefs module action listener
 	 */
@@ -134,10 +170,8 @@ public class ProfileModule extends Module implements ActionListener{
 		
 			PianoTrainerApplication.getInstance().updateProfileMenu();
 		}
-		
-		
 		//if they chose to delete their profile
-		if(e.getSource().equals(deleteProfileButton))
+		else if(e.getSource().equals(deleteProfileButton))
 		{
 			if(ProfileManager.getInstance().getProfiles().size()<=0)
 			{
@@ -156,10 +190,39 @@ public class ProfileModule extends Module implements ActionListener{
 				}
 			}
 		}
-	
+		else if (e.getSource()==deviceList)
+		{
+			MidiDevice device=((MidiDeviceItem)(deviceList.getItemAt(deviceList.getSelectedIndex()))).getDevice();
+			EventDispatcher.getInstance().setTransmitterDevice(device);
+			ProfileManager.getInstance().getActiveProfile().updateMidiDevice();
+		}
+		else if (e.getSource()==deviceReload)
+		{
+			EventDispatcher.getInstance().loadTransmitterDevices();
+			this.populateDeviceList();
+		}
+		else if (e.getSource()==deviceDetect)
+		{
+			MidiDevice od=EventDispatcher.getInstance().getCurrentTransmitterDevice();
+			ErrorHandler.showNotification("Auto Detect","After pressing OK, press any key(s) on your keyboard.\nYou will have 5 seconds.");
+			EventDispatcher.getInstance().loadTransmitterDevices();
+			EventDispatcher.getInstance().detectMidiDevice(5);
+			MidiDevice nd=EventDispatcher.getInstance().getCurrentTransmitterDevice();
+			if (nd==null)
+			{
+				EventDispatcher.getInstance().setTransmitterDevice(od);
+				ErrorHandler.showNotification("Auto Detect","No key presses detected.");
+			}
+			else
+			{
+				ErrorHandler.showNotification("Auto Detect","MIDI device set to \""+nd.getDeviceInfo().getName()+"\".");
+				ProfileManager.getInstance().getActiveProfile().updateMidiDevice();
+				this.populateDeviceList();
+			}
+		}
 	
 		//if they chose to delete the sheet music scores
-		if(e.getSource().equals(deleteSheetMusicScoresButton))
+		else if(e.getSource()==deleteSheetMusicScoresButton)
 		{
 			if(ErrorHandler.showYesNo("Delete Scores","Really delete scores for sheet music?\nThis cannot be undone.")==ErrorHandler.Response.YES)
 			{	
@@ -180,4 +243,23 @@ public class ProfileModule extends Module implements ActionListener{
 		
 	}
 	
+	private class MidiDeviceItem
+	{
+		private MidiDevice device;
+		
+		public MidiDeviceItem(MidiDevice device)
+		{
+			this.device=device;
+		}
+		
+		public MidiDevice getDevice()
+		{
+			return this.device;
+		}
+		
+		public String toString()
+		{
+			return this.device.getDeviceInfo().getName();
+		}
+	}
 }

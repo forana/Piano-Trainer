@@ -16,6 +16,7 @@ import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
 
 import crescendo.base.ErrorHandler;
+import crescendo.base.profile.ProfileManager;
 
 /**
  * EventDispatcher
@@ -70,7 +71,25 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		this.loadTransmitterDevices();
 		// default to the first device's transmitter
 		this.midiDevice=null;
-		this.setTransmitterDevice(this.transmitterDevices.get(0));
+		
+		// attempt to load device from preferences
+		String deviceName=ProfileManager.getInstance().getActiveProfile().getMidiDeviceName();
+		for (MidiDevice device : this.transmitterDevices)
+		{
+			if (device.getDeviceInfo().getName().equals(deviceName))
+			{
+				this.setTransmitterDevice(device);
+				break;
+			}
+		}
+		if (this.midiDevice==null)
+		{
+			this.setTransmitterDevice(this.transmitterDevices.get(0));
+			if (deviceName!=null && !deviceName.equals(""));
+			{
+				ErrorHandler.showNotification("\""+deviceName+"\" not found","The MIDI device \""+midiDevice+"\" was not found.\nUsing \""+this.midiDevice.getDeviceInfo().getName()+"\" instead.");
+			}
+		}
 		
 		currentModifer = new Modifier(false,false,false);
 	}
@@ -148,6 +167,11 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	public List<MidiDevice> getTransmitterDevices()
 	{
 		return this.transmitterDevices;
+	}
+	
+	public MidiDevice getCurrentTransmitterDevice()
+	{
+		return this.midiDevice;
 	}
 	
 	/**

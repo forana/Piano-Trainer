@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.lesson.LessonData;
 
 /**
@@ -16,12 +17,9 @@ import crescendo.lesson.LessonData;
  * @author groszc
  *
  */
-public class Profile implements Serializable,Comparable{
+public class Profile implements Serializable,Comparable<Profile>{
 
 	private static final long serialVersionUID = -809118196452135843L;
-	
-	
-	//TODO: preferred midi device (string)
 	
 	private boolean gradeDynamic;
 	private boolean gradePitch;
@@ -34,6 +32,7 @@ public class Profile implements Serializable,Comparable{
 	private long secondsInLesson;
 	private long secondsInSheetMusic;
 	
+	private String midiDeviceName;
 	
 	ArrayList<SongPreference> songPreferences;
 	SongPreference lastPlayedSong;
@@ -64,12 +63,24 @@ public class Profile implements Serializable,Comparable{
 		
 		lessonDataList=new LinkedList<LessonData>();
 		
+		this.midiDeviceName=null;
+		
 		this.lastDirectoryFile=null;
 	}
 	
 	public List<LessonData> getLessonData()
 	{
 		return this.lessonDataList;
+	}
+	
+	public String getMidiDeviceName()
+	{
+		return this.midiDeviceName;
+	}
+	
+	public void updateMidiDevice()
+	{
+		this.midiDeviceName=EventDispatcher.getInstance().getCurrentTransmitterDevice().getDeviceInfo().getName();
 	}
 	
 	/**
@@ -256,13 +267,13 @@ public class Profile implements Serializable,Comparable{
 	}
 
 	@Override
-	public int compareTo(Object arg0) {
+	public int compareTo(Profile arg0) {
 		int toRet = 0;
 		
-		if(!name.equals(((Profile)arg0).name))toRet = 1;
-		if(secondsInGame != ((Profile)arg0).secondsInGame)toRet = 1;
-		if(secondsInLesson != ((Profile)arg0).secondsInLesson)toRet = 1;
-		if(secondsInSheetMusic != ((Profile)arg0).secondsInSheetMusic)toRet = 1;
+		if(!name.equals(arg0.name))toRet = 1;
+		if(secondsInGame != arg0.secondsInGame)toRet = 1;
+		if(secondsInLesson != arg0.secondsInLesson)toRet = 1;
+		if(secondsInSheetMusic != arg0.secondsInSheetMusic)toRet = 1;
 		
 		
 		return toRet;

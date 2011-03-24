@@ -29,6 +29,7 @@ import crescendo.base.ErrorHandler;
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
 import crescendo.base.module.Module;
+import crescendo.game.GameModule;
 import crescendo.sheetmusic.SheetMusic;
 import crescendo.lesson.LessonModule;
 
@@ -205,6 +206,12 @@ public class PianoTrainerApplication {
 		lessonButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				switchModules(new LessonModule());
+			}
+		});
+		
+		gameButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				switchModules(new GameModule());
 			}
 		});
 		

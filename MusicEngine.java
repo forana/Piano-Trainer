@@ -18,6 +18,8 @@ import org.w3c.dom.css.Rect;
 import crescendo.base.NoteAction;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
+import crescendo.base.Updatable;
+import crescendo.base.UpdateTimer;
 import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.EventDispatcher.Modifier;
 import crescendo.base.song.Note;
@@ -25,7 +27,7 @@ import crescendo.base.song.SongModel;
 import crescendo.base.song.modifier.Chord;
 import crescendo.base.song.modifier.NoteModifier;
 
-public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
+public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Updatable {
 
 	private boolean isLooping;
 	private SongModel songModel;
@@ -34,12 +36,12 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	private Note sectionStartNote;
 	private Note sectionEndNote;
 	private ArrayList<Drawable> drawables;
-	
+
 
 	private int activeTrack;
 
 	private Thread timerThread;
-	private MusicEngineTimer timer;
+	private UpdateTimer timer;
 	private boolean doContinue=false;
 	private boolean isPaused;
 
@@ -55,46 +57,63 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	double yOffset; //used if bass clef only
 	double noteOffset = 60/measuresPerLine; //so the first note isnt on the measure line
 	private boolean showTitle=true;
-	
+
 	private LinkedList<Drawable> drawQueue;
-	
+
 	boolean bassClefNeeded; 
 	boolean trebleClefNeeded; 
 
 	double beatsPerMeasure;
 	double beatNote;
 
-	
+
 	private static Class[] classes = new Class[64];
 	private static Class[] restClasses = new Class[64];
 	private static Class[] args  = new Class[]{Note.class,Integer.TYPE,Integer.TYPE};
 
 	public MusicEngine(SongModel model,int activeTrack,boolean showTitle){
 		this.showTitle = showTitle;
-		setUp(model,activeTrack);
-	}
-	
-	public MusicEngine(SongModel model,int activeTrack){
 		classes[1]=WholeNote.class;
 		classes[2]=HalfNote.class;
 		classes[4]=QuarterNote.class;
 		classes[8]=EighthNote.class;
 		classes[16]=SixteenthNote.class;
 		classes[32]=SixteenthNote.class;
-		
+
 		restClasses[1]=WholeRest.class;
-		//restClasses[2]=HalfRest.class;
-		//restClasses[4]=QuarterRest.class;
-		//restClasses[8]=EighthRest.class;
+		restClasses[2]=HalfRest.class;
+		restClasses[4]=QuarterRest.class;
+		restClasses[8]=EighthRest.class;
 		setUp(model,activeTrack);
 	}
-	
-	
-	
+
+	public MusicEngine(SongModel model,int activeTrack){
+		this(model,activeTrack,true);
+	}
+
+	public MusicEngine(SongModel model,int activeTrack, double currentPosition){
+		this(model,activeTrack);
+		this.currentPosition = currentPosition;
+		//use logic for finding the number of beats in a song
+	}
+
+	public MusicEngine(SongModel model,int activeTrack, Note currentNote){
+		this(model,activeTrack);
+		this.sectionStartNote = currentNote;
+	}
+
+	public MusicEngine(SongModel model,int activeTrack, Note currentSectionBeginNote, Note currentSectionEndNote){
+		this(model,activeTrack);
+		sectionStartNote = currentSectionBeginNote;
+		sectionEndNote = currentSectionEndNote;
+	}
+
+
 	public void setUp(SongModel model,int activeTrack){
 		this.setPreferredSize(new Dimension(1024, 8000));
 		this.setBackground(Color.WHITE);
-		timerThread = new Thread(new MusicEngineTimer());
+		timer = new UpdateTimer(this);
+		timerThread = new Thread(timer);
 		isLooping = false;
 		songModel = model;
 		noteMap = new HashMap<Note,ArrayList<DrawableNote>>();
@@ -107,10 +126,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 		timeStarted=0;
 
-		timer = new MusicEngineTimer();
-		timerThread = new Thread(timer);
 		doContinue = false;
-		
+
 		//if the title is to be displayed, make room for it by increasing the yMargin
 		if(showTitle)
 		{
@@ -121,11 +138,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 		//Get our drawables ready
 		LinkedList<Note> notes =(LinkedList<Note>) songModel.getTracks().get(activeTrack).getNotes();
-
-
-
-
-
 
 		beatsPerMeasure = songModel.getTimeSignature().getBeatsPerMeasure();
 		beatNote = songModel.getTimeSignature().getBeatNote();
@@ -171,9 +183,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		int drawableStart=0;
 		for(int i=0;i<notes.size();i++)
 		{
-			
+
 			noteQeue = new ArrayList<Note>();
-			
+
 			double noteDuration = notes.get(i).getDuration();
 
 			if(notes.get(i).getDuration()>(beatsPerMeasure-currentBeatCount))
@@ -181,7 +193,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				//finish off the measure
 				noteQeue.add(new Note(notes.get(i).getPitch(), (beatsPerMeasure-currentBeatCount), notes.get(i).getDynamic(), songModel.getTracks().get(activeTrack)));
 				noteDuration-=(beatsPerMeasure-currentBeatCount);
-				
+
 				//check for complete measures
 				while(noteDuration>=beatsPerMeasure)
 				{
@@ -194,8 +206,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					noteQeue.add(new Note(notes.get(i).getPitch(), noteDuration, notes.get(i).getDynamic(), songModel.getTracks().get(activeTrack)));
 					noteDuration=0;
 				}
-				
-				
+
+
 			}
 			else noteQeue.add(notes.get(i));
 			
@@ -218,11 +230,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				thisChord.add(noteQeue.get(j));
 				
 				double noteBeat = noteQeue.get(j).getDuration();
-				
+
 				x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((currentBeatCount)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
 				y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin + yOffset);
-				
-				
+
+
 				for(Note n:thisChord)
 				{
 					
@@ -236,137 +248,106 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					}
 					else 
 					{
-						/*
-						if(noteBeat==0.125*beatNote)drawables.add(new EighthNote(noteQeue.get(j),x,y));
-						else if(noteBeat==0.125*1.5*beatNote)
-						{
-							DrawableNote note = new EighthNote(noteQeue.get(j),x,y);
-							drawables.add(note);
-							drawables.add(new Dot(note));
-						}
-						else if(noteBeat==0.25*beatNote)drawables.add(new QuarterNote(noteQeue.get(j),x,y));
-						else if(noteBeat==0.25*1.5*beatNote)
-						{
-							DrawableNote note = new QuarterNote(noteQeue.get(j),x,y);
-							drawables.add(note);
-							drawables.add(new Dot(note));
-						}
-						else if(noteBeat==0.5*beatNote)drawables.add(new HalfNote(noteQeue.get(j),x,y));
-						else if(noteBeat==0.5*1.5*beatNote)
-						{
-							DrawableNote note = new HalfNote(noteQeue.get(j),x,y);
-							drawables.add(note);
-							drawables.add(new Dot(note));
-						}
-						else if(noteBeat==1*beatNote)drawables.add(new WholeNote(noteQeue.get(j),x,y));
-						else if(noteBeat==1*1.5*beatNote)
-						{
-							DrawableNote note = new WholeNote(noteQeue.get(j),x,y);
-							drawables.add(note);
-							drawables.add(new Dot(note));
-						}
-						else drawables.add(new DrawableNote(noteQeue.get(j),x,y){public void draw(Graphics g){}});
-						*/
 						drawables.add(calculateNote(n,x,y));
-						
+
 						if(trebleClefNeeded)
 						{
 							if((restBeatStartTop!=currentBeatCount)&&(n.getPitch()>=60))
 							{
 								double restDurationTop = currentBeatCount-restBeatStartTop;
-								
+
 								x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartTop)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
 								y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin);
-								
+
 								int restLocation=66;
-								
+
 								if(restDurationTop==0.125*beatNote)drawables.add(new EighthRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 								if(restDurationTop==0.25*beatNote)drawables.add(new QuarterRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 								if(restDurationTop==0.5*beatNote)drawables.add(new HalfRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 								if(restDurationTop==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
-								
+
 								restBeatStartTop=currentBeatCount + noteBeat;
 							}
 							else if(n.getPitch()>=60)restBeatStartTop = currentBeatCount + noteBeat;
 						}
-						
+
 						if(bassClefNeeded)
 						{
 							if((restBeatStartBottom!=currentBeatCount)&&(n.getPitch()<60))
 							{
 								double restDurationBottom = currentBeatCount-restBeatStartBottom;
-								
+
 								x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartBottom)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
 								y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin );
-								
+
 								int restLocation=53;
 								if(!trebleClefNeeded)restLocation = 66;
-								
+
 								if(restDurationBottom==0.125*beatNote)drawables.add(new EighthRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 								if(restDurationBottom==0.25*beatNote)drawables.add(new QuarterRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 								if(restDurationBottom==0.5*beatNote)drawables.add(new HalfRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 								if(restDurationBottom==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
-								
+
 								restBeatStartBottom=currentBeatCount + noteBeat;
 							}
 							else if(n.getPitch()<60)restBeatStartBottom = currentBeatCount + noteBeat;
 						}
 					}
-				
-					
-					
+
+
+
 					
 				}
 				
 				currentBeatCount+=noteBeat;
 				while(currentBeatCount>=beatsPerMeasure)
 				{
-					
+
 					if(trebleClefNeeded)
 					{
 						if(restBeatStartTop!=currentBeatCount)
 						{
 							double restDurationTop = currentBeatCount-restBeatStartTop;
-							
+
 							x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartTop)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
 							y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin );
-							
+
 							int restLocation=66;
-							
+
 							if(restDurationTop==0.125*beatNote)drawables.add(new EighthRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 							if(restDurationTop==0.25*beatNote)drawables.add(new QuarterRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 							if(restDurationTop==0.5*beatNote)drawables.add(new HalfRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 							if(restDurationTop==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationTop, 0, songModel.getTracks().get(activeTrack)),x,y));
 						}
 					}
-					
+
 					if(bassClefNeeded)
 					{
 						if(restBeatStartBottom!=currentBeatCount)
 						{
 							double restDurationBottom = currentBeatCount-restBeatStartBottom;
-							
+
 							x = (int) ((currentMeasure%measuresPerLine * measureWidth) + (((restBeatStartBottom)/beatsPerMeasure)*measureWidth) + xMargin + noteOffset);
 							y = (int) (yMeasureDistance*((currentMeasure-(currentMeasure%measuresPerLine))/measuresPerLine) + yMargin);
-							
+
 							int restLocation=53;
 							if(!trebleClefNeeded)restLocation = 66;
-							
+
 							if(restDurationBottom==0.125*beatNote)drawables.add(new EighthRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 							if(restDurationBottom==0.25*beatNote)drawables.add(new QuarterRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 							if(restDurationBottom==0.5*beatNote)drawables.add(new HalfRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 							if(restDurationBottom==1*beatNote)drawables.add(new WholeRest(new Note(restLocation, restDurationBottom, 0, songModel.getTracks().get(activeTrack)),x,(int)(y)));
 						}
 					}
-					
-					
+
+
 					currentBeatCount-=beatsPerMeasure;
 					currentMeasure++;
-					
+
 					restBeatStartTop=0;
 					restBeatStartBottom=0;
-					
-					
+
+
 				}
 			}
 				
@@ -383,30 +364,12 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		}
 	}
 	
-				
-				
 
-	public MusicEngine(SongModel model,int activeTrack, double currentPosition){
-		this(model,activeTrack);
-		this.currentPosition = currentPosition;
-		//use logic for finding the number of beats in a song
-	}
-
-	public MusicEngine(SongModel model,int activeTrack, Note currentNote){
-		this(model,activeTrack);
-		this.sectionStartNote = currentNote;
-	}
-
-	public MusicEngine(SongModel model,int activeTrack, Note currentSectionBeginNote, Note currentSectionEndNote){
-		this(model,activeTrack);
-		sectionStartNote = currentSectionBeginNote;
-		sectionEndNote = currentSectionEndNote;
-	}
 
 	public void setLooping(boolean looping){
 		isLooping = looping;
 	}
-	
+
 	public void setShowTitle(boolean showTitle){
 		this.showTitle=showTitle;
 	}
@@ -425,7 +388,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 	}
 
 
-
+	public void update(){
+		repaint();
+	}
 
 	@Override
 	public void paint(Graphics g){
@@ -435,9 +400,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			String title="Untitled";
 			title = songModel.getTitle();
 			g.setFont(new Font("Georgia", Font.PLAIN, 32));
-	
+
 			g.drawString(title,(int) (xMargin+(measureWidth*measuresPerLine)/2 - title.length()*8), 40);
-			
+
 			//Song author
 			String creators="";
 			for(int i=0;i<songModel.getCreators().size();i++)
@@ -446,20 +411,16 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			}
 			if(songModel.getCreators().get(0).getName()==null)
 				creators = "Anonymous";
-			
+
 			g.setFont(new Font("Georgia", Font.PLAIN, 18));
-	
+
 			g.drawString(creators,(int) (xMargin+(measureWidth*measuresPerLine)/2 - creators.length()*5), 60);
 		}
 
-		
+
 		//draw staffs
 		for(int j=0;j<20;j++)
 		{	
-			
-
-
-
 			//draw top staff lines
 			for(int i=0;i<5;i++)
 				g.drawLine((int)(xMargin)-80,(int)(yMargin+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+(16*i)+(yMeasureDistance*j)));
@@ -467,7 +428,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			for(int k=1;k<=measuresPerLine;k++)
 				g.drawLine((int)(xMargin+measureWidth*k),(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin+measureWidth*k),(int)(yMargin+64+(yMeasureDistance*j)));
 			g.drawLine((int)(xMargin-80),(int)(yMargin+(yMeasureDistance*j)),(int)(xMargin-80),(int)(yMargin+64+(yMeasureDistance*j)));
-			
+
 			//draw bottom staff if needed 
 			if(trebleClefNeeded&&bassClefNeeded)
 			{
@@ -484,8 +445,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				g.drawArc(x+(int)(7*scale),y+(int)(47*scale),(int)(55*scale),(int)(55*scale),(int)(-50),(int)(-200));
 				g.drawArc(x+(int)(22*scale),y+(int)(65*scale),(int)(34*scale),(int)(35*scale),(int)(160),(int)(-200));
 
-				
-				
+
+
 				//draw the bass clef
 				x = (int) (xMargin-95);
 				y =(int) (yMargin+(yMeasureDistance*j)+130);
@@ -495,7 +456,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				g.fillOval(x+55, y+5, (int)(8), (int)(8));
 				g.fillOval(x+55, y+21, (int)(8), (int)(8));
 
-				
+
 				//time signature treble
 				x = (int) (xMargin-30);
 				y =(int) (yMargin+(yMeasureDistance*j)+22);
@@ -503,15 +464,15 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				g.drawString((int)beatsPerMeasure+"", x, y);
 				g.drawLine(x, y+10, x+20, y+10);
 				g.drawString((int)beatNote+"", x, y+32);
-				
+
 				//time signature bass
 				y =(int) (yMargin+(yMeasureDistance*j)+22+130);
 				g.setFont(new Font("Georgia", Font.PLAIN, 32));
 				g.drawString((int)beatsPerMeasure+"", x, y);
 				g.drawLine(x, y+10, x+20, y+10);
 				g.drawString((int)beatNote+"", x, y+32);
-				
-				
+
+
 				//draw bottom staff lines
 				for(int i=0;i<5;i++)
 					g.drawLine((int)(xMargin)-80,(int)(yMargin+130+(16*i)+(yMeasureDistance*j)),(int)(xMargin+measureWidth*measuresPerLine),(int)(yMargin+130+(16*i)+(yMeasureDistance*j)));
@@ -536,7 +497,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					g.drawArc(x+(int)(10*scale),y-(int)(22*scale),(int)(30*scale),(int)(70*scale),0,(int)(-80));
 					g.drawArc(x+(int)(7*scale),y+(int)(47*scale),(int)(55*scale),(int)(55*scale),(int)(-50),(int)(-200));
 					g.drawArc(x+(int)(22*scale),y+(int)(65*scale),(int)(34*scale),(int)(35*scale),(int)(160),(int)(-200));
-					
+
 					//time signature treble
 					x = (int) (xMargin-30);
 					y =(int) (yMargin+(yMeasureDistance*j)+22);
@@ -547,8 +508,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				}
 				else if(bassClefNeeded)
 				{
-					
-					
+
+
 					//draw the bass clef
 					int x = (int) (xMargin-95);
 					int y =(int) (yMargin+(yMeasureDistance*j)-3);
@@ -557,8 +518,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 					g.drawArc(x, y-16,50,64,270,360-270);
 					g.fillOval(x+55, y+5, (int)(8), (int)(8));
 					g.fillOval(x+55, y+21, (int)(8), (int)(8));
-					
-					
+
+
 					//time signature treble
 					x = (int) (xMargin-30);
 					y =(int) (yMargin+(yMeasureDistance*j)+22);
@@ -585,8 +546,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		double line = Math.floor(timeDelta*linePerMS);
 		double offset = ((timeDelta-(line/linePerMS))*linePerMS)*measureWidth*measuresPerLine;
 		g.setColor(Color.red);
-		
-		
+
+
 
 		if(doContinue)
 		{
@@ -596,11 +557,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 				g.drawLine((int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance)+64, (int)((xMargin) + offset -10), (int)((yMargin) + line*yMeasureDistance+194));
 			}
 		}
-		
-		
+
+
 		if(!isPaused){
-			
-			
+
+
 			Rectangle rv = this.getVisibleRect();
 			if(!rv.contains(rv.x,(int)((yMargin) + line*yMeasureDistance+ (194*2)))){
 				rv.setLocation(rv.x, (int)((yMargin)  + line*yMeasureDistance - (64)));
@@ -609,7 +570,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		}
 
 	}
-	
+
 	public boolean isSharp(Note n)
 	{
 		boolean toRet = false;
@@ -631,33 +592,25 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		Drawable returnValue = null;
 		int currentDivision = 1;
 		while(returnValue==null){
-			if(beatNote/currentDivision==n.getDuration()){
-				Object[] arglist = new Object[]{n,new Integer(x),new Integer(y)};
-				try {
+			Object[] arglist = new Object[]{n,new Integer(x),new Integer(y)};
+			try {
+				if(beatNote/currentDivision==n.getDuration()){
 					returnValue = (Drawable)classes[currentDivision].getConstructor(args).newInstance(arglist);
 					if(isSharp(n))returnValue = new Sharp((DrawableNote) returnValue);
-				} catch (IllegalArgumentException e) {
-				} catch (SecurityException e) {
-				} catch (InstantiationException e) {
-				} catch (IllegalAccessException e) {
-				} catch (InvocationTargetException e) {
-				} catch (NoSuchMethodException e) {}
-			}else if(beatNote/currentDivision<n.getDuration()){
-				Object[] arglist = new Object[]{n,new Integer(x),new Integer(y)};
-				try {
-					System.out.println(currentDivision);
+				}else if(beatNote/currentDivision<n.getDuration()){
 					returnValue = (Drawable)classes[currentDivision].getConstructor(args).newInstance(arglist);
 					if(isSharp(n))returnValue = new Sharp((DrawableNote) returnValue);
 					drawables.add(new Dot(returnValue));
-				} catch (IllegalArgumentException e) {
-				} catch (SecurityException e) {
-				} catch (InstantiationException e) {
-				} catch (IllegalAccessException e) {
-				} catch (InvocationTargetException e) {
-				} catch (NoSuchMethodException e) {}
-			}else if(beatNote/currentDivision>n.getDuration()){
-				currentDivision*=2;
-			}
+				}else if(beatNote/currentDivision>n.getDuration()){
+					currentDivision*=2;
+				}
+			//Nothing can be done about these exceptions
+			} catch (IllegalArgumentException e) {
+			} catch (SecurityException e) {
+			} catch (InstantiationException e) {
+			} catch (IllegalAccessException e) {
+			} catch (InvocationTargetException e) {
+			} catch (NoSuchMethodException e) {}
 		}
 		return returnValue;
 	}
@@ -671,14 +624,17 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 
 	public void pause(){
 		isPaused = true;
+		timer.pause();
 	}
 
 	public void stop(){
 		doContinue=false;
+		timer.stop();
 	}
 
 	public void resume(){
 		isPaused = false;
+		timer.resume();
 	}
 
 	@Override
@@ -699,7 +655,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 			}
 		}
 	}
-	
+
 	private void drawWrongNote(ProcessedNoteEvent e){
 		double timeDelta = System.currentTimeMillis() - timeStarted;
 		double linePerMS = ((double)songModel.getBPM())/(beatsPerMeasure*((double)measuresPerLine))/60.0/1000.0;
@@ -711,41 +667,5 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener {
 		drawQueue.add(note);
 	}
 
-	private class MusicEngineTimer implements Runnable{
-
-		private final int FRAMES_PER_SECOND = 300;
-
-		private final double MS_DELAY=1000.0/FRAMES_PER_SECOND;
-		/** number of milliseconds from the epoch of when the last frame started */
-		private long lastFrame = 0;
-
-		/**
-		 * Method which get called by the thread, this is running while the song is playing or paused
-		 */
-		@Override
-		public void run() {
-			while(doContinue) {
-				long now = System.currentTimeMillis();
-				MusicEngine.this.grabFocus();
-				if(!isPaused) {
-					if(now > (lastFrame + MS_DELAY)) {
-						repaint();
-						lastFrame = now;	//We want to run at FRAMES_PER_SECOND fps, so use the beginning of the frame to
-						//ensure that we get the correct frames, no matter how long update takes
-					} else {
-						try {
-							Thread.sleep(1); // Dont eat up all the processor
-						} 
-						catch (InterruptedException e) {}
-					}
-				}else{
-					try {
-						Thread.sleep(1); // Dont eat up all the processor
-					} 
-					catch (InterruptedException e) {}
-				}
-			}
-		}
-	}
 
 }

@@ -123,12 +123,13 @@ public class SongSelectionScreen extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 
 			if(e.getSource() == LoadFile) {
-				JFileChooser jfc = new JFileChooser();
+				JFileChooser jfc = new JFileChooser(ProfileManager.getInstance().getActiveProfile().getLastDirectory());
 
 				int returnVal = jfc.showOpenDialog(SongSelectionScreen.this);
 
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = jfc.getSelectedFile();
+					ProfileManager.getInstance().getActiveProfile().setLastDirectory(file.getParentFile());
 					loadSong(file.getAbsolutePath());
 				}
 

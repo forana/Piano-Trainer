@@ -34,7 +34,8 @@ public class Profile implements Serializable,Comparable<Profile>{
 	
 	private String midiDeviceName;
 	
-	ArrayList<SongPreference> songPreferences;
+	List<SongPreference> songPreferences;
+	List<SongScore> gameScores;
 	SongPreference lastPlayedSong;
 	
 	List<LessonData> lessonDataList;
@@ -60,6 +61,7 @@ public class Profile implements Serializable,Comparable<Profile>{
 		gradeTiming=true;
 		
 		songPreferences = new ArrayList<SongPreference>();
+		gameScores = new LinkedList<SongScore>();
 		
 		lessonDataList=new LinkedList<LessonData>();
 		
@@ -108,9 +110,14 @@ public class Profile implements Serializable,Comparable<Profile>{
 	 * 
 	 * @return a list of song preferences
 	 */
-	public ArrayList<SongPreference> getSongPreferences()
+	public List<SongPreference> getSongPreferences()
 	{
 		return songPreferences;
+	}
+	
+	public List<SongScore> getGameScores()
+	{
+		return gameScores;
 	}
 	
 	/**

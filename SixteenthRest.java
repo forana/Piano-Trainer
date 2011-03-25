@@ -4,13 +4,13 @@ import java.awt.Graphics;
 
 import crescendo.base.song.Note;
 
-public class EighthRest extends DrawableNote{
+public class SixteenthRest extends DrawableNote{
 	
-	public EighthRest(Note n,int x,int y)
+	public SixteenthRest(Note n,int x,int y)
 	{
 		super(n,x,y);
 		
-		noteType = NoteType.EIGHTHNOTE;
+		noteType = NoteType.SIXTEENTHNOTE;
 		
 		if(this.note.getPitch()>=60)
 		{
@@ -30,5 +30,10 @@ public class EighthRest extends DrawableNote{
 		g.drawLine((int)(x+5), (int)(y-5), (int)(x-2), (int)(y+28));
 		g.drawLine((int)(x+5), (int)(y-5), (int)(x-3), (int)(y+5));
 		g.fillOval((int)(x-10), (int)(y-2),8, 8);
+		
+		g.drawLine((int)(x+5-2), (int)(y-5+8), (int)(x-3-2), (int)(y+5+8));
+		g.fillOval((int)(x-10), (int)(y-2)+8,8, 8);
 	}
 }
+
+

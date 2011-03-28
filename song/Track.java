@@ -61,6 +61,11 @@ public class Track
 	{
 		return this.voice;
 	}
+	
+	public void setVoice(int voice)
+	{
+		this.voice=voice;
+	}
 
 	/**
 	 * The notes of this track.

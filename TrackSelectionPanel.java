@@ -1,5 +1,6 @@
 package crescendo.game;
 
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -7,20 +8,20 @@ import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 
 import crescendo.base.AudioPlayer;
 import crescendo.base.ErrorHandler;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 
-public class TrackSelectionPanel extends JPanel implements ActionListener {
+public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 	private static final long serialVersionUID=1L;
 
 	private GameModule module;
@@ -35,9 +36,11 @@ public class TrackSelectionPanel extends JPanel implements ActionListener {
 	public TrackSelectionPanel(GameModule module,SongModel model) {
 		this.module=module;
 		this.model=model;
-		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
+		
+		JPanel superPanel=new JPanel();
 		
 		JPanel form=new JPanel();
+		form.setAlignmentY(0);
 		form.setLayout(new GridBagLayout());
 		GridBagConstraints c=new GridBagConstraints();
 		c.gridwidth=GridBagConstraints.REMAINDER;
@@ -47,6 +50,7 @@ public class TrackSelectionPanel extends JPanel implements ActionListener {
 		c.fill=GridBagConstraints.NONE;
 		
 		JLabel infoLabel=new JLabel("Song: "+model.getTitle());
+		infoLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
 		form.add(infoLabel,c);
 		
 		c.gridwidth=GridBagConstraints.RELATIVE;
@@ -55,8 +59,10 @@ public class TrackSelectionPanel extends JPanel implements ActionListener {
 		c.gridwidth=GridBagConstraints.REMAINDER;
 		play1=new JButton("Play");
 		play1.addActionListener(this);
+		c.fill=GridBagConstraints.HORIZONTAL;
 		form.add(play1,c);
 		
+		c.fill=GridBagConstraints.NONE;
 		int size=model.getTracks().size();
 		active=new JCheckBox[size];
 		enabled=new JCheckBox[size];
@@ -69,10 +75,16 @@ public class TrackSelectionPanel extends JPanel implements ActionListener {
 		
 		for (int i=0; i<size; i++)
 		{
+			c.gridwidth=GridBagConstraints.REMAINDER;
+			c.fill=GridBagConstraints.HORIZONTAL;
+			form.add(new JSeparator(JSeparator.HORIZONTAL),c);
+		
 			Track track=model.getTracks().get(i);
 			c.gridwidth=1;
+			c.fill=GridBagConstraints.NONE;
 			
-			JLabel title=new JLabel(track.getName());
+			JLabel title=new JLabel("Track " +(i+1)+": "+track.getName());
+			title.setFont(new Font(Font.SANS_SERIF,Font.BOLD,12));
 			form.add(title,c);
 			
 			active[i]=new JCheckBox("I will play this track");
@@ -92,10 +104,12 @@ public class TrackSelectionPanel extends JPanel implements ActionListener {
 		
 		play2=new JButton("Play");
 		play2.addActionListener(this);
+		c.fill=GridBagConstraints.HORIZONTAL;
 		c.gridwidth=GridBagConstraints.REMAINDER;
 		form.add(play2,c);
 		
-		this.add(new JScrollPane(form));
+		superPanel.add(form);
+		this.setViewportView(superPanel);
 	}
 	
 	public void actionPerformed(ActionEvent e) {

@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -42,7 +41,7 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 		c.weightx=1;
 		c.weighty=1;
 		c.fill=GridBagConstraints.HORIZONTAL;
-		c.anchor=GridBagConstraints.NORTH;
+		c.anchor=GridBagConstraints.NORTHWEST;
 		panel.add(this.loadButton,c);
 		
 		for (final SongScore score : ProfileManager.getInstance().getActiveProfile().getGameScores())
@@ -72,9 +71,9 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 				}
 			});
 			panel.add(playButton,c);
-			c.gridwidth=1;
+			c.gridwidth=GridBagConstraints.REMAINDER;
 			c.gridheight=1;
-			c.fill=GridBagConstraints.HORIZONTAL;
+			c.fill=GridBagConstraints.NONE;
 			JLabel authorLabel=new JLabel(score.getAuthor());
 			authorLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
 			panel.add(authorLabel,c);

@@ -1,12 +1,21 @@
 package crescendo.game;
 
+import java.awt.BorderLayout;
+
 import crescendo.base.module.Module;
 import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
 
 public class GameModule extends Module {
 	private static final long serialVersionUID=1L;
 	
-	public void showGamePanel(SongModel model) {
+	public GameModule()
+	{
+		this.setLayout(new BorderLayout());
+		this.add(new SongSelectionPanel(this));
+	}
+	
+	public void showGamePanel(SongModel model,Track activeTrack) {
 		//TODO
 	}
 	
@@ -15,7 +24,9 @@ public class GameModule extends Module {
 	}
 	
 	public void showTrackSelectionPanel(SongModel model) {
-		//TODO
+		this.removeAll();
+		this.add(new TrackSelectionPanel(this,model));
+		this.updateUI();
 	}
 	
 	@Override

@@ -1,5 +1,7 @@
 package crescendo.game;
 
+import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,11 +10,13 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import crescendo.base.ErrorHandler;
@@ -33,29 +37,43 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 		this.loadButton=new JButton("Load new song");
 		this.loadButton.addActionListener(this);
 		
+		JPanel superPanel=new JPanel();
 		JPanel panel=new JPanel();
 		
+		//superPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints c=new GridBagConstraints();
 		c.gridwidth=GridBagConstraints.REMAINDER;
 		c.weightx=1;
 		c.weighty=1;
+		c.ipadx=5;
 		c.fill=GridBagConstraints.HORIZONTAL;
 		c.anchor=GridBagConstraints.NORTHWEST;
 		panel.add(this.loadButton,c);
 		
+		c.fill=GridBagConstraints.BOTH;
+		
 		for (final SongScore score : ProfileManager.getInstance().getActiveProfile().getGameScores())
 		{
-			c.weightx=0;
-			c.weighty=0;
-			c.gridwidth=1;
-			c.gridheight=1;
+			c.gridwidth=GridBagConstraints.REMAINDER;
+			panel.add(new JSeparator(JSeparator.HORIZONTAL),c);
+			
+			JPanel labelPanel=new JPanel();
+			labelPanel.setLayout(new BoxLayout(labelPanel,BoxLayout.Y_AXIS));
 			JLabel titleLabel=new JLabel(score.getTitle());
 			titleLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
-			panel.add(titleLabel,c);
-			c.gridwidth=GridBagConstraints.REMAINDER;
-			c.gridheight=2;
-			c.fill=GridBagConstraints.BOTH;
+			labelPanel.add(titleLabel,c);
+			JLabel authorLabel=new JLabel(score.getAuthor());
+			authorLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,12));
+			labelPanel.add(authorLabel,c);
+			c.gridwidth=1;
+			panel.add(labelPanel,c);
+			
+			JLabel scoreLabel=new JLabel("High score: "+score.getHighScore());
+			scoreLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,14));
+			scoreLabel.setForeground(Color.BLUE);
+			panel.add(scoreLabel,c);
+			
 			JButton playButton=new JButton("Play");
 			playButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -70,13 +88,8 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 					}
 				}
 			});
-			panel.add(playButton,c);
 			c.gridwidth=GridBagConstraints.REMAINDER;
-			c.gridheight=1;
-			c.fill=GridBagConstraints.NONE;
-			JLabel authorLabel=new JLabel(score.getAuthor());
-			authorLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
-			panel.add(authorLabel,c);
+			panel.add(playButton,c);
 		}
 		
 		// add extra row for fun and spacing
@@ -84,8 +97,9 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 		c.weightx=1;
 		c.weighty=1;
 		panel.add(new JPanel(),c);
+		superPanel.add(panel);
 		
-		this.setViewportView(panel);
+		this.setViewportView(superPanel);
 	}
 	
 	public void actionPerformed(ActionEvent e) {

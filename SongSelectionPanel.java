@@ -45,7 +45,7 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 		c.anchor=GridBagConstraints.NORTH;
 		panel.add(this.loadButton,c);
 		
-		for (SongScore score : ProfileManager.getInstance().getActiveProfile().getGameScores())
+		for (final SongScore score : ProfileManager.getInstance().getActiveProfile().getGameScores())
 		{
 			c.weightx=0;
 			c.weighty=0;
@@ -58,6 +58,19 @@ public class SongSelectionPanel extends JScrollPane implements ActionListener {
 			c.gridheight=2;
 			c.fill=GridBagConstraints.BOTH;
 			JButton playButton=new JButton("Play");
+			playButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					try
+					{
+						SongModel model=SongFactory.generateSongFromFile(score.getFilePath());
+						SongSelectionPanel.this.module.showTrackSelectionPanel(model);
+					}
+					catch (IOException ex)
+					{
+						ErrorHandler.showNotification("Error Loading File","Error loading \""+score.getFilePath()+"\":\n"+ex.getMessage());
+					}
+				}
+			});
 			panel.add(playButton,c);
 			c.gridwidth=1;
 			c.gridheight=1;

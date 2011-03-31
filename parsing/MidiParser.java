@@ -56,7 +56,7 @@ public class MidiParser implements SongFileParser
 		List<SkeletalNote> percussionNotes;
 		List<TimedModifier> modifiers;
 		// unfortunately this is the best we can do for these
-		String author=null;
+		String author="Unknown";
 		String license=null;
 		// bpm defaults to 120
 		int bpm=120;

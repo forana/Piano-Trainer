@@ -22,6 +22,7 @@ import java.util.ArrayList;
  *
  */
 public class SongPreference implements Serializable{
+	private static final long serialVersionUID=1L;
 
 	//The absolute path to the song file
 	private String filePath;
@@ -73,6 +74,8 @@ public class SongPreference implements Serializable{
 			//this one should be overridden after creation
 			trackInstrument.add(50);
 		}
+		
+		songScores=new ArrayList<Integer>();
 		
 		name = "";
 		creator = "";

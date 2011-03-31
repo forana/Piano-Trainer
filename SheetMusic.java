@@ -17,6 +17,7 @@ import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
 
 public class SheetMusic extends Module{
 	private static final long serialVersionUID = 1L;
@@ -71,10 +72,14 @@ public class SheetMusic extends Module{
 	
 	public void showSongSelectionScreen(){
 		//load the song selection screen
-		mainAreaTarget.setViewportView(new SongSelectionScreen(this,600,100));
+		mainAreaTarget.setViewportView(new SongSelectionScreen(this));
+	}
+	
+	public void showTrackSelectionScreen(SongModel model) {
+		mainAreaTarget.setViewportView(new TrackSelectionScreen(this,model));
 	}
 
-	public void loadSong(SongModel model, int activeTrack){
+	public void loadSong(SongModel model,Track activeTrack){
 	
 		SongModel selectedSongModel = model;
 		
@@ -86,13 +91,13 @@ public class SheetMusic extends Module{
 		//Hook up song processor pieces
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
 		songPlayer = new SongPlayer(selectedSongModel);
-		SongValidator validator = new SongValidator(selectedSongModel,selectedSongModel.getTracks().get(activeTrack),heuristics);
+		SongValidator validator = new SongValidator(selectedSongModel,activeTrack,heuristics);
 		audioPlayer = new AudioPlayer(selectedSongModel, null /*selectedSongModel.getTracks().get(activeTrack)*/);//TODO make this be the actual active track (uncomment and remove the null)
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
-		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
+		musicEngine = new MusicEngine(selectedSongModel,0); // TODO pass the track reference
 		bottomBarContainer.setLayout(new GridLayout(1,2));
 		
 		FlowControllerBar bar = new FlowControllerBar(0, 0, 500, 50, this,model);
@@ -150,8 +155,14 @@ public class SheetMusic extends Module{
 	}
 	
 	public void stop(){
-		songPlayer.stop();
-		musicEngine.stop();
+		if (songPlayer!=null)
+		{
+			songPlayer.stop();
+		}
+		if (musicEngine!=null)
+		{
+			musicEngine.stop();
+		}
 	}
 	
 	private void playIntro(){
@@ -177,9 +188,6 @@ public class SheetMusic extends Module{
 
 	@Override
 	public void cleanUp() {
-		// TODO Auto-generated method stub
 		stop();
-		
 	}
-
 }

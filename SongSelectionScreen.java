@@ -1,182 +1,149 @@
 package crescendo.sheetmusic;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Insets;
-import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
-import javax.swing.SwingConstants;
-import javax.swing.border.LineBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import crescendo.base.ErrorHandler;
-import crescendo.base.ErrorHandler.Response;
 import crescendo.base.profile.ProfileManager;
 import crescendo.base.profile.SongPreference;
+import crescendo.base.song.Creator;
 import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
 
-public class SongSelectionScreen extends JPanel {
-
-	private JLabel Song1 = new JLabel("Song1");
-	private JButton LoadFile = new JButton("Load Song File");
-	private EventListener l = new EventListener();
+public class SongSelectionScreen extends JScrollPane implements ActionListener {
+	private static final long serialVersionUID=1L;
+	
+	private JButton loadButton;
 	private SheetMusic module;
-	private List<SongPreference> s;
-	private JList list;
-	private int width, height;
-
-	public SongSelectionScreen(SheetMusic module,int width, int height){
-		this.setBackground(Color.WHITE);
-		this.module = module;
-		this.setSize(width, height);
-		this.setLayout(new BorderLayout());
-		Song1.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		//Song1.setSize(width, height/10);
-
-		LoadFile.addActionListener(l);
-
-		this.add(LoadFile,BorderLayout.NORTH);
+	
+	public SongSelectionScreen(SheetMusic module) {
+		super(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		this.module=module;
+		this.loadButton=new JButton("Load new song");
+		this.loadButton.addActionListener(this);
 		
-		list=new JList();
-		list.addListSelectionListener(l);
-		list.setCellRenderer(new CustomCellRenderer());
-		list.setFixedCellHeight(32);
-		this.add(list,BorderLayout.CENTER);
-
-		parseSongList();
-	}
-
-	private JPanel getPane(){
-		return this;
-	}
-
-	private void parseSongList() {
-		s = ProfileManager.getInstance().getActiveProfile().getSongPreferences();
-		Object[] items=new Object[s.size()];
-		for (int i=0; i<items.length; i++)
+		JPanel superPanel=new JPanel();
+		JPanel panel=new JPanel();
+		
+		//superPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c=new GridBagConstraints();
+		c.gridwidth=GridBagConstraints.REMAINDER;
+		c.weightx=1;
+		c.weighty=1;
+		c.ipadx=5;
+		c.fill=GridBagConstraints.HORIZONTAL;
+		c.anchor=GridBagConstraints.NORTHWEST;
+		panel.add(this.loadButton,c);
+		
+		c.fill=GridBagConstraints.BOTH;
+		
+		for (final SongPreference pref : ProfileManager.getInstance().getActiveProfile().getSongPreferences())
 		{
-			items[i]=new ListItem(s.get(i));
-		}
-		list.setListData(items);
-	}
-
-	private void loadSong(String filename){
-		File file = new File(filename);
-		SongModel loadedSong = null;
-		boolean loading = true;
-		try {
-			while(loading){
-				loadedSong = SongFactory.generateSongFromFile(file.getAbsolutePath());
-				loading = false;
+			c.gridwidth=GridBagConstraints.REMAINDER;
+			panel.add(new JSeparator(JSeparator.HORIZONTAL),c);
+			
+			JPanel labelPanel=new JPanel();
+			labelPanel.setLayout(new BoxLayout(labelPanel,BoxLayout.Y_AXIS));
+			JLabel titleLabel=new JLabel(pref.getSongName());
+			titleLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
+			labelPanel.add(titleLabel,c);
+			JLabel authorLabel=new JLabel(pref.getCreator());
+			authorLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,12));
+			labelPanel.add(authorLabel,c);
+			c.gridwidth=1;
+			panel.add(labelPanel,c);
+			
+			JLabel scoreLabel;
+			try
+			{
+				scoreLabel=new JLabel("High score: "+pref.getScores().get(0));
 			}
-		} catch (IOException e1) {
-			Response response = ErrorHandler.showRetryFail("Failed to load song", "Application failed to load song: "+file.getAbsolutePath()+" would you like to try again?");
-			if(response == Response.RETRY){
-				loading = true;
-			}else{
-				loading = false;
+			catch (IndexOutOfBoundsException e)
+			{
+				scoreLabel=new JLabel("High score: -");
 			}
-		}
-		if(loadedSong!=null){
-			SongPreference newSong = new SongPreference(filename, loadedSong.getTracks().size(), 0);
-			newSong.setSongName(loadedSong.getTitle());
-			if(loadedSong.getCreators().size()>0)
-				newSong.setCreator(loadedSong.getCreators().get(0).getName());
-			else
-				newSong.setCreator("");
-			boolean doAdd = true;
-			for(SongPreference p : ProfileManager.getInstance().getActiveProfile().getSongPreferences()){
-				if(p.getFilePath().equals(filename)){
-					doAdd=false;
+			scoreLabel.setFont(new Font(Font.SANS_SERIF,Font.BOLD,14));
+			scoreLabel.setForeground(Color.BLUE);
+			panel.add(scoreLabel,c);
+			
+			JButton playButton=new JButton("Play");
+			playButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					try
+					{
+						SongModel model=SongFactory.generateSongFromFile(pref.getFilePath());
+						SongSelectionScreen.this.module.showTrackSelectionScreen(model);
+					}
+					catch (IOException ex)
+					{
+						ErrorHandler.showNotification("Error Loading File","Error loading \""+pref.getFilePath()+"\":\n"+ex.getMessage());
+					}
 				}
-			}
-			if(doAdd){
-				ProfileManager.getInstance().getActiveProfile().getSongPreferences().add(newSong);
-			}
-
-			module.loadSong(loadedSong,0);
-
-		}
-	}
-
-
-	private class EventListener implements ActionListener,ListSelectionListener{
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-
-			if(e.getSource() == LoadFile) {
-				JFileChooser jfc = new JFileChooser(ProfileManager.getInstance().getActiveProfile().getLastDirectory());
-
-				int returnVal = jfc.showOpenDialog(SongSelectionScreen.this);
-
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					File file = jfc.getSelectedFile();
-					ProfileManager.getInstance().getActiveProfile().setLastDirectory(file.getParentFile());
-					loadSong(file.getAbsolutePath());
-				}
-
-			}
-
-		}
-
-		@Override
-		public void valueChanged(ListSelectionEvent e) {
-			Object obj=list.getModel().getElementAt(e.getFirstIndex());
-			if(obj instanceof ListItem){
-				String songPath = ((ListItem)(obj)).getPath();
-				loadSong(songPath);
-			}
-		}
-
-	}
-
-	private class ListItem
-	{
-		private String title;
-		private String path;
-		
-		public ListItem(SongPreference pref)
-		{
-			this.title=pref.getSongName()+(pref.getCreator()==null?"":" - "+pref.getCreator());
-			this.path=pref.getFilePath();
+			});
+			c.gridwidth=GridBagConstraints.REMAINDER;
+			panel.add(playButton,c);
 		}
 		
-		public String getPath()
-		{
-			return this.path;
-		}
+		// add extra row for fun and spacing
+		c.gridwidth=GridBagConstraints.REMAINDER;
+		c.weightx=1;
+		c.weighty=1;
+		panel.add(new JPanel(),c);
+		superPanel.add(panel);
 		
-		public String toString()
-		{
-			return this.title;
-		}
+		this.setViewportView(superPanel);
 	}
 	
-	private class CustomCellRenderer extends JLabel implements ListCellRenderer
-	{
-		public Component getListCellRendererComponent(JList list, Object obj, int index, boolean selected, boolean hasFocus) {
-			this.setText(obj.toString());
-			this.setBorder(new LineBorder(new Color(0x99,0x99,0x99)));
-			
-			return this;
+	public void actionPerformed(ActionEvent e) {
+		JFileChooser fc=new JFileChooser(ProfileManager.getInstance().getActiveProfile().getLastDirectory());
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("Lesson Books (*.mid,*.midi,*.mxl,*.xml)","mid","midi","mxl","xml"));
+		if (fc.showOpenDialog(this)==JFileChooser.APPROVE_OPTION)
+		{
+			File f=fc.getSelectedFile();
+			ProfileManager.getInstance().getActiveProfile().setLastDirectory(f.getParentFile());
+			String path=f.getAbsolutePath();
+			try
+			{
+				SongModel model=SongFactory.generateSongFromFile(path);
+				SongPreference pref=new SongPreference(path,model.getTracks().size(),0);
+				pref.setSongName(model.getTitle());
+				String creator=null;
+				for (Creator c : model.getCreators())
+				{
+					if (creator==null)
+					{
+						creator="";
+					}
+					else
+					{
+						creator+=", ";
+					}
+					creator+=c.getType()+": "+c.getName();
+				}
+				pref.setCreator(creator);
+				ProfileManager.getInstance().getActiveProfile().getSongPreferences().add(pref);
+				module.showTrackSelectionScreen(model);
+			}
+			catch (IOException ex)
+			{
+				ErrorHandler.showNotification("Error Loading Song","The file \""+f.getName()+"\" was in an unexpected format.\nError response: "+ex.getMessage());
+			}
 		}
 	}
 }

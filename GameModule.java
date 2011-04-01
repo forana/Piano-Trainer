@@ -27,19 +27,9 @@ public class GameModule extends Module {
 	
 	public void showGamePanel(SongModel model,Track activeTrack) {
 		this.removeAll();
-		
-		songPlayer = new SongPlayer(model);
-		
-		gameEngine = new GameEngine(this,model);
-		audioPlayer = new AudioPlayer(model,activeTrack);
-		
-		songPlayer.attach(gameEngine, 2000+(int)audioPlayer.getLatency());
-		songPlayer.attach(audioPlayer,(int)audioPlayer.getLatency());
-		
-		this.add(gameEngine);
+		this.add(new GameEngine(model,activeTrack));
 		this.updateUI();
-		
-		songPlayer.play();
+
 	}
 	
 	public void showSongSelectionPanel() {

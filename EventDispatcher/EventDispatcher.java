@@ -85,7 +85,7 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		if (this.midiDevice==null)
 		{
 			this.setTransmitterDevice(this.transmitterDevices.get(0));
-			if (deviceName!=null && !deviceName.equals(""));
+			if (deviceName!=null && !"".equals(deviceName) && !deviceName.startsWith("com.sun"))
 			{
 				ErrorHandler.showNotification("\""+deviceName+"\" not found","The MIDI device \""+midiDevice+"\" was not found.\nUsing \""+this.midiDevice.getDeviceInfo().getName()+"\" instead.");
 			}

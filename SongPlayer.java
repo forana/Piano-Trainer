@@ -14,7 +14,6 @@ import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.base.song.Track.TrackIterator;
 import crescendo.base.song.modifier.NoteModifier;
-import crescendo.base.song.modifier.Chord;
 
 /**
  * A SongPlayer does the actual running through the song and propagation of events.
@@ -69,7 +68,6 @@ public class SongPlayer implements FlowController,Updatable
 		controllers = Collections.synchronizedSet(new HashSet<FlowController>());
 		timer = new UpdateTimer(this);
 		timerContainer = new Thread(timer);
-		List<Track> tracks = songModel.getTracks();
 		this.songState=new SongState(songModel.getBPM(),songModel.getTimeSignature(),songModel.getKeySignature());
 		initializeIterators();
 	}
@@ -319,15 +317,10 @@ public class SongPlayer implements FlowController,Updatable
 			}
 		}
 		
-		
 		// check if song is done
 		if (iterators.size()==0 && activeNotes.size()==0)
 		{
-			// Pump out songEnd events
-			for (FlowController controller : controllers)
-			{
-				controller.songEnd();
-			}
+			songEnd();
 		}
 	}
 }

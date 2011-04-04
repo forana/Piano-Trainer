@@ -68,6 +68,14 @@ public class HeuristicsModel {
 		return this.timingInterval;
 	}
 	
+	public boolean listeningPitch() {
+		return this.listenPitch;
+	}
+	
+	public boolean listeningVelocity() {
+		return this.listenVelocity;
+	}
+	
 	/**
 	 * Judge whether or not a note pairing is correct.
 	 * 

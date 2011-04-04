@@ -34,12 +34,15 @@ public class SongScore implements Serializable,Comparable<SongScore> {
 		this.highScore=0;
 	}
 	
-	public void setHighScore(int score)
+	public boolean setHighScore(int score)
 	{
+		boolean set=false;
 		if (score>highScore)
 		{
+			set=true;
 			highScore=score;
 		}
+		return set;
 	}
 	
 	public int getHighScore()

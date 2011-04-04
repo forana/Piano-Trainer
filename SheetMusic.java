@@ -81,6 +81,7 @@ public class SheetMusic extends Module{
 		this.remove(bottomBarContainer);
 		this.updateUI();
 		mainAreaTarget.setViewportView(new ScoreDisplay(this,score,selectedSongModel,activeTrack));
+		EventDispatcher.getInstance().detachAllMidi();
 	}
 
 	public void loadSong(SongModel model,Track activeTrack){
@@ -172,6 +173,7 @@ public class SheetMusic extends Module{
 		{
 			musicEngine.stop();
 		}
+		EventDispatcher.getInstance().detachAllMidi();
 	}
 	
 	private void playIntro(){

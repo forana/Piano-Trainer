@@ -274,6 +274,10 @@ public class EventDispatcher implements KeyListener,MouseListener {
 		midiListeners.remove(midiListener);
 	}
 	
+	public void detachAllMidi()
+	{
+		midiListeners.clear();
+	}
 	
 	/**
 	 * attach

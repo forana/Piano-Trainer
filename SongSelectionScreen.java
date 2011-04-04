@@ -112,7 +112,7 @@ public class SongSelectionScreen extends JScrollPane implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		JFileChooser fc=new JFileChooser(ProfileManager.getInstance().getActiveProfile().getLastDirectory());
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("Lesson Books (*.mid,*.midi,*.mxl,*.xml)","mid","midi","mxl","xml"));
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("Song Files (*.mid,*.midi,*.mxl,*.xml)","mid","midi","mxl","xml"));
 		if (fc.showOpenDialog(this)==JFileChooser.APPROVE_OPTION)
 		{
 			File f=fc.getSelectedFile();

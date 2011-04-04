@@ -31,19 +31,16 @@ public class SheetMusic extends Module{
 	private AudioPlayer audioPlayer;
 	private SongPlayer songPlayer;
 	
+	private ScoreCalculator score;
+	private SongModel selectedSongModel;
+	private Track activeTrack;
+	
 	private JPanel bottomBarContainer;
 	
 	private JScrollPane mainAreaTarget;
 
 	
 	public SheetMusic(){
-		
-		//TODO:Load up the UI
-		//this.setSize(1024, 768);
-		
-		bottomBarContainer = new JPanel();
-		//bottomBarContainer.setVisible(true);
-		
 		mainAreaTarget = new JScrollPane();
 		//mainAreaTarget.setSize(1024, 500);
 		mainAreaTarget.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -78,10 +75,18 @@ public class SheetMusic extends Module{
 	public void showTrackSelectionScreen(SongModel model) {
 		mainAreaTarget.setViewportView(new TrackSelectionScreen(this,model));
 	}
+	
+	public void showScore() {
+		this.remove(scoreFeedbackFrame);
+		this.remove(bottomBarContainer);
+		this.updateUI();
+		mainAreaTarget.setViewportView(new ScoreDisplay(this,score,selectedSongModel,activeTrack));
+	}
 
 	public void loadSong(SongModel model,Track activeTrack){
 	
-		SongModel selectedSongModel = model;
+		selectedSongModel = model;
+		this.activeTrack=activeTrack;
 		
 		// Initialize meta-things
 		boolean careAboutPitch=true;
@@ -96,8 +101,10 @@ public class SheetMusic extends Module{
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
-		scoreFeedbackFrame = new ScoreFrame(new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics));
+		score=new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics);
+		scoreFeedbackFrame = new ScoreFrame(score);
 		musicEngine = new MusicEngine(selectedSongModel,0); // TODO pass the track reference
+		bottomBarContainer = new JPanel();
 		bottomBarContainer.setLayout(new GridLayout(1,2));
 		
 		FlowControllerBar bar = new FlowControllerBar(0, 0, 500, 50, this,model);
@@ -126,6 +133,8 @@ public class SheetMusic extends Module{
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);
 		songPlayer.attach(validator);
+		//add listener for song's end
+		songPlayer.attach(new ScoreDisplayListener(this));
 		
 		//Attach processed note events
 		validator.attach(adviceFeedbackFrame);

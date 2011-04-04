@@ -1,32 +1,19 @@
 package crescendo.game;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Timer;
-
-import javax.swing.JButton;
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import crescendo.base.AudioPlayer;
-import crescendo.base.NoteAction;
-import crescendo.base.NoteEvent;
-import crescendo.base.NoteEventListener;
+import crescendo.base.HeuristicsModel;
 import crescendo.base.SongPlayer;
-import crescendo.base.Updatable;
-import crescendo.base.UpdateTimer;
-import crescendo.base.song.Note;
+import crescendo.base.SongValidator;
+import crescendo.base.EventDispatcher.EventDispatcher;
+import crescendo.base.profile.ProfileManager;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
-import crescendo.sheetmusic.Drawable;
-import crescendo.sheetmusic.DrawableNote;
+import crescendo.sheetmusic.ScoreCalculator;
 
 public class GameEngine extends JPanel{
+	private static final long serialVersionUID=1L;
 	
 	//The panels that make up this Screen
 	private GameGraphicsPanel graphicsPanel;
@@ -43,18 +30,28 @@ public class GameEngine extends JPanel{
 	 * @param model - A reference the the songmodel to work from
 	 * @param activeTrack - the active track to display the notes of
 	 */
-	public GameEngine(SongModel model,Track activeTrack) {
+	public GameEngine(GameModule module,SongModel model,Track activeTrack) {
 		
-		this.setLayout(new FlowLayout());
+		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 		
+		HeuristicsModel heuristics=new HeuristicsModel(ProfileManager.getInstance().getActiveProfile().getIsPitchGraded(),
+				ProfileManager.getInstance().getActiveProfile().getIsPitchGraded());
+				
+		SongPlayer player=new SongPlayer(model);
+		SongValidator validator=new SongValidator(model,activeTrack,heuristics);
 		
-		scorePanel = new GameScorePanel();
+		ScoreCalculator calc=new ScoreCalculator(heuristics.listeningPitch(),heuristics.listeningVelocity(),player.getSongState(),heuristics);
+		
+		scorePanel = new GameScorePanel(module,model,activeTrack,calc);
+		graphicsPanel = new GameGraphicsPanel(model,activeTrack,player);
+		
+		player.attach(scorePanel);
+		player.attach(validator,(int)(heuristics.getTimingInterval()/player.getSongState().getBPM()*60000)/2);
+		validator.attach(scorePanel);
+		// TODO attach graphicsPanel to validator here
+		EventDispatcher.getInstance().attach(validator);
+		
 		this.add(scorePanel);
-		
-		graphicsPanel = new GameGraphicsPanel(model, activeTrack);
 		this.add(graphicsPanel);
-		
-		this.updateUI();
-			
 	}
 }

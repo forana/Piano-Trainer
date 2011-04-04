@@ -42,7 +42,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Upda
 	UpdateTimer timer;
 	Thread timerThread;
 	
-	public GameGraphicsPanel(SongModel model,Track activeTrack) {
+	public GameGraphicsPanel(SongModel model,Track activeTrack,SongPlayer songPlayer) {
 		
 		this.activeTrack = activeTrack;
 		songModel = model;
@@ -65,14 +65,11 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Upda
 		
 		fallingNotes = new HashMap<Note,Long>();
 		
-		
-		SongPlayer songPlayer = new SongPlayer(model);
 		audioPlayer = new AudioPlayer(model,activeTrack);
 		songPlayer.attach(this, 2000+(int)audioPlayer.getLatency());
 		songPlayer.attach(audioPlayer,(int)audioPlayer.getLatency());
 		
 		songPlayer.play();
-			
 	}
 	
 	//normalize X

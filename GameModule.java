@@ -3,28 +3,27 @@ package crescendo.game;
 //import javax.swing.JComponent;
 //import crescendo.base.HeuristicsModel;
 //import crescendo.base.SongValidator;
+import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
 //import crescendo.base.profile.ProfileManager;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
+import crescendo.sheetmusic.ScoreCalculator;
 
 public class GameModule extends Module {
 	private static final long serialVersionUID=1L;
 	
 	private String loadedSongPath;
-
-	//private JComponent display;
-	//private GameEngine gameEngine;
-	//private SongValidator songValidator;
 	
 	public GameModule() {
 		this.showSongSelectionPanel();
 	}
 	
 	public void showGamePanel(SongModel model,Track activeTrack) {
+		EventDispatcher.getInstance().detachAllMidi();
 		this.removeAll();
-		this.add(new GameEngine(model,activeTrack));
-		//songValidator = new SongValidator(model,activeTrack,new HeuristicsModel(ProfileManager.getInstance().getActiveProfile().getIsPitchGraded(), ProfileManager.getInstance().getActiveProfile().getIsDynamicGraded()));
+		this.add(new GameEngine(this,model,activeTrack));
+		this.updateUI();
 	}
 	
 	public void showSongSelectionPanel() {
@@ -39,25 +38,10 @@ public class GameModule extends Module {
 		this.updateUI();
 	}
 	
-	public void play(){
-		//gameEngine.play();
-	}
-	
-	public void pause(){
-		//gameEngine.pause();
-	}
-	
-	public void resume(){
-		//gameEngine.resume();
-	}
-	
-	public void stop(){
-		//gameEngine.stop();
-	}
-	
-	public void songEnd(){
-		//gameEngine.songEnd();
-		//songValidator.songEnd();
+	public void showScorePanel(SongModel model,Track activeTrack,ScoreCalculator calc) {
+		this.removeAll();
+		this.add(new GameResultsPanel(this,model,activeTrack,calc));
+		this.updateUI();
 	}
 	
 	@Override
@@ -67,10 +51,6 @@ public class GameModule extends Module {
 
 	@Override
 	public void cleanUp() {
-		try{
-			songEnd();
-		}catch(NullPointerException e){
-		}
-		
+		EventDispatcher.getInstance().detachAllMidi();
 	}
 }

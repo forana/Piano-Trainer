@@ -31,7 +31,7 @@ import crescendo.base.song.modifier.TempoChange;
 public class MidiParser implements SongFileParser
 {
 	private static final boolean DEBUG = false;
-	private static final boolean NORMALIZE = false;
+	private static final boolean NORMALIZE = true;
 	
 	// this is set according to the midi spec
 	private static final int PERCUSSION_CHANNEL_INDEX=9;

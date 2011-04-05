@@ -41,7 +41,7 @@ public class WholeRest extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
-		
-		g.fillRect((int)(x), (int)(y), 8, 4);
+		g.setColor(color);
+		g.fillRect(x,y,8,4);
 	}
 }

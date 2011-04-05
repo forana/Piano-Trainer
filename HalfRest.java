@@ -30,6 +30,7 @@ public class HalfRest extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
+		g.setColor(color);
 		g.fillRect(x,y-4,8,4);
 	}
 }

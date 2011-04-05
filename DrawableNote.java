@@ -63,6 +63,9 @@ public abstract class DrawableNote extends Drawable{
 	 * 
 	 * @param g - the graphics context to draw to.
 	 */
-	public abstract void draw(Graphics g);
+	public void draw(Graphics g)
+	{
+		g.setColor(Color.BLACK);
+	}
 
 }

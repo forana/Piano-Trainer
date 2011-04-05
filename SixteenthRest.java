@@ -41,6 +41,7 @@ public class SixteenthRest extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
+		g.setColor(color);
 		
 		g.drawLine((int)(x+5), (int)(y-5), (int)(x-2), (int)(y+28));
 		g.drawLine((int)(x+5), (int)(y-5), (int)(x-3), (int)(y+5));

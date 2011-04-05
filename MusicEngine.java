@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JPanel;
+import javax.swing.Scrollable;
 
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
@@ -19,14 +21,14 @@ import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 
-public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener {
+public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener,Scrollable {
 	private static final long serialVersionUID=1L;
 	
 	private static final int MARGIN=10;
 	private static final int HEADER_HEIGHT=30;
-	private static final int CLEF_WIDTH=24;
-	private static final int STAFF_LINE_HEIGHT=8;
-	private static final int STAFF_HEIGHT=4*STAFF_LINE_HEIGHT;
+	public static final int CLEF_WIDTH=24;
+	public static final int STAFF_LINE_HEIGHT=8;
+	public static final int STAFF_HEIGHT=4*STAFF_LINE_HEIGHT;
 	private static final int STAFF_MARGIN=STAFF_HEIGHT;
 	private static final int STAFF_SPACING=0;
 	private static final int STAFF_FULL_HEIGHT=STAFF_MARGIN*2+STAFF_HEIGHT+STAFF_SPACING;
@@ -56,7 +58,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	
 	//alignment items
 	private boolean built;
-	private Map<Note,List<Drawable>> noteMap;
+	private Map<Note,List<DrawableNote>> noteMap;
+	private List<Drawable> drawables;
 	private boolean titleShowing;
 	private int measureWidth=150; // maybe someday this won't be hardcoded
 	private int decoratorWidth=0;
@@ -94,17 +97,18 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			this.beatWidth=1/this.beatNote*this.measureWidth;
 			
 			// add notes to list
-			this.noteMap=new HashMap<Note,List<Drawable>>();
+			this.noteMap=new HashMap<Note,List<DrawableNote>>();
+			this.drawables=new LinkedList<Drawable>();
 			double beatOffset=0;
 			double leftInMeasure=this.beatsPerMeasure;
 			for (Note note : activeTrack.getNotes())
 			{
 				noteMap.put(note,calculateNotes(note,leftInMeasure,beatOffset));
 				beatOffset+=note.getDuration();
-				leftInMeasure+=note.getDuration();
-				while (leftInMeasure>=this.beatsPerMeasure)
+				leftInMeasure-=note.getDuration();
+				while (leftInMeasure<0)
 				{
-					leftInMeasure-=this.beatsPerMeasure;
+					leftInMeasure+=this.beatsPerMeasure;
 				}
 			}
 			
@@ -114,8 +118,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		this.repaint();
 	}
 	
-	private List<Drawable> calculateNotes(Note note,double beatsLeft,double beatOffset) {
-		List<Drawable> ret=new LinkedList<Drawable>();
+	private List<DrawableNote> calculateNotes(Note note,double beatsLeft,double beatOffset) {
+		List<DrawableNote> ret=new LinkedList<DrawableNote>();
 		double duration=note.getDuration();
 		while (duration>beatsLeft)
 		{
@@ -128,11 +132,33 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		{
 			ret.addAll(splitNote(note,duration,beatOffset));
 		}
+		
+		// add created notes to list of drawables, with modifiers added
+		Drawable last=null;
+		for (DrawableNote dn : ret)
+		{
+			Drawable d=dn;
+			if (isSharp(note.getPitch()))
+			{
+				d=new Sharp((DrawableNote)d);
+			}
+			if (last!=null)
+			{
+				last=new Tie(last,d);
+				this.drawables.add(last);
+			}
+			last=d;
+		}
+		if (last!=null)
+		{
+			this.drawables.add(last);
+		}
+		System.out.println(last);
 		return ret;
 	}
 	
-	private List<Drawable> splitNote(Note note,double duration,double beatOffset) {
-		List<Drawable> ret=new LinkedList<Drawable>();
+	private List<DrawableNote> splitNote(Note note,double duration,double beatOffset) {
+		List<DrawableNote> ret=new LinkedList<DrawableNote>();
 		for (int i=0; i<NOTE_PROTOTYPES.length;)
 		{
 			DrawableNote[] prototypeArray=note.isPlayable()?NOTE_PROTOTYPES:REST_PROTOTYPES;
@@ -142,14 +168,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			}
 			else
 			{
-				Drawable d=prototypeArray[i].spawn(note,
+				ret.add(prototypeArray[i].spawn(note,
 					getX(beatOffset,prototypeArray[i].getBeatsCovered(),prototypeArray[i].getWidth()),
-					getY(note,beatOffset));
-				if (isSharp(note.getPitch()))
-				{
-					d=new Sharp((DrawableNote)d);
-				}
-				ret.add(d);
+					getY(note,beatOffset)));
 				duration-=prototypeArray[i].getBeatsCovered();
 				beatOffset+=prototypeArray[i].getBeatsCovered();
 			}
@@ -159,7 +180,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	
 	private int getX(double beats,double count,double width) {
 		int xb=MARGIN+CLEF_WIDTH+this.decoratorWidth;
-		while (beats>this.beatsPerMeasure*this.measuresPerLine)
+		while (beats>=this.beatsPerMeasure*this.measuresPerLine)
 		{
 			beats-=this.beatsPerMeasure*this.measuresPerLine;
 		}
@@ -188,7 +209,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		{
 			yb+=STAFF_HEIGHT/2;
 		}
-		while (beats>this.beatsPerMeasure*this.measuresPerLine)
+		while (beats>=this.beatsPerMeasure*this.measuresPerLine)
 		{
 			beats-=this.beatsPerMeasure*this.measuresPerLine;
 			yb+=STAFF_FULL_HEIGHT;
@@ -245,12 +266,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 				}
 				yb+=STAFF_MARGIN+STAFF_SPACING;
 				// draw notes
-				for (Note note : this.activeTrack.getNotes())
+				for (Drawable draw : this.drawables)
 				{
-					for (Drawable draw : this.noteMap.get(note))
-					{
-						draw.draw(g);
-					}
+					draw.draw(g);
 				}
 			}
 		}
@@ -270,6 +288,14 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
+		if (e.getExpectedNote().getNote()!=null && this.noteMap.keySet().contains(e.getExpectedNote().getNote()))
+		{
+			for (DrawableNote note : this.noteMap.get(e.getExpectedNote().getNote()))
+			{
+				note.setCorrect(e.isCorrect());
+			}
+		}
+		repaint();
 	}
 	
 	private static boolean isSharp(int n)
@@ -285,5 +311,30 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	{
 		this.build();
 		this.updateUI();
+	}
+
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return getPreferredSize();
+	}
+
+	@Override
+	public int getScrollableBlockIncrement(Rectangle arg0, int arg1, int arg2) {
+		return 10;
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportHeight() {
+		return false;
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportWidth() {
+		return true;
+	}
+
+	@Override
+	public int getScrollableUnitIncrement(Rectangle arg0, int arg1, int arg2) {
+		return 1;
 	}
 }

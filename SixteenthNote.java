@@ -30,34 +30,24 @@ public class SixteenthNote extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
+		super.draw(g);
 		g.setColor(color);
-		g.fillOval((int)(x-4), (int)(y-4), 8, 8);
-				
-		//draw the line attached to it, and the tails
+		//draw the base circle
+		g.fillOval(x,y,8,8);
+		
+		//draw the line attached to it, and the tail
 		if(note.getPitch()>=70 || (note.getPitch()<60 && note.getPitch()>=50))
 		{
-			g.drawLine((int)(x-4), (int)(y), (int)(x-4), (int)(y+4+16));
-			g.drawLine((int)(x-4), (int)(y+4+16),(int)(x-4+8), (int)(y+4+16-8));
-			g.drawLine((int)(x-4), (int)(y+4+16-4),(int)(x-4+8), (int)(y+4+16-4-8));
+			g.drawLine(x+8,y+4,x+8,y-16);
+			g.drawLine(x+8,y-16,x+12,y-12);
+			g.drawLine(x+8,y-13,x+12,y-9);
 		}
 		else
 		{
-			g.drawLine((int)(x+4),(int)( y),(int)( x+4), (int)(y-4-16));
-			g.drawLine((int)(x+4), (int)(y-4-16),(int)(x+4+8), (int)(y-4-16+8));
-			g.drawLine((int)(x+4), (int)(y-4-16+4),(int)(x+4+8), (int)(y-4-16+4+8));
+			g.drawLine(x,y+4,x,y+24);
+			g.drawLine(x,y+24,x-4,y+20);
+			g.drawLine(x,y+21,x-4,y+17);
 		}
-		
-		
-		
-		//if off the staff,draw a line over it (if it lies on a bar)
-		if(note.getPitch()<60)
-		{
-			if(((yPositionOfNote(note.getPitch())-34)%16==0))
-				g.drawLine((int)(x-8), (int)(y), (int)(x+8), (int)(y));
-		}
-		if((yPositionOfNote(note.getPitch())%16==0))
-			g.drawLine((int)(x-8), (int)(y), (int)(x+8), (int)(y));
-		
 	}
 
 }

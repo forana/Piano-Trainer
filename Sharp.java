@@ -17,6 +17,7 @@ public class Sharp extends DrawableModifier{
 
 	@Override
 	public void draw(Graphics g) {
+		// draw note first and absorb its color
 		note.draw(g);
 		
 		g.drawLine((int)(x+5), (int)(y+3), (int)(x+15), (int)(y-7));

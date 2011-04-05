@@ -32,24 +32,15 @@ public class QuarterNote extends DrawableNote{
 
 	@Override
 	public void draw(Graphics g) {
+		super.draw(g);
 		g.setColor(color);
-		g.fillOval((int)(x-4),(int)( y-4), 8, 8);
-				
+		//draw the base circle
+		g.fillOval(x,y,8,8);
+		
 		//draw the line attached to it
 		if(note.getPitch()>=70 || (note.getPitch()<60 && note.getPitch()>=50))
-			g.drawLine((int)(x-4), (int)(y), (int)(x-4), (int)(y+4+16));
+			g.drawLine(x+8,y+4,x+8,y-16);
 		else
-			g.drawLine((int)(x+4), (int)(y), (int)(x+4), (int)(y-4-16));
-		
-		//if off the staff,draw a line over it (if it lies on a bar)
-		if(note.getPitch()<60)
-		{
-			if(((yPositionOfNote(note.getPitch())-34)%16==0))
-				g.drawLine((int)(x-8), (int)(y), (int)(x+8), (int)(y));
-		}
-		if((yPositionOfNote(note.getPitch())%16==0))
-			g.drawLine((int)(x-8), (int)(y), (int)(x+8), (int)(y));
-		
+			g.drawLine(x,y+4,x,y+24);
 	}
-
 }

@@ -6,6 +6,8 @@ import crescendo.base.song.Note;
 
 public class WholeRest extends DrawableNote{
 	
+	public WholeRest() {}
+	
 	public WholeRest(Note n,int x,int y)
 	{
 		super(n,x,y);
@@ -31,6 +33,10 @@ public class WholeRest extends DrawableNote{
 	
 	public int getWidth() {
 		return 8;
+	}
+	
+	public double getBeatsCovered() {
+		return 4;
 	}
 
 	@Override

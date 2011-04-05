@@ -6,6 +6,8 @@ import crescendo.base.song.Note;
 
 public class QuarterNote extends DrawableNote{
 	
+	public QuarterNote() {}
+	
 	public QuarterNote(Note n,int x,int y)
 	{
 		super(n,x,y);
@@ -22,6 +24,10 @@ public class QuarterNote extends DrawableNote{
 	
 	public int getWidth() {
 		return 8;
+	}
+	
+	public double getBeatsCovered() {
+		return 1;
 	}
 
 	@Override

@@ -6,6 +6,8 @@ import crescendo.base.song.Note;
 
 public class SixteenthNote extends DrawableNote{
 	
+	public SixteenthNote() {}
+	
 	public SixteenthNote(Note n,int x,int y)
 	{
 		super(n,x,y);
@@ -20,6 +22,10 @@ public class SixteenthNote extends DrawableNote{
 	
 	public int getWidth() {
 		return 8;
+	}
+	
+	public double getBeatsCovered() {
+		return 0.25;
 	}
 
 	@Override

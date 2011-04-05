@@ -22,10 +22,10 @@ public abstract class Drawable {
 		private Color color;
 		
 		/** x position of the object **/
-		protected double x;
+		protected int x;
 		
 		/** x position of the object **/
-		protected double y;
+		protected int y;
 		
 		/**
 		 * draw
@@ -34,12 +34,12 @@ public abstract class Drawable {
 		 */
 		public abstract void draw(Graphics g);
 		
-		double getX()
+		int getX()
 		{
 			return x;
 		}
 		
-		double getY()
+		int getY()
 		{
 			return y;
 		}

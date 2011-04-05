@@ -6,6 +6,8 @@ import crescendo.base.song.Note;
 
 public class EighthRest extends DrawableNote{
 	
+	public EighthRest() {}
+	
 	public EighthRest(Note n,int x,int y)
 	{
 		super(n,x,y);
@@ -31,6 +33,10 @@ public class EighthRest extends DrawableNote{
 	
 	public int getWidth() {
 		return 10;
+	}
+	
+	public double getBeatsCovered() {
+		return 0.5;
 	}
 
 	@Override

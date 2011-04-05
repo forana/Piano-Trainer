@@ -23,6 +23,9 @@ public abstract class DrawableNote extends Drawable{
 	protected NoteType noteType;
 	protected Color color;
 	
+	// Empty constructor - this allows good things for prototyping
+	public DrawableNote() {}
+	
 	/**
 	 * DrawableNote
 	 * 
@@ -35,10 +38,11 @@ public abstract class DrawableNote extends Drawable{
 		color = Color.black;
 		note = n;
 		this.x = x;
-		this.y = y+yPositionOfNote(n.getPitch());
+		this.y = y;//+yPositionOfNote(n.getPitch());
 	}
 	
 	public abstract DrawableNote spawn(Note n,int x,int y);
+	public abstract double getBeatsCovered();
 	
 	public Note getNote()
 	{

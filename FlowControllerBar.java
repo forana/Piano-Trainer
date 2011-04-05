@@ -161,11 +161,11 @@ public class FlowControllerBar extends JPanel implements NoteEventListener {
 		}
 		
 		songProgressBar.setValue(Math.round(100*currentBeatCount/totalBeats));
-		if(n.equals(listenTrack.getNotes().get(listenTrack.getNotes().size()-1)) && e.getAction()==NoteAction.END){
+		/*if(n.equals(listenTrack.getNotes().get(listenTrack.getNotes().size()-1)) && e.getAction()==NoteAction.END){
 			songProgressBar.setValue(100);
 			musicEngine.pause();
 			musicEngine.stop();
-		}
+		}*/
 		
 	}
 }

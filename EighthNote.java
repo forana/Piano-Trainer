@@ -9,10 +9,16 @@ public class EighthNote extends DrawableNote{
 	public EighthNote(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
 		noteType = NoteType.EIGHTHNOTE;
-		
-		
+	}
+	
+	public DrawableNote spawn(Note n,int x,int y)
+	{
+		return new EighthNote(n,x,y);
+	}
+	
+	public int getWidth() {
+		return 8;
 	}
 
 	@Override

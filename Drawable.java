@@ -44,6 +44,11 @@ public abstract class Drawable {
 			return y;
 		}
 		
+		public int getWidth()
+		{
+			return 0;
+		}
+		
 		
 		protected int yPositionOfNote(int pitch)
 		{

@@ -23,6 +23,15 @@ public class SixteenthRest extends DrawableNote{
 		
 		
 	}
+	
+	public DrawableNote spawn(Note n,int x,int y)
+	{
+		return new SixteenthRest(n,x,y);
+	}
+	
+	public int getWidth() {
+		return 10;
+	}
 
 	@Override
 	public void draw(Graphics g) {

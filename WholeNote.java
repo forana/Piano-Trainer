@@ -14,6 +14,15 @@ public class WholeNote extends DrawableNote{
 		
 		
 	}
+	
+	public DrawableNote spawn(Note n,int x,int y)
+	{
+		return new WholeRest(n,x,y);
+	}
+	
+	public int getWidth() {
+		return 8;
+	}
 
 	@Override
 	public void draw(Graphics g) {

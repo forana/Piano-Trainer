@@ -23,6 +23,15 @@ public class QuarterRest extends DrawableNote{
 		
 		
 	}
+	
+	public DrawableNote spawn(Note n,int x,int y)
+	{
+		return new QuarterRest(n,x,y);
+	}
+	
+	public int getWidth() {
+		return 12;
+	}
 
 	@Override
 	public void draw(Graphics g) {

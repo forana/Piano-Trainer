@@ -20,11 +20,8 @@ public abstract class DrawableNote extends Drawable{
 	
 	/** the Note this DrawableNote "wraps" **/
 	protected Note note;
-	
 	protected NoteType noteType;
-	
 	protected Color color;
-
 	
 	/**
 	 * DrawableNote
@@ -41,7 +38,9 @@ public abstract class DrawableNote extends Drawable{
 		this.y = y+yPositionOfNote(n.getPitch());
 	}
 	
-	Note getNote()
+	public abstract DrawableNote spawn(Note n,int x,int y);
+	
+	public Note getNote()
 	{
 		return note;
 	}

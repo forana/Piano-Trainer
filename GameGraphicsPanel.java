@@ -206,34 +206,37 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Upda
 		
 		
 		//Draw falling Notes
-		for(Note n: fallingNotes.keySet())
+		synchronized (GameGraphicsPanel.class) 
 		{
-			long y = System.currentTimeMillis()-fallingNotes.get(n);
-			y = (y*440)/2000;
-			y += yOffset;
-			
-		
-			//BPM
-			//BPS = BPM/60
-			//BPMS = 
-			
-			long duration = (long) (n.getDuration()/(songModel.getBPM()/60.0/1000.0/440.0*2000.0));
-			
-			
-			g.setClip(nX(10),nY(yOffset),nX(1014),nY(500));
-			if(isSharp(n.getPitch()))
+			for(Note n: fallingNotes.keySet())
 			{
-				double color =  70-(70*(((System.currentTimeMillis()/250.0)%(songModel.getBPM()/60.0))/(songModel.getBPM()/60.0)));
-				g.setColor(new Color((int)color,(int)color,(int)color));
-				g.fillRect(nX(findXForKey(n.getPitch())-(1004/numWhiteKeys/4)), nY(y-duration), nX((1004/numWhiteKeys/2)), nY(duration));
-			}
-			else
-			{
-				double color =  245+(10*(((System.currentTimeMillis()/250.0)%(songModel.getBPM()/60.0))/(songModel.getBPM()/60.0)));
-				g.setColor(new Color((int)color,(int)color,(int)color));
-				g.fillRect(nX(findXForKey(n.getPitch())), nY(y-duration), nX(1004/numWhiteKeys), nY(duration));
-				g.setColor(new Color(0,0,0));
-				g.drawRect(nX(findXForKey(n.getPitch())), nY(y-duration), nX(1004/numWhiteKeys), nY(duration));
+				long y = System.currentTimeMillis()-fallingNotes.get(n);
+				y = (y*440)/2000;
+				y += yOffset;
+				
+			
+				//BPM
+				//BPS = BPM/60
+				//BPMS = 
+				
+				long duration = (long) (n.getDuration()/(songModel.getBPM()/60.0/1000.0/440.0*2000.0));
+				
+				
+				g.setClip(nX(10),nY(yOffset),nX(1014),nY(500));
+				if(isSharp(n.getPitch()))
+				{
+					double color =  70-(70*(((System.currentTimeMillis()/250.0)%(songModel.getBPM()/60.0))/(songModel.getBPM()/60.0)));
+					g.setColor(new Color((int)color,(int)color,(int)color));
+					g.fillRect(nX(findXForKey(n.getPitch())-(1004/numWhiteKeys/4)), nY(y-duration), nX((1004/numWhiteKeys/2)), nY(duration));
+				}
+				else
+				{
+					double color =  245+(10*(((System.currentTimeMillis()/250.0)%(songModel.getBPM()/60.0))/(songModel.getBPM()/60.0)));
+					g.setColor(new Color((int)color,(int)color,(int)color));
+					g.fillRect(nX(findXForKey(n.getPitch())), nY(y-duration), nX(1004/numWhiteKeys), nY(duration));
+					g.setColor(new Color(0,0,0));
+					g.drawRect(nX(findXForKey(n.getPitch())), nY(y-duration), nX(1004/numWhiteKeys), nY(duration));
+				}
 			}
 		}
 	}
@@ -250,8 +253,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Upda
 	public void handleNoteEvent(NoteEvent e) {
 		if(e.getAction()==NoteAction.BEGIN)
 		{
-			Object lockObject = new Object();
-			synchronized (lockObject) 
+			synchronized (GameGraphicsPanel.class) 
 			{
 
 			//if(e.getNote().getTrack().equals(activeTrack))

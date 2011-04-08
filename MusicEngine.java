@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.HashMap;
@@ -21,7 +23,6 @@ import crescendo.base.NoteEvent;
 import crescendo.base.NoteEventListener;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
-import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Creator;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
@@ -39,6 +40,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private static final int STAFF_SPACING=0;
 	private static final int STAFF_FULL_HEIGHT=STAFF_MARGIN*2+STAFF_HEIGHT+STAFF_SPACING;
 	
+	private static final String CLEF_TREBLE_PATH="resources/images/clef.treble.28x64.png";
+	private static final String CLEF_BASS_PATH="resources/images/clef.bass.28x64";
+	
 	private static final DrawableNote[] NOTE_PROTOTYPES=new DrawableNote[]{
 		new WholeNote(),
 		new HalfNote(),
@@ -54,6 +58,17 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		new EighthRest(),
 		new SixteenthRest()
 	};
+	
+	// images (want to make sure we only load these once for the entire program);
+	private static Image TREBLE_CLEF=null;
+	private static Image BASS_CLEF=null;
+	
+	private static void loadImages()
+	{
+		Toolkit tk=Toolkit.getDefaultToolkit();
+		TREBLE_CLEF=tk.createImage(CLEF_TREBLE_PATH);
+		BASS_CLEF=tk.createImage(CLEF_BASS_PATH);
+	}
 	
 	//data items
 	private SongModel model;
@@ -294,8 +309,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					int lw=lead+measures*this.measureWidth;
 					yb+=STAFF_MARGIN;
 					// draw clef
-					g.drawLine(xb,yb,xb+CLEF_WIDTH,yb+STAFF_HEIGHT);
-					g.drawLine(xb+CLEF_WIDTH,yb,xb,yb+STAFF_HEIGHT);
+					if (TREBLE_CLEF==null)
+					{
+						loadImages();
+					}
+					g.drawImage(TREBLE_CLEF,MARGIN,yb-2*STAFF_LINE_HEIGHT,CLEF_WIDTH,2*STAFF_HEIGHT,this);
 					// draw time signature
 					g.setFont(new Font(Font.SERIF,Font.BOLD,STAFF_HEIGHT/2));
 					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatsPerMeasure()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT/2-2);
@@ -316,18 +334,18 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 						g.drawLine(xb,yb,xb+lw,yb);
 					}
 					yb+=STAFF_MARGIN+STAFF_SPACING;
-					// draw notes
-					for (Drawable draw : this.drawables)
-					{
-						draw.draw(g);
-					}
 				}
-			}
-			// draw line
-			if (this.barX>=0)
-			{
-				g.setColor(Color.RED);
-				g.drawLine(this.barX,this.barY,this.barX,this.barY+STAFF_HEIGHT+2*STAFF_MARGIN);
+				// draw notes
+				for (Drawable draw : this.drawables)
+				{
+					draw.draw(g);
+				}
+				// draw line
+				if (this.barX>=0)
+				{
+					g.setColor(Color.RED);
+					g.drawLine(this.barX,this.barY,this.barX,this.barY+STAFF_HEIGHT+2*STAFF_MARGIN);
+				}
 			}
 		}
 	}
@@ -377,6 +395,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			for (DrawableNote note : this.noteMap.get(e.getExpectedNote().getNote()))
 			{
 				note.setCorrect(e.isCorrect());
+				this.repaint();
 			}
 		}
 	}

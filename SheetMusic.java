@@ -105,7 +105,7 @@ public class SheetMusic extends Module{
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		score=new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics);
 		scoreFeedbackFrame = new ScoreFrame(score);
-		musicEngine = new MusicEngine(selectedSongModel,activeTrack,songPlayer.getSongState());
+		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
 		bottomBarContainer = new JPanel();
 		bottomBarContainer.setLayout(new GridLayout(1,2));
 		
@@ -131,7 +131,7 @@ public class SheetMusic extends Module{
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
 		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)/2);
 		songPlayer.attach(bar,20);
-		songPlayer.attach(musicEngine);
+		songPlayer.attach(musicEngine,20); // assuming it takes 20 ms to render
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);

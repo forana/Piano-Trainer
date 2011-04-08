@@ -56,6 +56,10 @@ public abstract class DrawableNote extends Drawable{
 			color = Color.red;
 	}
 	
+	public void reset() {
+		color=Color.black;
+	}
+	
 	/**
 	 * draw
 	 * 

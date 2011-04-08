@@ -16,17 +16,18 @@ import javax.swing.JPanel;
 import javax.swing.Scrollable;
 
 import crescendo.base.FlowController;
+import crescendo.base.NoteAction;
+import crescendo.base.NoteEvent;
+import crescendo.base.NoteEventListener;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
-import crescendo.base.SongState;
-import crescendo.base.Updatable;
-import crescendo.base.UpdateTimer;
+import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Creator;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 
-public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener,Scrollable,Updatable,FlowController {
+public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener,Scrollable,FlowController,NoteEventListener {
 	private static final long serialVersionUID=1L;
 	
 	private static final int MARGIN=10;
@@ -61,13 +62,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private double beatNote;
 	private int measureCount;
 	
-	//items for bar motion
-	private double barPos;
-	private UpdateTimer timer;
-	private Thread updateThread;
-	private long lastUpdate;
-	private SongState state;
-	
 	//alignment items
 	private boolean built;
 	private Map<Note,List<DrawableNote>> noteMap;
@@ -77,15 +71,16 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private int decoratorWidth=0;
 	private int measuresPerLine;
 	private double beatWidth;
+	private int barX;
+	private int barY;
 	
-	public MusicEngine(SongModel model,Track activeTrack,SongState state){
-		this(model,activeTrack,state,true);
+	public MusicEngine(SongModel model,Track activeTrack){
+		this(model,activeTrack,true);
 	}
 
-	public MusicEngine(SongModel model,Track activeTrack,SongState state,boolean showTitle){
+	public MusicEngine(SongModel model,Track activeTrack,boolean showTitle){
 		this.model=model;
 		this.activeTrack=activeTrack;
-		this.state=state;
 		this.titleShowing=showTitle;
 		this.addComponentListener(this);
 		
@@ -93,12 +88,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		this.beatNote=model.getTimeSignature().getBeatNote();
 		this.measureCount=(int)Math.ceil(model.getDuration()/beatsPerMeasure);
 		
-		this.timer=new UpdateTimer(this);
-		this.updateThread=new Thread(this.timer);
-		this.barPos=-1;
-		this.lastUpdate=0;
-		
 		this.built=false;
+		
+		this.barX=-1;
+		this.barY=-1;
 	}
 	
 	private void build()
@@ -328,55 +321,54 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					{
 						draw.draw(g);
 					}
-					// draw line
-					if (this.barPos>=0)
-					{
-						int vPos=(int)barPos/(this.measureWidth*this.measuresPerLine);
-						int hPos=(int)barPos%(this.measureWidth*this.measuresPerLine);
-						vPos*=STAFF_FULL_HEIGHT;
-						vPos+=(this.titleShowing?HEADER_HEIGHT:0);
-						vPos+=MARGIN;
-						hPos+=MARGIN+CLEF_WIDTH+this.decoratorWidth;
-						g.setColor(Color.RED);
-						g.drawLine(hPos,vPos,hPos,vPos+STAFF_HEIGHT+2*STAFF_MARGIN);
-					}
 				}
+			}
+			// draw line
+			if (this.barX>=0)
+			{
+				g.setColor(Color.RED);
+				g.drawLine(this.barX,this.barY,this.barX,this.barY+STAFF_HEIGHT+2*STAFF_MARGIN);
 			}
 		}
 	}
 
 	public void play(){
-		this.timer.stop();
-		// assuming our average latency from data -> screen is 20ms, let's do something about that
-		this.barPos=0;
-		this.lastUpdate=System.currentTimeMillis();
-		this.updateThread=new Thread(this.timer);
-		this.updateThread.start();
+		for (List<DrawableNote> noteList : this.noteMap.values())
+		{
+			for (DrawableNote note : noteList)
+			{
+				note.reset();
+			}
+		}
+		this.barX=MARGIN+CLEF_WIDTH+this.decoratorWidth;
+		this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0);
 	}
 
 	public void pause(){
-		this.timer.pause();
 	}
 
 	public void stop(){
-		this.timer.stop();
 	}
 
 	public void resume(){
-		this.timer.resume();
-	}
-	
-	public void update(){
-		long newTime=System.currentTimeMillis();
-		double beatsPerMS=this.state.getBPM()/60000.0;
-		double distance=this.beatWidth*beatsPerMS*(newTime-this.lastUpdate);
-		this.lastUpdate=newTime;
-		this.barPos+=distance;
-		this.repaint();
 	}
 	
 	public void suspend(){}
 	public void songEnd(){}
+	
+	public void handleNoteEvent(NoteEvent e) {
+		if (e.getNote().getTrack()==this.activeTrack && e.getAction()==NoteAction.BEGIN)
+		{
+			List<DrawableNote> noteList=this.noteMap.get(e.getNote());
+			if (noteList!=null)
+			{
+				DrawableNote note=noteList.get(0);
+				this.barX=note.getX()+note.getWidth()/2;
+				this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0)+((note.getY()-MARGIN-(this.titleShowing?HEADER_HEIGHT:0))/STAFF_FULL_HEIGHT*STAFF_FULL_HEIGHT);
+				this.repaint();
+			}
+		}
+	}
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {

@@ -89,6 +89,23 @@ public abstract class DrawableNote extends Drawable{
 				}
 				flipper=!flipper;
 			}
+			offset=0;
+			for (int p=note.getPitch(); p<64; p++)
+			{
+				if (!MusicEngine.isSharp(p))
+				{
+					offset++;
+				}
+			}
+			flipper=(offset%2==0);
+			for (int i=-1; i<offset; i++)
+			{
+				if (flipper)
+				{
+					g.drawLine(x-2,y-i*MusicEngine.STAFF_LINE_HEIGHT/2,x+getWidth()+2,y-i*MusicEngine.STAFF_LINE_HEIGHT/2);
+				}
+				flipper=!flipper;
+			}
 		}
 	}
 }

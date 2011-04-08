@@ -33,6 +33,6 @@ public class EighthRest extends DrawableNote{
 		g.setColor(color);
 		g.drawLine(x-5,y+10,x+5,y-10);
 		g.drawLine(x+5,y-10,x-5,y-6);
-		g.fillOval(x-7,y-10,6,6);
+		g.fillOval(x-7,y-10,5,5);
 	}
 }

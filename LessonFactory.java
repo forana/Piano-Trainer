@@ -354,7 +354,7 @@ public class LessonFactory
 	
 	private static TextItem parseTextItem(Node n)
 	{
-		return new TextItem(n.getTextContent());
+		return new TextItem("<html><p>"+n.getTextContent()+"</p></html>");
 	}
 	
 	private static LinkItem parseLinkItem(Node n)

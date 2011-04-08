@@ -48,6 +48,7 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 	public MusicPanel(MusicItem item,JComponent module) throws IOException {
 		this.item=item;
 		this.module=module;
+		
 		this.setBackground(Color.WHITE);
 		Font font=new Font(Font.SERIF,Font.BOLD,14);
 		JPanel panel=new JPanel();
@@ -55,7 +56,11 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		panel.setBackground(Color.LIGHT_GRAY);
 		panel.setLayout(new GridBagLayout());
 		SongModel model=SongFactory.generateSongFromFile(item.getSource());
-		this.engine=new MusicEngine(model,item.getTrack());
+		
+		this.grader=new LessonGrader();
+		this.player=new SongPlayer(model);
+		
+		this.engine=new MusicEngine(model,model.getTracks().get(item.getTrack()),player.getSongState());
 		this.add(this.engine);
 		this.playIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/play.png"));
 		this.stopIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/stop.png"));
@@ -83,8 +88,6 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		panel.add(music,c);
 		this.add(panel);
 		
-		this.grader=new LessonGrader();
-		this.player=new SongPlayer(model);
 		SongValidator validator=new SongValidator(model,model.getTracks().get(item.getTrack()),item.getHeuristics());
 		this.player.attach(validator,100);
 		this.audio=new AudioPlayer(model,model.getTracks().get(item.getTrack()));

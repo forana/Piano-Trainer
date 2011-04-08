@@ -1,8 +1,12 @@
 package crescendo.lesson;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -34,7 +38,7 @@ public class Lesson implements BookItem,LessonTreeNode
 	
 	public JPanel getPanel(JComponent module)
 	{
-		JPanel panel=new JPanel();
+		final JPanel panel=new JPanel();
 		panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
 		panel.setBackground(Color.WHITE);
 		JPanel header=new JPanel();
@@ -48,6 +52,23 @@ public class Lesson implements BookItem,LessonTreeNode
 		{
 			panel.add(item.getPanel(module));
 		}
+		panel.addComponentListener(new ComponentListener () {
+			public void componentResized(ComponentEvent e)
+			{
+				for (Component child : panel.getComponents())
+				{
+					child.setMaximumSize(new Dimension(panel.getWidth(),Integer.MAX_VALUE));
+				}
+			}
+			
+			public void componentShown(ComponentEvent e)
+			{
+				componentResized(e);
+			}
+
+			public void componentHidden(ComponentEvent e){}
+			public void componentMoved(ComponentEvent e){}
+		});
 		return panel;
 	}
 	

@@ -10,6 +10,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Collections;
@@ -76,6 +78,21 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		base.add(titleLabel);
 		this.rightScroll=new JScrollPane(base,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		this.add(this.rightScroll);
+		
+		this.rightScroll.addComponentListener(new ComponentListener() {
+			public void componentResized(ComponentEvent e)
+			{
+				rightScroll.getViewport().getView().setMaximumSize(new Dimension(getWidth(),Integer.MAX_VALUE));
+			}
+			
+			public void componentShown(ComponentEvent e)
+			{
+				componentResized(e);
+			}
+
+			public void componentHidden(ComponentEvent e){}
+			public void componentMoved(ComponentEvent e){}
+		});
 	}
 	
 	private void loadTree() {

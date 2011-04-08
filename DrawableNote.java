@@ -66,6 +66,25 @@ public abstract class DrawableNote extends Drawable{
 	public void draw(Graphics g)
 	{
 		g.setColor(Color.BLACK);
+		if (note.isPlayable())
+		{
+			int offset=0;
+			for (int p=note.getPitch(); p>76; p--)
+			{
+				if (!MusicEngine.isSharp(p))
+				{
+					offset++;
+				}
+			}
+			boolean flipper=(offset%2==1);
+			for (int i=1; i<offset; i++)
+			{
+				if (flipper)
+				{
+					g.drawLine(x-2,y+i*MusicEngine.STAFF_LINE_HEIGHT/2,x+getWidth()+2,y+i*MusicEngine.STAFF_LINE_HEIGHT/2);
+				}
+				flipper=!flipper;
+			}
+		}
 	}
-
 }

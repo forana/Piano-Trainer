@@ -13,17 +13,6 @@ public class QuarterRest extends DrawableNote{
 		super(n,x,y);
 		
 		noteType = NoteType.QUARTERNOTE;
-		
-		if(this.note.getPitch()>=60)
-		{
-			this.y = y+yPositionOfNote(72);
-		}
-		else
-		{
-			this.y = y+yPositionOfNote(52);
-		}
-		
-		
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

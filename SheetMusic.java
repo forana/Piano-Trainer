@@ -15,6 +15,7 @@ import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
+import crescendo.base.profile.ProfileManager;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
@@ -90,8 +91,8 @@ public class SheetMusic extends Module{
 		this.activeTrack=activeTrack;
 		
 		// Initialize meta-things
-		boolean careAboutPitch=true;
-		boolean careAboutDynamic=false;
+		boolean careAboutPitch=ProfileManager.getInstance().getActiveProfile().getIsPitchGraded();
+		boolean careAboutDynamic=ProfileManager.getInstance().getActiveProfile().getIsDynamicGraded();
 		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
 		
 		//Hook up song processor pieces
@@ -104,7 +105,7 @@ public class SheetMusic extends Module{
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		score=new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics);
 		scoreFeedbackFrame = new ScoreFrame(score);
-		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
+		musicEngine = new MusicEngine(selectedSongModel,activeTrack,songPlayer.getSongState());
 		bottomBarContainer = new JPanel();
 		bottomBarContainer.setLayout(new GridLayout(1,2));
 		
@@ -130,6 +131,7 @@ public class SheetMusic extends Module{
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
 		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)/2);
 		songPlayer.attach(bar,20);
+		songPlayer.attach(musicEngine);
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);
@@ -185,7 +187,6 @@ public class SheetMusic extends Module{
 				audioPlayer.handleNoteEvent(bne);
 				Thread.sleep(10);
 				audioPlayer.handleNoteEvent(ene);
-				System.out.println();
 				Thread.sleep((int)1000/(songPlayer.getSongState().getBPM()/60));
 			} catch (InterruptedException e) {}
 		}

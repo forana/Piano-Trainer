@@ -1,9 +1,6 @@
 package crescendo.sheetmusic;
 
 import java.awt.Graphics;
-import java.util.List;
-
-import crescendo.base.song.Note;
 
 public class Sharp extends DrawableModifier{
 
@@ -11,7 +8,7 @@ public class Sharp extends DrawableModifier{
 	
 	public Sharp(DrawableNote n){
 		note = n;
-		x = n.getX();
+		x = n.getX()+n.getWidth();
 		y = n.getY();
 	}
 
@@ -20,12 +17,9 @@ public class Sharp extends DrawableModifier{
 		// draw note first and absorb its color
 		note.draw(g);
 		
-		g.drawLine((int)(x+5), (int)(y+3), (int)(x+15), (int)(y-7));
-		g.drawLine((int)(x+5), (int)(y+8), (int)(x+15), (int)(y-2));
-		
-		
-		g.drawLine((int)(x+12), (int)(y-10), (int)(x+12), (int)(y+5));
-		g.drawLine((int)(x+8), (int)(y-5), (int)(x+8), (int)(y+10));
-		
+		g.drawLine(x+2,y-6,x+10,y-7);
+		g.drawLine(x+2,y-2,x+10,y-3);
+		g.drawLine(x+4,y-7,x+4,y);
+		g.drawLine(x+8,y-8,x+8,y-1);
 	}
 }

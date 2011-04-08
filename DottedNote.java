@@ -4,21 +4,35 @@ import java.awt.Graphics;
 
 import crescendo.base.song.Note;
 
-public class Dot extends DrawableNote {
+public class DottedNote extends DrawableNote {
 	
 	private DrawableNote wrappedNote;
 	
-	public 
-
-	@Override
-	public double getBeatsCovered() {
-		// TODO Auto-generated method stub
-		return 0;
+	public DottedNote(DrawableNote note)
+	{
+		super(note.getNote(),note.getX(),note.getY());
+		this.wrappedNote=note;
 	}
-
-	@Override
+	
+	public int getWidth()
+	{
+		return this.wrappedNote.getWidth()+6;
+	}
+	
+	public double getBeatsCovered() {
+		return this.wrappedNote.getBeatsCovered()*1.5;
+	}
+	
+	public void setCorrect(boolean b) {
+		this.wrappedNote.setCorrect(b);
+	}
+	
 	public DrawableNote spawn(Note n, int x, int y) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Dotted notes are not to be used for prototyping.");
+	}
+	
+	public void draw(Graphics g) {
+		this.wrappedNote.draw(g);
+		g.fillOval(x+this.wrappedNote.getWidth()+2,y,6,6);
 	}
 }

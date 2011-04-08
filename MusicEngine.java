@@ -15,17 +15,22 @@ import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
 
+import crescendo.base.FlowController;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
+import crescendo.base.SongState;
+import crescendo.base.Updatable;
+import crescendo.base.UpdateTimer;
+import crescendo.base.song.Creator;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 
-public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener,Scrollable {
+public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener,Scrollable,Updatable,FlowController {
 	private static final long serialVersionUID=1L;
 	
 	private static final int MARGIN=10;
-	private static final int HEADER_HEIGHT=30;
+	private static final int HEADER_HEIGHT=52;
 	public static final int CLEF_WIDTH=24;
 	public static final int STAFF_LINE_HEIGHT=8;
 	public static final int STAFF_HEIGHT=4*STAFF_LINE_HEIGHT;
@@ -56,29 +61,42 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private double beatNote;
 	private int measureCount;
 	
+	//items for bar motion
+	private double barPos;
+	private UpdateTimer timer;
+	private Thread updateThread;
+	private long lastUpdate;
+	private SongState state;
+	
 	//alignment items
 	private boolean built;
 	private Map<Note,List<DrawableNote>> noteMap;
 	private List<Drawable> drawables;
 	private boolean titleShowing;
-	private int measureWidth=150; // maybe someday this won't be hardcoded
+	private int measureWidth=200; // maybe someday this won't be hardcoded
 	private int decoratorWidth=0;
 	private int measuresPerLine;
 	private double beatWidth;
 	
-	public MusicEngine(SongModel model,Track activeTrack){
-		this(model,activeTrack,true);
+	public MusicEngine(SongModel model,Track activeTrack,SongState state){
+		this(model,activeTrack,state,true);
 	}
 
-	public MusicEngine(SongModel model,Track activeTrack,boolean showTitle){
+	public MusicEngine(SongModel model,Track activeTrack,SongState state,boolean showTitle){
 		this.model=model;
 		this.activeTrack=activeTrack;
+		this.state=state;
 		this.titleShowing=showTitle;
 		this.addComponentListener(this);
 		
 		this.beatsPerMeasure=model.getTimeSignature().getBeatsPerMeasure();
 		this.beatNote=model.getTimeSignature().getBeatNote();
 		this.measureCount=(int)Math.ceil(model.getDuration()/beatsPerMeasure);
+		
+		this.timer=new UpdateTimer(this);
+		this.updateThread=new Thread(this.timer);
+		this.barPos=-1;
+		this.lastUpdate=0;
 		
 		this.built=false;
 	}
@@ -144,7 +162,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			}
 			if (last!=null)
 			{
-				last=new Tie(last,d);
+				if (note.isPlayable())
+				{
+					last=new Tie(last,d);
+				}
 				this.drawables.add(last);
 			}
 			last=d;
@@ -153,7 +174,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		{
 			this.drawables.add(last);
 		}
-		System.out.println(last);
 		return ret;
 	}
 	
@@ -168,23 +188,32 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			}
 			else
 			{
-				ret.add(prototypeArray[i].spawn(note,
+				DrawableNote spawned=prototypeArray[i].spawn(note,
 					getX(beatOffset,prototypeArray[i].getBeatsCovered(),prototypeArray[i].getWidth()),
-					getY(note,beatOffset)));
-				duration-=prototypeArray[i].getBeatsCovered();
-				beatOffset+=prototypeArray[i].getBeatsCovered();
+					getY(note,beatOffset));
+				// add dot if it comes out EXACTLY right, otherwise assume ties will be used
+				if (spawned.getBeatsCovered()*1.5==duration)
+				{
+					spawned=new DottedNote(spawned);
+				}
+				ret.add(spawned);
+				duration-=spawned.getBeatsCovered();
+				beatOffset+=spawned.getBeatsCovered();
 			}
 		}
 		return ret;
 	}
 	
 	private int getX(double beats,double count,double width) {
+		// place on proper line
 		int xb=MARGIN+CLEF_WIDTH+this.decoratorWidth;
 		while (beats>=this.beatsPerMeasure*this.measuresPerLine)
 		{
 			beats-=this.beatsPerMeasure*this.measuresPerLine;
 		}
+		// place in proper measure
 		xb+=(int)(beats*this.beatWidth);
+		// center note in its alotted area
 		xb+=(int)(count*this.beatWidth+width)/2;
 		return xb;
 	}
@@ -223,68 +252,131 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 
 	@Override
 	public void paint(Graphics g){
-		if (this.getWidth()>0 && this.built)
+		synchronized(MusicEngine.class)
 		{
-			// wipe it
-			g.setColor(Color.WHITE);
-			g.fillRect(0,0,this.getWidth(),this.getHeight());
-			// draw staff lines
-			g.setColor(Color.BLACK);
-			int xb=MARGIN;
-			int lead=CLEF_WIDTH+this.decoratorWidth;
-			int yb=MARGIN+(this.titleShowing?HEADER_HEIGHT:0);
-			for (int i=0; i<Math.ceil(1.0*this.measureCount/this.measuresPerLine); i++)
+			if (this.getWidth()>0 && this.built)
 			{
-				int measures=this.measuresPerLine;
-				if (i==this.measureCount/this.measuresPerLine)
+				// wipe it
+				g.setColor(Color.WHITE);
+				g.fillRect(0,0,this.getWidth(),this.getHeight());
+				// draw header
+				g.setColor(Color.BLACK);
+				if (this.titleShowing)
 				{
-					measures=this.measureCount%this.measuresPerLine;
-				}
-				int lw=lead+measures*this.measureWidth;
-				yb+=STAFF_MARGIN;
-				// draw clef
-				g.drawLine(xb,yb,xb+CLEF_WIDTH,yb+STAFF_HEIGHT);
-				g.drawLine(xb+CLEF_WIDTH,yb,xb,yb+STAFF_HEIGHT);
-				// draw time signature
-				g.setFont(new Font(Font.SERIF,Font.BOLD,STAFF_HEIGHT/2));
-				g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatsPerMeasure()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT/2-2);
-				g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatNote()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT-2);
-				// draw vertical lines
-				for (int j=0; j<measures; j++)
-				{
-					g.drawLine(xb+lead+(j+1)*this.measureWidth,yb,xb+lead+(j+1)*this.measureWidth,yb+STAFF_HEIGHT);
-				}
-				g.drawLine(xb,yb,xb,yb+STAFF_HEIGHT);
-				// draw horizontal lines
-				for (int j=0; j<5; j++)
-				{
-					if (j!=0)
+					Font headerFont=new Font(Font.SERIF,Font.BOLD,24);
+					g.setFont(headerFont);
+					String title=this.model.getTitle();
+					int width=this.getFontMetrics(headerFont).stringWidth(title);
+					String creator=null;
+					for (Creator c : this.model.getCreators())
 					{
-						yb+=STAFF_LINE_HEIGHT;
+						if (creator==null)
+						{
+							creator="";
+						}
+						else
+						{
+							creator+=", ";
+						}
+						creator+=c.getType()+": "+c.getName();
 					}
-					g.drawLine(xb,yb,xb+lw,yb);
+					g.drawString(title,(this.getWidth()-width)/2,24);
+					headerFont=headerFont.deriveFont(Font.PLAIN,16);
+					g.setFont(headerFont);
+					width=this.getFontMetrics(headerFont).stringWidth(creator);
+					g.drawString(creator,(this.getWidth()-width)/2,40);
 				}
-				yb+=STAFF_MARGIN+STAFF_SPACING;
-				// draw notes
-				for (Drawable draw : this.drawables)
+				// draw staff lines
+				g.setColor(Color.BLACK);
+				int xb=MARGIN;
+				int lead=CLEF_WIDTH+this.decoratorWidth;
+				int yb=MARGIN+(this.titleShowing?HEADER_HEIGHT:0);
+				for (int i=0; i<Math.ceil(1.0*this.measureCount/this.measuresPerLine); i++)
 				{
-					draw.draw(g);
+					int measures=this.measuresPerLine;
+					if (i==this.measureCount/this.measuresPerLine)
+					{
+						measures=this.measureCount%this.measuresPerLine;
+					}
+					int lw=lead+measures*this.measureWidth;
+					yb+=STAFF_MARGIN;
+					// draw clef
+					g.drawLine(xb,yb,xb+CLEF_WIDTH,yb+STAFF_HEIGHT);
+					g.drawLine(xb+CLEF_WIDTH,yb,xb,yb+STAFF_HEIGHT);
+					// draw time signature
+					g.setFont(new Font(Font.SERIF,Font.BOLD,STAFF_HEIGHT/2));
+					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatsPerMeasure()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT/2-2);
+					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatNote()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT-2);
+					// draw vertical lines
+					for (int j=0; j<measures; j++)
+					{
+						g.drawLine(xb+lead+(j+1)*this.measureWidth,yb,xb+lead+(j+1)*this.measureWidth,yb+STAFF_HEIGHT);
+					}
+					g.drawLine(xb,yb,xb,yb+STAFF_HEIGHT);
+					// draw horizontal lines
+					for (int j=0; j<5; j++)
+					{
+						if (j!=0)
+						{
+							yb+=STAFF_LINE_HEIGHT;
+						}
+						g.drawLine(xb,yb,xb+lw,yb);
+					}
+					yb+=STAFF_MARGIN+STAFF_SPACING;
+					// draw notes
+					for (Drawable draw : this.drawables)
+					{
+						draw.draw(g);
+					}
+					// draw line
+					if (this.barPos>=0)
+					{
+						int vPos=(int)barPos/(this.measureWidth*this.measuresPerLine);
+						int hPos=(int)barPos%(this.measureWidth*this.measuresPerLine);
+						vPos*=STAFF_FULL_HEIGHT;
+						vPos+=(this.titleShowing?HEADER_HEIGHT:0);
+						vPos+=MARGIN;
+						hPos+=MARGIN+CLEF_WIDTH+this.decoratorWidth;
+						g.setColor(Color.RED);
+						g.drawLine(hPos,vPos,hPos,vPos+STAFF_HEIGHT+2*STAFF_MARGIN);
+					}
 				}
 			}
 		}
 	}
 
 	public void play(){
+		this.timer.stop();
+		// assuming our average latency from data -> screen is 20ms, let's do something about that
+		this.barPos=0;
+		this.lastUpdate=System.currentTimeMillis();
+		this.updateThread=new Thread(this.timer);
+		this.updateThread.start();
 	}
 
 	public void pause(){
+		this.timer.pause();
 	}
 
 	public void stop(){
+		this.timer.stop();
 	}
 
 	public void resume(){
+		this.timer.resume();
 	}
+	
+	public void update(){
+		long newTime=System.currentTimeMillis();
+		double beatsPerMS=this.state.getBPM()/60000.0;
+		double distance=this.beatWidth*beatsPerMS*(newTime-this.lastUpdate);
+		this.lastUpdate=newTime;
+		this.barPos+=distance;
+		this.repaint();
+	}
+	
+	public void suspend(){}
+	public void songEnd(){}
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
@@ -295,10 +387,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 				note.setCorrect(e.isCorrect());
 			}
 		}
-		repaint();
 	}
 	
-	private static boolean isSharp(int n)
+	public static boolean isSharp(int n)
 	{
 		return n%12==1 || n%12==3 || n%12==6 || n%12==8 || n%12==10;
 	}
@@ -309,8 +400,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	
 	public void componentResized(ComponentEvent arg0)
 	{
-		this.build();
-		this.updateUI();
+		synchronized (MusicEngine.class)
+		{
+			this.build();
+			this.updateUI();
+		}
 	}
 
 	@Override

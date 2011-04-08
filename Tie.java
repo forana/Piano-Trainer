@@ -22,6 +22,7 @@ public class Tie extends DrawableModifier{
 		g2.setStroke(new BasicStroke(2));
 		if (startNote.getY()==endNote.getY()) // same line
 		{
+			// this math is really bad
 			double x=startNote.getX()+startNote.getWidth()-(endNote.getX()-startNote.getX())/2;
 			double y=startNote.getY();
 			double w=2*(endNote.getX()-startNote.getX())-startNote.getWidth();

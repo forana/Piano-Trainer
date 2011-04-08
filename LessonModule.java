@@ -77,6 +77,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		JLabel titleLabel=new JLabel("Add a lesson book or select a lesson.");
 		base.add(titleLabel);
 		this.rightScroll=new JScrollPane(base,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		this.rightScroll.setBackground(Color.WHITE);
 		this.add(this.rightScroll);
 		
 		this.rightScroll.addComponentListener(new ComponentListener() {

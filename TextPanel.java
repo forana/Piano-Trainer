@@ -1,7 +1,7 @@
 package crescendo.lesson;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Font;
 
 import javax.swing.JLabel;
@@ -12,10 +12,11 @@ public class TextPanel extends JPanel {
 	
 	public TextPanel(String text) {
 		super();
-		JLabel label= new JLabel(text);
+		JLabel label= new JLabel();
+		label.setText(text);
 		label.setFont(new Font(Font.SERIF,Font.PLAIN,12));
 		this.setBackground(Color.WHITE);
-		this.setLayout(new FlowLayout(FlowLayout.LEFT));
+		this.setLayout(new BorderLayout());
 		this.add(label);
 	}
 }

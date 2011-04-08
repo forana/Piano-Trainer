@@ -1,18 +1,9 @@
 package crescendo.lesson;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.TreeNode;
 
@@ -34,6 +25,11 @@ public class Chapter implements BookItem,LessonTreeNode
 		return this.contents;
 	}
 	
+	public String getTitle()
+	{
+		return this.title;
+	}
+	
 	public List<PageItem> getItems()
 	{
 		return this.items;
@@ -41,38 +37,7 @@ public class Chapter implements BookItem,LessonTreeNode
 	
 	public JPanel getPanel(JComponent module)
 	{
-		final JPanel panel=new JPanel();
-		panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-		panel.setBackground(Color.WHITE);
-		JPanel header=new JPanel();
-		header.setLayout(new FlowLayout(FlowLayout.CENTER));
-		header.setBackground(Color.WHITE);
-		JLabel titleLabel=new JLabel(this.title);
-		titleLabel.setFont(new Font(Font.SERIF,Font.BOLD,20));
-		header.add(titleLabel);
-		panel.add(header);
-		for (PageItem item : this.items)
-		{
-			panel.add(item.getPanel(module));
-		}
-		panel.addComponentListener(new ComponentListener () {
-			public void componentResized(ComponentEvent e)
-			{
-				for (Component child : panel.getComponents())
-				{
-					child.setMaximumSize(new Dimension(panel.getWidth(),Integer.MAX_VALUE));
-				}
-			}
-			
-			public void componentShown(ComponentEvent e)
-			{
-				componentResized(e);
-			}
-
-			public void componentHidden(ComponentEvent e){}
-			public void componentMoved(ComponentEvent e){}
-		});
-		return panel;
+		return new ChapterPanel(this,module);
 	}
 	
 	public TreeNode getChildAt(int childIndex) {

@@ -13,17 +13,6 @@ public class WholeRest extends DrawableNote{
 		super(n,x,y);
 		
 		noteType = NoteType.WHOLENOTE;
-		
-		if(this.note.getPitch()>=60)
-		{
-			this.y = y+yPositionOfNote(73);
-		}
-		else
-		{
-			this.y = y+yPositionOfNote(53);
-		}
-		
-		
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

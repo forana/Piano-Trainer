@@ -38,6 +38,7 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 	private Icon stopIcon;
 	private MusicEngine engine;
 	private JButton actionButton;
+	private JButton previewButton;
 	private JLabel scoreLabel;
 	private SongPlayer player;
 	private LessonGrader grader;
@@ -46,6 +47,7 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 	private JComponent module;
 
 	public MusicPanel(MusicItem item,JComponent module) throws IOException {
+		final String PREVIEW_TEXT = "Preview";
 		this.item=item;
 		this.module=module;
 		
@@ -65,6 +67,8 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		this.playIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/play.png"));
 		this.stopIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/stop.png"));
 		this.actionButton=new JButton(playIcon);
+		this.previewButton=new JButton(PREVIEW_TEXT);
+		this.previewButton.setActionCommand("preview");
 		this.scoreLabel=new JLabel("Grade");
 		this.setScoreText();
 		this.scoreLabel.setFont(font);
@@ -77,6 +81,9 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		c.ipadx=5;
 		c.ipady=5;
 		panel.add(actionButton,c);
+		c.weightx=10;
+		panel.add(previewButton,c);
+		c.weightx=1;
 		c.anchor=GridBagConstraints.CENTER;
 		JLabel titleLabel=new JLabel(model.getTitle());
 		titleLabel.setFont(font);
@@ -98,6 +105,7 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		EventDispatcher.getInstance().attach(validator);
 		
 		this.actionButton.addActionListener(this);
+		this.previewButton.addActionListener(this);
 	}
 	
 	private void setScoreText()
@@ -133,7 +141,13 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-		if (this.actionButton.getIcon()==this.playIcon) {
+		if (e.getActionCommand().equals("preview")){
+			//Preview the music snippet before practicing it
+			AudioPlayer temporaryAudio = new AudioPlayer(this.player.getSong(), null);
+			SongPlayer temporaryPlayer = new SongPlayer(this.player.getSong());
+			temporaryPlayer.attach(temporaryAudio,(int)temporaryAudio.getLatency());
+			temporaryPlayer.play();
+		} else if (this.actionButton.getIcon()==this.playIcon) {
 			this.playIntro();
 			this.grader.reset();
 			this.engine.play();

@@ -1,6 +1,6 @@
 package crescendo.game;
 
-import java.awt.Dimension;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -32,7 +32,7 @@ public class GameEngine extends JPanel{
 	 * @param model - A reference the the songmodel to work from
 	 * @param activeTrack - the active track to display the notes of
 	 */
-	public GameEngine(GameModule module,SongModel model,Track activeTrack) {
+	public GameEngine(GameModule module,SongModel model,Track activeTrack,List<Track> audioTracks) {
 		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 		
 		HeuristicsModel heuristics=new HeuristicsModel(ProfileManager.getInstance().getActiveProfile().getIsPitchGraded(),
@@ -44,8 +44,8 @@ public class GameEngine extends JPanel{
 		ScoreCalculator calc=new ScoreCalculator(heuristics.listeningPitch(),heuristics.listeningVelocity(),player.getSongState(),heuristics);
 		
 		
-		scorePanel = new GameScorePanel(module,model,activeTrack,calc);
-		graphicsPanel = new GameGraphicsPanel(model,activeTrack,player);
+		scorePanel = new GameScorePanel(module,model,activeTrack,audioTracks,calc);
+		graphicsPanel = new GameGraphicsPanel(model,activeTrack,audioTracks,player);
 		
 		player.attach(scorePanel);
 		player.attach(validator,(int)(heuristics.getTimingInterval()/player.getSongState().getBPM()*60000)/2);

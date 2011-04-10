@@ -3,6 +3,8 @@ package crescendo.game;
 //import javax.swing.JComponent;
 //import crescendo.base.HeuristicsModel;
 //import crescendo.base.SongValidator;
+import java.util.List;
+
 import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
 //import crescendo.base.profile.ProfileManager;
@@ -19,10 +21,10 @@ public class GameModule extends Module {
 		this.showSongSelectionPanel();
 	}
 	
-	public void showGamePanel(SongModel model,Track activeTrack) {
+	public void showGamePanel(SongModel model,Track activeTrack,List<Track> audioTracks) {
 		EventDispatcher.getInstance().detachAllMidi();
 		this.removeAll();
-		this.add(new GameEngine(this,model,activeTrack));
+		this.add(new GameEngine(this,model,activeTrack,audioTracks));
 		this.updateUI();
 	}
 	
@@ -38,9 +40,9 @@ public class GameModule extends Module {
 		this.updateUI();
 	}
 	
-	public void showScorePanel(SongModel model,Track activeTrack,ScoreCalculator calc) {
+	public void showScorePanel(SongModel model,Track activeTrack,List<Track> audioTracks,ScoreCalculator calc) {
 		this.removeAll();
-		this.add(new GameResultsPanel(this,model,activeTrack,calc));
+		this.add(new GameResultsPanel(this,model,activeTrack,audioTracks,calc));
 		this.updateUI();
 	}
 	

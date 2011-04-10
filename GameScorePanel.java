@@ -3,6 +3,7 @@ package crescendo.game;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,15 +21,17 @@ public class GameScorePanel extends JPanel implements FlowController,ProcessedNo
 	private GameModule module;
 	private SongModel model;
 	private Track activeTrack;
+	private List<Track> audioTracks;
 	private ScoreCalculator calc;
 	
 	private JLabel scoreLabel;
 	
-	public GameScorePanel(GameModule module,SongModel model,Track activeTrack,ScoreCalculator calc)
+	public GameScorePanel(GameModule module,SongModel model,Track activeTrack,List<Track> audioTracks,ScoreCalculator calc)
 	{
 		this.module=module;
 		this.model=model;
 		this.activeTrack=activeTrack;
+		this.audioTracks=audioTracks;
 		this.calc=calc;
 		
 		this.setLayout(new GridLayout(1,2,5,0));
@@ -44,7 +47,7 @@ public class GameScorePanel extends JPanel implements FlowController,ProcessedNo
 	}
 	
 	public void songEnd() {
-		module.showScorePanel(model,activeTrack,calc);
+		module.showScorePanel(model,activeTrack,audioTracks,calc);
 	}
 	
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {

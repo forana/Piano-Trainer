@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -24,14 +25,16 @@ public class GameResultsPanel extends JPanel implements ActionListener {
 	private GameModule module;
 	private SongModel model;
 	private Track activeTrack;
+	private List<Track> audioTracks;
 	
 	private JButton playAgain;
 	private JButton newSong;
 	
-	public GameResultsPanel(GameModule module,SongModel model,Track activeTrack,ScoreCalculator calc) {
+	public GameResultsPanel(GameModule module,SongModel model,Track activeTrack,List<Track> audioTracks,ScoreCalculator calc) {
 		this.module=module;
 		this.model=model;
 		this.activeTrack=activeTrack;
+		this.audioTracks=audioTracks;
 		
 		// Build creator string; we need this twice
 		String creator=null;
@@ -113,7 +116,7 @@ public class GameResultsPanel extends JPanel implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==this.playAgain) {
-			this.module.showGamePanel(model,activeTrack);
+			this.module.showGamePanel(model,activeTrack,audioTracks);
 		}
 		else if (e.getSource()==this.newSong) {
 			this.module.showSongSelectionPanel();

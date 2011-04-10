@@ -93,7 +93,7 @@ public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 			form.add(active[i],c);
 			
 			enabled[i]=new JCheckBox("Play this track's audio");
-			enabled[i].setSelected(true);
+			enabled[i].setSelected(i!=0);
 			form.add(enabled[i],c);
 			
 			c.gridwidth=GridBagConstraints.REMAINDER;
@@ -118,6 +118,7 @@ public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 			// check if active track checkboxes haven't been somehow thwarted
 			int activetrack=-1;
 			List<Track> activeTracks=new LinkedList<Track>();
+			List<Track> audioTracks=new LinkedList<Track>();
 			for (int i=0; i<active.length; i++)
 			{
 				if (active[i].isSelected())
@@ -140,6 +141,10 @@ public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 					Track track=model.getTracks().get(i);
 					if (enabled[i].isSelected() || activeTracks.contains(track))
 					{
+						if (enabled[i].isSelected())
+						{
+							audioTracks.add(track);
+						}
 						track.setVoice(instruments[i].getSelectedIndex());
 						newTracks.add(track);
 					}
@@ -147,7 +152,7 @@ public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 				
 				SongModel newModel=new SongModel(newTracks,model.getTitle(),model.getCreators(),model.getLicense(),model.getBPM(),model.getTimeSignature(),model.getKeySignature());
 				
-				module.showGamePanel(newModel,activeTracks.get(0)); // TODO remove the .get(0)
+				module.showGamePanel(newModel,activeTracks.get(0),audioTracks);
 			}
 		}
 		else // has to be one of the active checkboxes

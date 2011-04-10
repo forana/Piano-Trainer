@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JPanel;
@@ -34,6 +35,7 @@ import crescendo.base.song.Track;
  *
  */
 public class GameGraphicsPanel extends JPanel implements NoteEventListener, ProcessedNoteEventListener, MidiEventListener, Updatable{
+	private static final long serialVersionUID=1L;
 	
 	/** The AudioPlayer for the background tracks **/
 	private AudioPlayer audioPlayer;
@@ -84,7 +86,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 	 * @param activeTrack - The active tracks (to display)
 	 * @param songPlayer - a songplayer reference to use
 	 */
-	public GameGraphicsPanel(SongModel model,Track activeTrack,SongPlayer songPlayer) {
+	public GameGraphicsPanel(SongModel model,Track activeTrack,List<Track> audioTracks,SongPlayer songPlayer) {
 		
 		//default values
 		lowestKey = 21;
@@ -108,7 +110,8 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 		songModel = model;
 		
 		//set up the AudioPlayer
-		audioPlayer = new AudioPlayer(model,activeTrack);
+		audioPlayer = new AudioPlayer(model,audioTracks);
+		
 		songPlayer.attach(this, 2000);
 		songPlayer.attach(audioPlayer,(int)audioPlayer.getLatency());
 		

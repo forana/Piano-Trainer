@@ -92,8 +92,8 @@ public class TrackSelectionScreen extends JScrollPane implements ActionListener 
 			active[i].addActionListener(this);
 			form.add(active[i],c);
 			
-			enabled[i]=new JCheckBox("Include this track");
-			enabled[i].setSelected(true);
+			enabled[i]=new JCheckBox("Play this track's audio");
+			enabled[i].setSelected(i!=0);
 			form.add(enabled[i],c);
 			
 			c.gridwidth=GridBagConstraints.REMAINDER;
@@ -117,11 +117,14 @@ public class TrackSelectionScreen extends JScrollPane implements ActionListener 
 		{
 			// check if active track checkboxes haven't been somehow thwarted
 			int activetrack=-1;
+			List<Track> activeTracks=new LinkedList<Track>();
+			List<Track> audioTracks=new LinkedList<Track>();
 			for (int i=0; i<active.length; i++)
 			{
 				if (active[i].isSelected())
 				{
-					activetrack=i;
+					activetrack=i; // TODO remove this for multiple tracks
+					activeTracks.add(model.getTracks().get(i));
 				}
 			}
 			
@@ -133,34 +136,32 @@ public class TrackSelectionScreen extends JScrollPane implements ActionListener 
 			{
 				// go track by track
 				List<Track> newTracks=new LinkedList<Track>();
-				Track activeRef=null;
 				for (int i=0; i<model.getTracks().size(); i++)
 				{
 					Track track=model.getTracks().get(i);
-					if (enabled[i].isSelected() || i==activetrack)
+					if (enabled[i].isSelected() || activeTracks.contains(track))
 					{
+						if (enabled[i].isSelected())
+						{
+							audioTracks.add(track);
+						}
 						track.setVoice(instruments[i].getSelectedIndex());
 						newTracks.add(track);
-						
-						if (i==activetrack)
-						{
-							activeRef=track;
-						}
 					}
 				}
 				
 				SongModel newModel=new SongModel(newTracks,model.getTitle(),model.getCreators(),model.getLicense(),model.getBPM(),model.getTimeSignature(),model.getKeySignature());
-				module.loadSong(newModel,activeRef);
+				
+				module.loadSong(newModel,activeTracks.get(0),audioTracks);
 			}
 		}
 		else // has to be one of the active checkboxes
 		{
 			for (int i=0; i<active.length; i++)
 			{
-				active[i].setSelected(e.getSource()==active[i]);
-				if (!enabled[i].isSelected() && active[i].isSelected())
+				if (e.getSource()==active[i])
 				{
-					enabled[i].setSelected(true);
+					enabled[i].setSelected(!active[i].isSelected());
 				}
 			}
 		}

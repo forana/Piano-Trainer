@@ -390,7 +390,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
-		if (e.getExpectedNote().getNote()!=null && this.noteMap.keySet().contains(e.getExpectedNote().getNote()))
+		if (e.getExpectedNote().getAction()==NoteAction.BEGIN && e.getExpectedNote().getNote()!=null && this.noteMap.keySet().contains(e.getExpectedNote().getNote()))
 		{
 			for (DrawableNote note : this.noteMap.get(e.getExpectedNote().getNote()))
 			{

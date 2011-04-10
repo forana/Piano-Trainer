@@ -25,14 +25,16 @@ public class ScoreDisplay extends JPanel implements ActionListener {
 	private SheetMusic module;
 	private SongModel model;
 	private Track activeTrack;
+	private List<Track> audioTracks;
 	
 	private JButton playAgain;
 	private JButton newSong;
 	
-	public ScoreDisplay(SheetMusic module,ScoreCalculator calc,SongModel model,Track activeTrack) {
+	public ScoreDisplay(SheetMusic module,ScoreCalculator calc,SongModel model,Track activeTrack,List<Track> audioTracks) {
 		this.module=module;
 		this.model=model;
 		this.activeTrack=activeTrack;
+		this.audioTracks=audioTracks;
 		
 		// Build creator string; we need this twice
 		String creator=null;
@@ -108,7 +110,7 @@ public class ScoreDisplay extends JPanel implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==this.playAgain) {
-			this.module.loadSong(this.model,this.activeTrack);
+			this.module.loadSong(this.model,this.activeTrack,this.audioTracks);
 		}
 		else if (e.getSource()==this.newSong) {
 			this.module.showSongSelectionScreen();

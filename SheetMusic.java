@@ -2,6 +2,7 @@ package crescendo.sheetmusic;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -35,6 +36,7 @@ public class SheetMusic extends Module{
 	private ScoreCalculator score;
 	private SongModel selectedSongModel;
 	private Track activeTrack;
+	private List<Track> audioTracks;
 	
 	private JPanel bottomBarContainer;
 	
@@ -81,14 +83,15 @@ public class SheetMusic extends Module{
 		this.remove(scoreFeedbackFrame);
 		this.remove(bottomBarContainer);
 		this.updateUI();
-		mainAreaTarget.setViewportView(new ScoreDisplay(this,score,selectedSongModel,activeTrack));
+		mainAreaTarget.setViewportView(new ScoreDisplay(this,score,selectedSongModel,activeTrack,audioTracks));
 		EventDispatcher.getInstance().detachAllMidi();
 	}
 
-	public void loadSong(SongModel model,Track activeTrack){
+	public void loadSong(SongModel model,Track activeTrack,List<Track> audioTracks){
 	
 		selectedSongModel = model;
 		this.activeTrack=activeTrack;
+		this.audioTracks=audioTracks;
 		
 		// Initialize meta-things
 		boolean careAboutPitch=ProfileManager.getInstance().getActiveProfile().getIsPitchGraded();
@@ -99,7 +102,7 @@ public class SheetMusic extends Module{
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
 		songPlayer = new SongPlayer(selectedSongModel);
 		SongValidator validator = new SongValidator(selectedSongModel,activeTrack,heuristics);
-		audioPlayer = new AudioPlayer(selectedSongModel, null /*selectedSongModel.getTracks().get(activeTrack)*/);//TODO make this be the actual active track (uncomment and remove the null)
+		audioPlayer = new AudioPlayer(selectedSongModel,audioTracks);
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());

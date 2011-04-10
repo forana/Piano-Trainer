@@ -9,6 +9,8 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -29,6 +31,7 @@ import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongFactory;
 import crescendo.base.song.SongModel;
+import crescendo.base.song.Track;
 import crescendo.sheetmusic.MusicEngine;
 
 public class MusicPanel extends JPanel implements ActionListener,FlowController {
@@ -97,7 +100,16 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		
 		SongValidator validator=new SongValidator(model,model.getTracks().get(item.getTrack()),item.getHeuristics());
 		this.player.attach(validator,100);
-		this.audio=new AudioPlayer(model,model.getTracks().get(item.getTrack()));
+		List<Track> inactiveTracks=new LinkedList<Track>();
+		Track activeTrack=model.getTracks().get(item.getTrack());
+		for (Track track : model.getTracks())
+		{
+			if (track!=activeTrack)
+			{
+				inactiveTracks.add(track);
+			}
+		}
+		this.audio=new AudioPlayer(model,inactiveTracks);
 		this.player.attach(this.audio,(int)this.audio.getLatency());
 		this.player.attach(this);
 		validator.attach(this.grader);

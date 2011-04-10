@@ -6,6 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 import crescendo.base.song.SongModel;
 import java.util.LinkedList;
+import java.util.List;
+
 import crescendo.base.song.Note;
 import crescendo.base.song.Track;
 import crescendo.base.AudioPlayer;
@@ -362,7 +364,8 @@ public class AudioPlayerTest
 	@Test
 	public void testActiveTrack()
 	{
-		AudioPlayer player=new AudioPlayer(this.model,this.track);
+		List<Track> list=new LinkedList<Track>();
+		AudioPlayer player=new AudioPlayer(this.model,list);
 		Note c=new Note(73,1000,100,this.track);
 		NoteEvent startEvent=new NoteEvent(c,NoteAction.BEGIN,0);
 		NoteEvent endEvent=new NoteEvent(c,NoteAction.END,0);

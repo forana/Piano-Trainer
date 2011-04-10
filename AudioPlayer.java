@@ -109,9 +109,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 * Creates a new AudioPlayer, contructed around a specific song.
 	 * 
 	 * @param songModel The song to tailor the AudioPlayer to.
-	 * @param activeTrack The index of the track being played by the user.
+	 * @param acceptedTracks Tracks for which to play the audio. Passing null results in all notes being played.
 	 */
-	public AudioPlayer(SongModel songModel,Track activeTrack)
+	public AudioPlayer(SongModel songModel,List<Track> acceptedTracks)
 	{
 		// initialize relation map
 		this.channelMap=new HashMap<Track,AudioPlayerChannel>();
@@ -135,10 +135,15 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// start off assuming we arent't suspended
 		this.suspended=false;
 		
+		for (Track track : acceptedTracks)
+		{
+			System.out.println(track.getName());
+		}
+		
 		for (Track track : songModel.getTracks())
 		{
-			// don't add the active track, or an empty track
-			if (track!=activeTrack && track.getNotes().size()>0)
+			// don't add unaccepted tracks, or an empty track
+			if ((acceptedTracks==null || acceptedTracks.contains(track)) && track.getNotes().size()>0)
 			{
 				if (currentChannel<channels.length)
 				{

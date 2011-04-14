@@ -350,6 +350,11 @@ public class MidiParser implements SongFileParser
 										break;
 									case 0x59: // Key signature
 										int nkeySignature=stream.read();
+										if (nkeySignature>127)
+										{
+											nkeySignature=-(255-nkeySignature);
+										}
+										System.out.println(nkeySignature);
 										if (currentDelta>0)
 										{
 											modifiers.add(new TimedModifier(currentDelta,new Modulation(nkeySignature)));

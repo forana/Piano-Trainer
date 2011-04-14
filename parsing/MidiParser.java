@@ -349,7 +349,7 @@ public class MidiParser implements SongFileParser
 										if (DEBUG) System.out.println("set time to "+numerator+"/"+denominator);
 										break;
 									case 0x59: // Key signature
-										int nkeySignature=stream.read()-7;
+										int nkeySignature=stream.read();
 										if (currentDelta>0)
 										{
 											modifiers.add(new TimedModifier(currentDelta,new Modulation(nkeySignature)));

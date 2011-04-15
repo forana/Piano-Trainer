@@ -135,11 +135,6 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		// start off assuming we arent't suspended
 		this.suspended=false;
 		
-		for (Track track : acceptedTracks)
-		{
-			System.out.println(track.getName());
-		}
-		
 		for (Track track : songModel.getTracks())
 		{
 			// don't add unaccepted tracks, or an empty track

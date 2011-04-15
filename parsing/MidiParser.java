@@ -354,7 +354,6 @@ public class MidiParser implements SongFileParser
 										{
 											nkeySignature=-(255-nkeySignature);
 										}
-										System.out.println(nkeySignature);
 										if (currentDelta>0)
 										{
 											modifiers.add(new TimedModifier(currentDelta,new Modulation(nkeySignature)));

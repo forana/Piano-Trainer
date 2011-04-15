@@ -27,9 +27,12 @@ import crescendo.base.song.Creator;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
+import crescendo.base.song.modifier.NoteModifier;
 
 public class MusicEngine extends JPanel implements ProcessedNoteEventListener,ComponentListener,Scrollable,FlowController,NoteEventListener {
 	private static final long serialVersionUID=1L;
+	
+	private static final float CLEF_THRESHOLD=0.25f;
 	
 	private static final int MARGIN=10;
 	private static final int HEADER_HEIGHT=52;
@@ -40,10 +43,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	public static final int STAFF_HEIGHT=4*STAFF_LINE_HEIGHT;
 	private static final int STAFF_MARGIN=STAFF_HEIGHT;
 	private static final int STAFF_SPACING=0;
-	private static final int STAFF_FULL_HEIGHT=STAFF_MARGIN*2+STAFF_HEIGHT+STAFF_SPACING;
 	
 	private static final String CLEF_TREBLE_PATH="resources/images/clef.treble.28x64.png";
-	private static final String CLEF_BASS_PATH="resources/images/clef.bass.28x64";
+	private static final String CLEF_BASS_PATH="resources/images/clef.bass.28x64.png";
 	
 	private static final DrawableNote[] NOTE_PROTOTYPES=new DrawableNote[]{
 		new WholeNote(),
@@ -114,6 +116,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private double beatWidth;
 	private int barX;
 	private int barY;
+	private boolean trebleNeeded;
+	private boolean bassNeeded;
 	
 	public MusicEngine(SongModel model,Track activeTrack){
 		this(model,activeTrack,true);
@@ -133,6 +137,25 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		
 		this.barX=-1;
 		this.barY=-1;
+		
+		// determine if treble and/or bass are needed
+		int trebleCount=0;
+		int bassCount=0;
+		int total=0;
+		for (Note note : activeTrack.getNotes())
+		{
+			total++;
+			if (isBassNote(note.getPitch()))
+			{
+				bassCount++;
+			}
+			else
+			{
+				trebleCount++;
+			}
+		}
+		trebleNeeded=(trebleCount>total*CLEF_THRESHOLD);
+		bassNeeded=(bassCount>total*CLEF_THRESHOLD);
 	}
 	
 	private void build()
@@ -144,7 +167,13 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			this.measuresPerLine=(int)Math.floor((this.getWidth()-2*MARGIN-CLEF_WIDTH-this.decoratorWidth)/this.measureWidth);
 			int height=this.titleShowing?HEADER_HEIGHT:0;
 			height+=2*MARGIN;
-			height+=(STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING)*(int)Math.ceil(1.0*this.measureCount/this.measuresPerLine);
+			int lineHeight=STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING;
+			if (this.trebleNeeded && this.bassNeeded)
+			{
+				lineHeight+=STAFF_HEIGHT+STAFF_MARGIN;
+			}
+			height+=lineHeight*(int)Math.ceil(1.0*this.measureCount/this.measuresPerLine);
+			height+=2*STAFF_HEIGHT; // for good "measure" (GET IT?)
 			this.setPreferredSize(new Dimension(this.getWidth(),height));
 			this.beatWidth=1/this.beatNote*this.measureWidth;
 			
@@ -171,12 +200,14 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	}
 	
 	private List<DrawableNote> calculateNotes(Note note,double beatsLeft,double beatOffset) {
+		double originalBeatsLeft=beatsLeft;
+		double originalOffset=beatOffset;
 		List<DrawableNote> ret=new LinkedList<DrawableNote>();
 		double duration=note.getDuration();
 		while (duration>beatsLeft)
 		{
 			ret.addAll(splitNote(note,beatsLeft,beatOffset));
-			// TODO handle chords here
+			System.out.println(note.getPitch());
 			beatOffset+=beatsLeft;
 			duration-=beatsLeft;
 			beatsLeft=this.beatsPerMeasure;
@@ -202,7 +233,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					d=new Sharp((DrawableNote)d);
 				}
 			}
-			else if (isAccidental(note.getPitch()) && !pitchInKeySignature(note.getPitch()))
+			else if (!isAccidental(note.getPitch()) && pitchInKeySignature(note.getPitch()))
 			{
 				d=new Natural((DrawableNote)d);
 			}
@@ -219,6 +250,15 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		if (last!=null)
 		{
 			this.drawables.add(last);
+		}
+		
+		// add all chorded notes
+		for (NoteModifier mod : note.getModifiers())
+		{
+			for (Note otherNote : mod.getNotes())
+			{
+				ret.addAll(calculateNotes(otherNote,originalBeatsLeft,originalOffset));
+			}
 		}
 		return ret;
 	}
@@ -259,7 +299,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		}
 		// place in proper measure
 		xb+=(int)(beats*this.beatWidth);
-		// center note in its alotted area
+		// center note in its allotted area
 		xb+=(int)(count*this.beatWidth+width)/2;
 		return xb;
 	}
@@ -269,6 +309,12 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		if (n.isPlayable())
 		{
 			int pitch=n.getPitch();
+			boolean bass=this.bassNeeded && isBassNote(pitch);
+			// is it a bass note, and are we showing a bass clef?
+			if (bass)
+			{
+				pitch+=21; // calculate as if it were a different pitch
+			}
 			// middle C (60) is one full bar down
 			yb+=STAFF_LINE_HEIGHT;
 			int sign=(int)Math.signum(72-pitch);
@@ -279,15 +325,25 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					yb+=sign*STAFF_LINE_HEIGHT/2;
 				}
 			}
+			// if both bass and treble are showing and this is a bass note, adjust the height to show on the proper staff
+			if (bass && this.trebleNeeded)
+			{
+				yb+=STAFF_HEIGHT+STAFF_MARGIN;
+			}
 		}
 		else // it's a rest, just give it the middle of the staff
 		{
 			yb+=STAFF_HEIGHT/2;
 		}
+		int staffHeight=STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING;
+		if (this.trebleNeeded && this.bassNeeded)
+		{
+			staffHeight+=STAFF_HEIGHT+STAFF_MARGIN;
+		}
 		while (beats>=this.beatsPerMeasure*this.measuresPerLine)
 		{
 			beats-=this.beatsPerMeasure*this.measuresPerLine;
-			yb+=STAFF_FULL_HEIGHT;
+			yb+=staffHeight;
 		}
 		return yb;
 	}
@@ -350,56 +406,31 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 				// draw staff lines
 				g.setColor(Color.BLACK);
 				int xb=MARGIN;
-				int lead=CLEF_WIDTH+this.decoratorWidth;
 				int yb=MARGIN+(this.titleShowing?HEADER_HEIGHT:0);
 				for (int i=0; i<Math.ceil(1.0*this.measureCount/this.measuresPerLine); i++)
 				{
 					int measures=this.measuresPerLine;
+					boolean last=false;
 					if (i==this.measureCount/this.measuresPerLine)
 					{
 						measures=this.measureCount%this.measuresPerLine;
+						last=true;
 					}
-					int lw=lead+measures*this.measureWidth;
-					yb+=STAFF_MARGIN;
-					// draw clef
-					if (TREBLE_CLEF==null)
+					if (TREBLE_CLEF==null) // if either one is null, neither is loaded; only checking one is necessary
 					{
 						loadImages();
 					}
-					g.drawImage(TREBLE_CLEF,MARGIN,yb-2*STAFF_LINE_HEIGHT,CLEF_WIDTH,2*STAFF_HEIGHT,this);
-					// draw time signature
-					g.setFont(new Font(Font.SERIF,Font.BOLD,STAFF_HEIGHT/2));
-					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatsPerMeasure()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT/2-2);
-					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatNote()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT-2);
-					// draw key signature
-					int[] positions=KEY_SIGNATURE_MAP.get(this.model.getKeySignature());
-					for (int j=0; j<positions.length; j++)
+					if (this.trebleNeeded)
 					{
-						int x=xb+CLEF_WIDTH+TIME_SIGNATURE_WIDTH+j*ACCIDENTAL_WIDTH;
-						int y=yb+(int)(positions[j]*0.5*STAFF_LINE_HEIGHT);
-						if (this.model.getKeySignature()<0)
-						{
-							Flat.render(g,x,y-STAFF_LINE_HEIGHT);
-						}
-						else
-						{
-							Sharp.render(g,x,y-STAFF_LINE_HEIGHT/2);
-						}
+						yb+=STAFF_MARGIN;
+						this.drawStaff(g,true,xb,yb,measures,last);
+						yb+=STAFF_HEIGHT;
 					}
-					// draw vertical lines
-					for (int j=0; j<measures; j++)
+					if (this.bassNeeded)
 					{
-						g.drawLine(xb+lead+(j+1)*this.measureWidth,yb,xb+lead+(j+1)*this.measureWidth,yb+STAFF_HEIGHT);
-					}
-					g.drawLine(xb,yb,xb,yb+STAFF_HEIGHT);
-					// draw horizontal lines
-					for (int j=0; j<5; j++)
-					{
-						if (j!=0)
-						{
-							yb+=STAFF_LINE_HEIGHT;
-						}
-						g.drawLine(xb,yb,xb+lw,yb);
+						yb+=STAFF_MARGIN;
+						this.drawStaff(g,false,xb,yb,measures,last);
+						yb+=STAFF_HEIGHT;
 					}
 					yb+=STAFF_MARGIN+STAFF_SPACING;
 				}
@@ -415,6 +446,57 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					g.drawLine(this.barX,this.barY,this.barX,this.barY+STAFF_HEIGHT+2*STAFF_MARGIN);
 				}
 			}
+		}
+	}
+	
+	private void drawStaff(Graphics g,boolean isTreble,int xb,int yb,int measures,boolean lastLine)
+	{
+		// draw clef
+		g.drawImage(isTreble?TREBLE_CLEF:BASS_CLEF,MARGIN,yb-2*STAFF_LINE_HEIGHT,CLEF_WIDTH,2*STAFF_HEIGHT,this);
+		// draw time signature
+		g.setFont(new Font(Font.SERIF,Font.BOLD,STAFF_HEIGHT/2));
+		g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatsPerMeasure()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT/2-2);
+		g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatNote()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT-2);
+		// draw key signature
+		int[] positions=KEY_SIGNATURE_MAP.get(this.model.getKeySignature());
+		for (int j=0; j<positions.length; j++)
+		{
+			int x=xb+CLEF_WIDTH+TIME_SIGNATURE_WIDTH+j*ACCIDENTAL_WIDTH;
+			int y=yb+(int)(positions[j]*0.5*STAFF_LINE_HEIGHT);
+			if (!isTreble) // it's bass clef, move down a line
+			{
+				y+=STAFF_LINE_HEIGHT;
+			}
+			if (this.model.getKeySignature()<0)
+			{
+				Flat.render(g,x,y-STAFF_LINE_HEIGHT);
+			}
+			else
+			{
+				Sharp.render(g,x,y-STAFF_LINE_HEIGHT/2);
+			}
+		}
+		// draw vertical lines
+		for (int j=0; j<measures; j++)
+		{
+			g.drawLine(xb+CLEF_WIDTH+this.decoratorWidth+(j+1)*this.measureWidth,yb,
+				xb+CLEF_WIDTH+this.decoratorWidth+(j+1)*this.measureWidth,yb+STAFF_HEIGHT);
+		}
+		// draw double line at end
+		if (lastLine)
+		{
+			g.drawLine(xb+CLEF_WIDTH+this.decoratorWidth+measures*this.measureWidth-3,yb,
+				xb+CLEF_WIDTH+this.decoratorWidth+measures*this.measureWidth-3,yb+STAFF_HEIGHT);
+		}
+		g.drawLine(xb,yb,xb,yb+STAFF_HEIGHT);
+		// draw horizontal lines
+		for (int j=0; j<5; j++)
+		{
+			if (j!=0)
+			{
+				yb+=STAFF_LINE_HEIGHT;
+			}
+			g.drawLine(xb,yb,xb+CLEF_WIDTH+this.decoratorWidth+measures*this.measureWidth,yb);
 		}
 	}
 
@@ -450,7 +532,17 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			{
 				DrawableNote note=noteList.get(0);
 				this.barX=note.getX()+note.getWidth()/2;
-				this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0)+((note.getY()-MARGIN-(this.titleShowing?HEADER_HEIGHT:0))/STAFF_FULL_HEIGHT*STAFF_FULL_HEIGHT);
+				int staffHeight=STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING;
+				if (this.trebleNeeded && this.bassNeeded)
+				{
+					staffHeight+=STAFF_HEIGHT+STAFF_MARGIN;
+				}
+				this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0)+((note.getY()-MARGIN-(this.titleShowing?HEADER_HEIGHT:0))/staffHeight*staffHeight);
+				// scroll to bar in view
+				// get measure in which note happened
+				int measureX=(this.barX-MARGIN)/this.measureWidth*this.measureWidth+MARGIN;
+				Rectangle view=new Rectangle(measureX,this.barY-STAFF_MARGIN,this.measureWidth*2,2*staffHeight);
+				this.scrollRectToVisible(view);
 				this.repaint();
 			}
 		}
@@ -471,6 +563,11 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	public static boolean isAccidental(int n)
 	{
 		return n%12==1 || n%12==3 || n%12==6 || n%12==8 || n%12==10;
+	}
+	
+	public static boolean isBassNote(int n)
+	{
+		return n<60;
 	}
 
 	public void componentHidden(ComponentEvent arg0) {}

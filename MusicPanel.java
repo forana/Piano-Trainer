@@ -9,6 +9,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -98,7 +99,9 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		panel.add(music,c);
 		this.add(panel);
 		
-		SongValidator validator=new SongValidator(model,model.getTracks().get(item.getTrack()),item.getHeuristics());
+		List<Track> activeTracks = new ArrayList<Track>();
+		activeTracks.add(model.getTracks().get(item.getTrack()));
+		SongValidator validator=new SongValidator(model,activeTracks,item.getHeuristics());
 		this.player.attach(validator,100);
 		List<Track> inactiveTracks=new LinkedList<Track>();
 		Track activeTrack=model.getTracks().get(item.getTrack());

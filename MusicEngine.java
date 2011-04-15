@@ -34,6 +34,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private static final int MARGIN=10;
 	private static final int HEADER_HEIGHT=52;
 	public static final int CLEF_WIDTH=24;
+	private static final int TIME_SIGNATURE_WIDTH=14;
+	private static final int ACCIDENTAL_WIDTH=6;
 	public static final int STAFF_LINE_HEIGHT=8;
 	public static final int STAFF_HEIGHT=4*STAFF_LINE_HEIGHT;
 	private static final int STAFF_MARGIN=STAFF_HEIGHT;
@@ -58,6 +60,30 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		new EighthRest(),
 		new SixteenthRest()
 	};
+	
+	private static final Map<Integer,int[]> KEY_SIGNATURE_MAP=new HashMap<Integer,int[]>();
+	
+	static {
+		// fill in the map
+		// according to http://en.wikipedia.org/wiki/File:Circle_of_fifths_deluxe_4.svg
+		KEY_SIGNATURE_MAP.put(0,new int[] {});
+		KEY_SIGNATURE_MAP.put(-1,new int[] {4});
+		KEY_SIGNATURE_MAP.put(-2,new int[] {4,1});
+		KEY_SIGNATURE_MAP.put(-3,new int[] {4,1,5});
+		KEY_SIGNATURE_MAP.put(-4,new int[] {4,1,5,2});
+		KEY_SIGNATURE_MAP.put(-5,new int[] {4,1,5,2,6});
+		KEY_SIGNATURE_MAP.put(-6,new int[] {4,1,5,2,6,3});
+		KEY_SIGNATURE_MAP.put(-7,new int[] {4,1,5,2,6,3,7});
+		KEY_SIGNATURE_MAP.put(1,new int[] {0});
+		KEY_SIGNATURE_MAP.put(2,new int[] {0,3});
+		KEY_SIGNATURE_MAP.put(3,new int[] {0,3,-1});
+		KEY_SIGNATURE_MAP.put(4,new int[] {0,3,-1,2});
+		KEY_SIGNATURE_MAP.put(5,new int[] {0,3,-1,2,5});
+		KEY_SIGNATURE_MAP.put(6,new int[] {0,3,-1,2,5,1});
+		KEY_SIGNATURE_MAP.put(7,new int[] {0,3,-1,2,5,1,4});
+	}
+	
+	private static int[] PITCH_INDEXES=new int[] {3,3,2,2,1,0,0,6,6,5,5,4};
 	
 	// images (want to make sure we only load these once for the entire program);
 	private static Image TREBLE_CLEF=null;
@@ -114,7 +140,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		if (this.getWidth()>0) // if the width is 0... don't even try
 		{
 			// set some base values
-			this.decoratorWidth=12; // guessing
+			this.decoratorWidth=TIME_SIGNATURE_WIDTH+Math.abs(ACCIDENTAL_WIDTH*this.model.getKeySignature());
 			this.measuresPerLine=(int)Math.floor((this.getWidth()-2*MARGIN-CLEF_WIDTH-this.decoratorWidth)/this.measureWidth);
 			int height=this.titleShowing?HEADER_HEIGHT:0;
 			height+=2*MARGIN;
@@ -150,6 +176,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		while (duration>beatsLeft)
 		{
 			ret.addAll(splitNote(note,beatsLeft,beatOffset));
+			// TODO handle chords here
 			beatOffset+=beatsLeft;
 			duration-=beatsLeft;
 			beatsLeft=this.beatsPerMeasure;
@@ -164,9 +191,20 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		for (DrawableNote dn : ret)
 		{
 			Drawable d=dn;
-			if (isSharp(note.getPitch()))
+			if (isAccidental(note.getPitch()) && !pitchInKeySignature(note.getPitch()))
 			{
-				d=new Sharp((DrawableNote)d);
+				if (this.model.getKeySignature()<0)
+				{
+					d=new Flat((DrawableNote)d);
+				}
+				else
+				{
+					d=new Sharp((DrawableNote)d);
+				}
+			}
+			else if (isAccidental(note.getPitch()) && !pitchInKeySignature(note.getPitch()))
+			{
+				d=new Natural((DrawableNote)d);
 			}
 			if (last!=null)
 			{
@@ -236,7 +274,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			int sign=(int)Math.signum(72-pitch);
 			for (int i=pitch; i!=72; i+=sign)
 			{
-				if (!isSharp(i))
+				if (!isAccidental(i))
 				{
 					yb+=sign*STAFF_LINE_HEIGHT/2;
 				}
@@ -252,6 +290,21 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			yb+=STAFF_FULL_HEIGHT;
 		}
 		return yb;
+	}
+	
+	private boolean pitchInKeySignature(int pitch) {
+		int kt=PITCH_INDEXES[pitch%12]; // expected pitch note
+		int[] ks=KEY_SIGNATURE_MAP.get(this.model.getKeySignature());
+		
+		for (int i=0; i<ks.length; i++)
+		{
+			if (ks[i]%7==kt)
+			{
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	public void setSection(Note startNote,Note endNote) {
@@ -318,6 +371,21 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					g.setFont(new Font(Font.SERIF,Font.BOLD,STAFF_HEIGHT/2));
 					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatsPerMeasure()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT/2-2);
 					g.drawString(Integer.toString((int)this.model.getTimeSignature().getBeatNote()),xb+CLEF_WIDTH,yb+STAFF_HEIGHT-2);
+					// draw key signature
+					int[] positions=KEY_SIGNATURE_MAP.get(this.model.getKeySignature());
+					for (int j=0; j<positions.length; j++)
+					{
+						int x=xb+CLEF_WIDTH+TIME_SIGNATURE_WIDTH+j*ACCIDENTAL_WIDTH;
+						int y=yb+(int)(positions[j]*0.5*STAFF_LINE_HEIGHT);
+						if (this.model.getKeySignature()<0)
+						{
+							Flat.render(g,x,y-STAFF_LINE_HEIGHT);
+						}
+						else
+						{
+							Sharp.render(g,x,y-STAFF_LINE_HEIGHT/2);
+						}
+					}
 					// draw vertical lines
 					for (int j=0; j<measures; j++)
 					{
@@ -400,7 +468,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		}
 	}
 	
-	public static boolean isSharp(int n)
+	public static boolean isAccidental(int n)
 	{
 		return n%12==1 || n%12==3 || n%12==6 || n%12==8 || n%12==10;
 	}

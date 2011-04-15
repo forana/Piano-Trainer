@@ -75,7 +75,7 @@ public abstract class DrawableNote extends Drawable{
 			int offset=0;
 			for (int p=note.getPitch(); p>76; p--)
 			{
-				if (!MusicEngine.isSharp(p))
+				if (!MusicEngine.isAccidental(p))
 				{
 					offset++;
 				}
@@ -92,7 +92,7 @@ public abstract class DrawableNote extends Drawable{
 			offset=0;
 			for (int p=note.getPitch(); p<64; p++)
 			{
-				if (!MusicEngine.isSharp(p))
+				if (!MusicEngine.isAccidental(p))
 				{
 					offset++;
 				}

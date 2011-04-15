@@ -18,43 +18,43 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 {
 	/** The maximum number of note events that can be simultaneously expired. */
 	private static final int POOL_SIZE = 30; // theoretically more than 10 notes should never happen
-	
+
 	/** The track that the user is playing. */
-	private Track activeTrack;
-	
+	private List<Track> activeTracks;
+
 	/** The pool that contains all of the active expirators. */
 	private ThreadPool pool;
-	
+
 	/** The amount of time to allow for a timeout. */
 	private int timeout;
-	
+
 	/** All subscribed ProcessedNoteEventListeners. */
 	private List<ProcessedNoteEventListener> processedListeners;
-	
+
 	/** The heuristics that will judge notes correct or incorrect. */
 	private HeuristicsModel heuristics;
-	
+
 	/** This constructor is kludge for ThreadPoolTest until we figure out something better.
 	 * @deprecated */
 	public SongValidator()
 	{
 	}
-	
+
 	/**
 	 * Creates a new SongValidator that listens for notes in a specified track.
 	 * 
 	 * @param activeTrack The track the user is playing.
 	 * @param timeout The amount of time to allow to pass before a note is considered missed.
 	 */
-	public SongValidator(SongModel model,Track activeTrack,HeuristicsModel heuristics)
+	public SongValidator(SongModel model,List<Track> activeTracks,HeuristicsModel heuristics)
 	{
-		this.activeTrack=activeTrack;
+		this.activeTracks=activeTracks;
 		this.timeout=(int)(heuristics.getTimingInterval()/model.getBPM()*60000);
 		this.pool=new ThreadPool(this,POOL_SIZE,this.timeout);
 		this.processedListeners=new LinkedList<ProcessedNoteEventListener>();
 		this.heuristics = heuristics;
 	}
-	
+
 	/**
 	 * Receives a NoteEvent and delegates it to a free expirator for expiring/storage. If no expirator is free,
 	 * this method will block until one frees up.
@@ -63,42 +63,44 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	 */
 	public void handleNoteEvent(NoteEvent e)
 	{
-		if (e.getNote().getTrack()==this.activeTrack)
-		{
-			boolean tryAgain=true;
-			while (tryAgain)
+		for(int i =0;i<activeTracks.size(); i++){
+			if (e.getNote().getTrack()==this.activeTracks.get(i))
 			{
-				Expirator free=this.pool.getAvailableExpirator();
-				if (free==null) // if we couldn't get one, well, crap, we should figure out what to do
+				boolean tryAgain=true;
+				while (tryAgain)
 				{
-					tryAgain=true;
-				}
-				else
-				{
-					try
-					{
-						free.expireNote(e);
-						tryAgain=false;
-					}
-					catch (Expirator.ExpiratorBusyException ex)
+					Expirator free=this.pool.getAvailableExpirator();
+					if (free==null) // if we couldn't get one, well, crap, we should figure out what to do
 					{
 						tryAgain=true;
 					}
-				}
-				if (tryAgain)
-				{
-					try
+					else
 					{
-						Thread.sleep(10);
+						try
+						{
+							free.expireNote(e);
+							tryAgain=false;
+						}
+						catch (Expirator.ExpiratorBusyException ex)
+						{
+							tryAgain=true;
+						}
 					}
-					catch (InterruptedException ex)
+					if (tryAgain)
 					{
+						try
+						{
+							Thread.sleep(10);
+						}
+						catch (InterruptedException ex)
+						{
+						}
 					}
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Pause all currently-expiring notes.
 	 */
@@ -106,7 +108,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.pool.pause();
 	}
-	
+
 	/**
 	 * Resume all currently-paused notes.
 	 */
@@ -114,7 +116,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.pool.resume();
 	}
-	
+
 	/**
 	 * Shuts down the held ThreadPool objects, destroying all allocated threads. This object can no longer be used
 	 * after this method is called.
@@ -123,7 +125,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.pool.shutdown();
 	}
-	
+
 	/**
 	 * Stops all expiring notes.
 	 */
@@ -131,7 +133,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.pool.stop();
 	}
-	
+
 	/**
 	 * Suspends the expiraton of all notes.
 	 */
@@ -139,7 +141,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.pool.pause();
 	}
-	
+
 	/**
 	 * Subscribe a ProcessedNoteEventListener to this object, so that it will be pumped events. This method does not check
 	 * for duplicate subscriptions.
@@ -150,7 +152,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.processedListeners.add(l);
 	}
-	
+
 	/**
 	 * Remove a subscribed ProcessedNoteEventListener. If the same object has been subscribed multiple times, this will only
 	 * remove one of the subscriptions.
@@ -161,7 +163,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 	{
 		this.processedListeners.remove(l);
 	}
-	
+
 	/**
 	 * Attempts to pair a MidiEvent to one of the currently expiring NoteEvents. A ProcessedNoteEvent will be pumped to
 	 * listeners, with a matched or null NoteEvent parameter, depending on the success of the pairing. If a note is paired,
@@ -192,12 +194,12 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 		{
 			// don't match if the actions don't correspond
 			if ((current.getNoteEvent().getAction()==NoteAction.BEGIN)
-			     == (midiEvent.getAction()==ActionType.PRESS))
+					== (midiEvent.getAction()==ActionType.PRESS))
 			{
 				int currentScore=0;
 				int ePitch=current.getNoteEvent().getNote().getPitch();
 				long eTime=midiEvent.getTimestamp();
-				
+
 				if (ePitch==aPitch)
 				{
 					currentScore+=1000;
@@ -206,7 +208,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 				{
 					currentScore+=500;
 				}
-				
+
 				currentScore+=750-(int)(((int)Math.abs(eTime-aTime))/(this.timeout/2.0)*750);
 				if (matched==null || currentScore>matchedScore)
 				{
@@ -215,7 +217,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 				}
 			}
 		}
-		
+
 		NoteEvent matchedEvent=null;
 		if (matched!=null)
 		{
@@ -235,7 +237,7 @@ public class SongValidator implements NoteEventListener,FlowController,MidiEvent
 			listener.handleProcessedNoteEvent(processed);
 		}
 	}
-	
+
 	/**
 	 * Signifies that a NoteEvent was never matched, and was therefore missed. A ProcessedNoteEvent will be pumped out
 	 * with a null midiEvent.

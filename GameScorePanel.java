@@ -20,17 +20,17 @@ public class GameScorePanel extends JPanel implements FlowController,ProcessedNo
 	
 	private GameModule module;
 	private SongModel model;
-	private Track activeTrack;
+	private List<Track> activeTracks;
 	private List<Track> audioTracks;
 	private ScoreCalculator calc;
 	
 	private JLabel scoreLabel;
 	
-	public GameScorePanel(GameModule module,SongModel model,Track activeTrack,List<Track> audioTracks,ScoreCalculator calc)
+	public GameScorePanel(GameModule module,SongModel model,List<Track> activeTracks,List<Track> audioTracks,ScoreCalculator calc)
 	{
 		this.module=module;
 		this.model=model;
-		this.activeTrack=activeTrack;
+		this.activeTracks=activeTracks;
 		this.audioTracks=audioTracks;
 		this.calc=calc;
 		
@@ -47,7 +47,7 @@ public class GameScorePanel extends JPanel implements FlowController,ProcessedNo
 	}
 	
 	public void songEnd() {
-		module.showScorePanel(model,activeTrack,audioTracks,calc);
+		module.showScorePanel(model,activeTracks,audioTracks,calc);
 	}
 	
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {

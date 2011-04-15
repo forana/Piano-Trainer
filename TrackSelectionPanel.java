@@ -152,7 +152,7 @@ public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 				
 				SongModel newModel=new SongModel(newTracks,model.getTitle(),model.getCreators(),model.getLicense(),model.getBPM(),model.getTimeSignature(),model.getKeySignature());
 				
-				module.showGamePanel(newModel,activeTracks.get(0),audioTracks);
+				module.showGamePanel(newModel,activeTracks,audioTracks);
 			}
 		}
 		else // has to be one of the active checkboxes

@@ -21,10 +21,10 @@ public class GameModule extends Module {
 		this.showSongSelectionPanel();
 	}
 	
-	public void showGamePanel(SongModel model,Track activeTrack,List<Track> audioTracks) {
+	public void showGamePanel(SongModel model,List<Track> activeTracks,List<Track> audioTracks) {
 		EventDispatcher.getInstance().detachAllMidi();
 		this.removeAll();
-		this.add(new GameEngine(this,model,activeTrack,audioTracks));
+		this.add(new GameEngine(this,model,activeTracks,audioTracks));
 		this.updateUI();
 	}
 	
@@ -40,9 +40,9 @@ public class GameModule extends Module {
 		this.updateUI();
 	}
 	
-	public void showScorePanel(SongModel model,Track activeTrack,List<Track> audioTracks,ScoreCalculator calc) {
+	public void showScorePanel(SongModel model,List<Track> activeTracks,List<Track> audioTracks,ScoreCalculator calc) {
 		this.removeAll();
-		this.add(new GameResultsPanel(this,model,activeTrack,audioTracks,calc));
+		this.add(new GameResultsPanel(this,model,activeTracks,audioTracks,calc));
 		this.updateUI();
 	}
 	

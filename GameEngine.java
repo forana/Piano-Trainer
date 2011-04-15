@@ -32,20 +32,20 @@ public class GameEngine extends JPanel{
 	 * @param model - A reference the the songmodel to work from
 	 * @param activeTrack - the active track to display the notes of
 	 */
-	public GameEngine(GameModule module,SongModel model,Track activeTrack,List<Track> audioTracks) {
+	public GameEngine(GameModule module,SongModel model,List<Track> activeTracks,List<Track> audioTracks) {
 		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 		
 		HeuristicsModel heuristics=new HeuristicsModel(ProfileManager.getInstance().getActiveProfile().getIsPitchGraded(),
 				ProfileManager.getInstance().getActiveProfile().getIsPitchGraded());
 				
 		SongPlayer player=new SongPlayer(model);
-		SongValidator validator=new SongValidator(model,activeTrack,heuristics);
+		SongValidator validator=new SongValidator(model,activeTracks,heuristics);
 		
 		ScoreCalculator calc=new ScoreCalculator(heuristics.listeningPitch(),heuristics.listeningVelocity(),player.getSongState(),heuristics);
 		
 		
-		scorePanel = new GameScorePanel(module,model,activeTrack,audioTracks,calc);
-		graphicsPanel = new GameGraphicsPanel(model,activeTrack,audioTracks,player);
+		scorePanel = new GameScorePanel(module,model,activeTracks,audioTracks,calc);
+		graphicsPanel = new GameGraphicsPanel(model,activeTracks,audioTracks,player);
 		
 		player.attach(scorePanel);
 		player.attach(validator,(int)(heuristics.getTimingInterval()/player.getSongState().getBPM()*60000)/2);

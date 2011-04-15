@@ -35,7 +35,7 @@ public class SheetMusic extends Module{
 	
 	private ScoreCalculator score;
 	private SongModel selectedSongModel;
-	private Track activeTrack;
+	private List<Track> activeTracks;
 	private List<Track> audioTracks;
 	
 	private JPanel bottomBarContainer;
@@ -83,14 +83,14 @@ public class SheetMusic extends Module{
 		this.remove(scoreFeedbackFrame);
 		this.remove(bottomBarContainer);
 		this.updateUI();
-		mainAreaTarget.setViewportView(new ScoreDisplay(this,score,selectedSongModel,activeTrack,audioTracks));
+		mainAreaTarget.setViewportView(new ScoreDisplay(this,score,selectedSongModel,activeTracks,audioTracks));
 		EventDispatcher.getInstance().detachAllMidi();
 	}
 
-	public void loadSong(SongModel model,Track activeTrack,List<Track> audioTracks){
+	public void loadSong(SongModel model,List<Track> activeTracks,List<Track> audioTracks){
 	
 		selectedSongModel = model;
-		this.activeTrack=activeTrack;
+		this.activeTracks=activeTracks;
 		this.audioTracks=audioTracks;
 		
 		// Initialize meta-things
@@ -101,14 +101,14 @@ public class SheetMusic extends Module{
 		//Hook up song processor pieces
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
 		songPlayer = new SongPlayer(selectedSongModel);
-		SongValidator validator = new SongValidator(selectedSongModel,activeTrack,heuristics);
+		SongValidator validator = new SongValidator(selectedSongModel,activeTracks,heuristics);
 		audioPlayer = new AudioPlayer(selectedSongModel,audioTracks);
 		
 		//Initialize UI Pieces
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		score=new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics);
 		scoreFeedbackFrame = new ScoreFrame(score);
-		musicEngine = new MusicEngine(selectedSongModel,activeTrack);
+		musicEngine = new MusicEngine(selectedSongModel,activeTracks.get(0));
 		bottomBarContainer = new JPanel();
 		bottomBarContainer.setLayout(new GridLayout(1,2));
 		

@@ -8,6 +8,7 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -48,6 +49,8 @@ public class ProfileModule extends Module implements ActionListener{
 	private JComboBox deviceList;
 	private JButton deviceReload;
 	private JButton deviceDetect;
+	private JCheckBox enablePitch;
+	private JCheckBox enableVelocity;
 	
 	//sheet music pref elements
 	private JButton deleteSheetMusicScoresButton;
@@ -92,12 +95,21 @@ public class ProfileModule extends Module implements ActionListener{
 		deviceDetect=new JButton("Autodetect midi device");
 		deviceDetect.addActionListener(this);
 		
+		enablePitch=new JCheckBox("Grade pitch (disable to only check for rhythm)");
+		enablePitch.setSelected(ProfileManager.getInstance().getActiveProfile().getIsPitchGraded());
+		enablePitch.addActionListener(this);
+		enableVelocity=new JCheckBox("Grade dynamic (disable if keyboard does not support it)");
+		enableVelocity.setSelected(ProfileManager.getInstance().getActiveProfile().getIsDynamicGraded());
+		enableVelocity.addActionListener(this);
+		
 		Group rows=layout.createSequentialGroup();
 		rows.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(renameProfileButton));
 		rows.addGroup(layout.createParallelGroup().addComponent(deleteProfileButton));
 		rows.addGroup(layout.createParallelGroup().addComponent(deviceLabel).addComponent(deviceList,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(deviceReload).addComponent(deviceDetect));
+		rows.addGroup(layout.createParallelGroup().addComponent(enablePitch));
+		rows.addGroup(layout.createParallelGroup().addComponent(enableVelocity));
 		Group cols=layout.createSequentialGroup();
-		cols.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(deviceLabel));
+		cols.addGroup(layout.createParallelGroup().addComponent(renameLabel).addComponent(deviceLabel).addComponent(enablePitch).addComponent(enableVelocity));
 		cols.addGroup(layout.createParallelGroup().addComponent(rename,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE).addComponent(deleteProfileButton).addComponent(deviceList,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE,GroupLayout.PREFERRED_SIZE));
 		cols.addGroup(layout.createParallelGroup().addComponent(renameProfileButton).addComponent(deviceReload));
 		cols.addGroup(layout.createParallelGroup().addComponent(deviceDetect));
@@ -219,6 +231,14 @@ public class ProfileModule extends Module implements ActionListener{
 				ProfileManager.getInstance().getActiveProfile().updateMidiDevice();
 				this.populateDeviceList();
 			}
+		}
+		else if (e.getSource()==enablePitch)
+		{
+			ProfileManager.getInstance().getActiveProfile().setIsPitchGraded(enablePitch.isSelected());
+		}
+		else if (e.getSource()==enableVelocity)
+		{
+			ProfileManager.getInstance().getActiveProfile().setIsDynamicGraded(enableVelocity.isSelected());
 		}
 	
 		//if they chose to delete the sheet music scores

@@ -228,6 +228,7 @@ public class PianoTrainerApplication {
 		});
 		
 		//add the module buttons to the container
+		moduleButtonContainer.add(new JLabel("Mode: "));
 		moduleButtonContainer.add(gameButton,BorderLayout.WEST);
 		moduleButtonContainer.add(lessonButton,BorderLayout.CENTER);
 		moduleButtonContainer.add(sheetMusicButton,BorderLayout.EAST);

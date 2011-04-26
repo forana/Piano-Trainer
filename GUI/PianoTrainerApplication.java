@@ -1,21 +1,27 @@
 package crescendo.base.GUI;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -23,15 +29,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.JLabel;
 
 import crescendo.base.ErrorHandler;
+import crescendo.base.module.Module;
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
-import crescendo.base.module.Module;
 import crescendo.game.GameModule;
-import crescendo.sheetmusic.SheetMusic;
 import crescendo.lesson.LessonModule;
+import crescendo.sheetmusic.SheetMusic;
 
 
 /**
@@ -140,6 +145,13 @@ public class PianoTrainerApplication {
 		mainWindow.setVisible(true);
 		menuBar = new JMenuBar();
 		mainWindow.setTitle("Piano Trainer");
+		
+		// load up the icon
+		List<Image> icons=new LinkedList<Image>();
+		icons.add(Toolkit.getDefaultToolkit().getImage("resources/icons/keys64.png"));
+		icons.add(Toolkit.getDefaultToolkit().getImage("resources/icons/keys32.png"));
+		icons.add(Toolkit.getDefaultToolkit().getImage("resources/icons/keys16.png"));
+		mainWindow.setIconImages(icons);
 
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainWindow.addWindowListener(new WindowListener(){

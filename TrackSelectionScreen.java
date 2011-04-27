@@ -67,10 +67,10 @@ public class TrackSelectionScreen extends JScrollPane implements ActionListener 
 		active=new JCheckBox[size];
 		enabled=new JCheckBox[size];
 		instruments=new JComboBox[size];
-		String[] isn=new String[AudioPlayer.instrumentList.length];
+		String[] isn=new String[AudioPlayer.getInstruments().length];
 		for (int i=0; i<isn.length && i<128; i++)
 		{
-			isn[i]=AudioPlayer.instrumentList[i].getName();
+			isn[i]=AudioPlayer.getInstruments()[i].getName();
 		}
 		
 		for (int i=0; i<size; i++)

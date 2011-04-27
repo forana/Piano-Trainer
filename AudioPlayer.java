@@ -1,3 +1,7 @@
+/**
+ * AudioPlayer.java
+ */
+
 package crescendo.base;
 
 import java.util.Iterator;
@@ -27,64 +31,89 @@ import crescendo.base.song.Track;
  */
 public class AudioPlayer implements NoteEventListener,FlowController
 {
+	// debug switch
 	private static final boolean DEBUG = false;
+	
+	// file path for soundbank
+	private static final String SOUNDBANK_PATH = "resources/soundbank/soundbank-min.gm";
 	
 	// Channel 10 (9 if zero-indexed) is always reserved for percussion
 	public static final int PERCUSSION_INDEX = 9;
-	public static Instrument[] instrumentList;
+	
+	// list of loaded instruments
+	private static Instrument[] instrumentList;
+	
+	// single synth object
 	private static Synthesizer synth=null;
 	
-	static {
-		boolean retry=true;
-		boolean success=false;
-		
-		while (!success && retry)
+	/**
+	 *  Initialize single instance of midi system
+	 */
+	private static void initSynth()
+	{
+		if (synth==null)
 		{
-			try {
-				synth=MidiSystem.getSynthesizer();
-				synth.open();
-				Soundbank bank=synth.getDefaultSoundbank();
-				if (bank==null)
-				{
-					bank=MidiSystem.getSoundbank(new File("resources/soundbank/soundbank-min.gm"));
-					synth.loadAllInstruments(bank);
-				}
-				instrumentList=bank.getInstruments();
-				success=true;
-			}
-			catch (IOException e)
-			{
-				success=false;
-			}
-			catch (MidiUnavailableException e)
-			{
-				success=false;
-			}
-			catch (InvalidMidiDataException e)
-			{
-				success=false;
-			}
+			boolean retry=true;
+			boolean success=false;
 			
-			if (!success)
+			while (!success && retry)
 			{
-				String title="MIDI Unavailable";
-				String message="A MIDI system could not be found. Press retry to check again, or fail to proceed.\n"
-					+ "If the program proceeds without a midi system, you will not be able to hear accompaniment.";
-				while (retry)
-				{
-					if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
+				try {
+					synth=MidiSystem.getSynthesizer();
+					synth.open();
+					Soundbank bank=synth.getDefaultSoundbank();
+					if (bank==null)
 					{
-						retry=true;
+						bank=MidiSystem.getSoundbank(new File(SOUNDBANK_PATH));
+						synth.loadAllInstruments(bank);
 					}
-					else
+					instrumentList=bank.getInstruments();
+					success=true;
+				}
+				catch (IOException e)
+				{
+					success=false;
+				}
+				catch (MidiUnavailableException e)
+				{
+					success=false;
+				}
+				catch (InvalidMidiDataException e)
+				{
+					success=false;
+				}
+				
+				if (!success)
+				{
+					String title="MIDI Unavailable";
+					String message="A MIDI system could not be found. Press retry to check again, or fail to proceed.\n"
+						+ "If the program proceeds without a midi system, you will not be able to hear accompaniment.";
+					while (retry)
 					{
-						retry=false;
-						synth=null;
+						if (ErrorHandler.showRetryFail(title,message)==ErrorHandler.Response.RETRY)
+						{
+							retry=true;
+						}
+						else
+						{
+							retry=false;
+							synth=null;
+						}
 					}
 				}
 			}
 		}
 	}
+	
+	public static Instrument[] getInstruments()
+	{
+		if (synth==null)
+		{
+			initSynth();
+		}
+		return instrumentList;
+	}
+	
 	/**
 	 * Associates track to channel and note data.
 	 */
@@ -113,6 +142,12 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 */
 	public AudioPlayer(SongModel songModel,List<Track> acceptedTracks)
 	{
+		// if the synth is null, we need to initialize it
+		if (synth==null)
+		{
+			initSynth();
+		}
+		
 		// initialize relation map
 		this.channelMap=new HashMap<Track,AudioPlayerChannel>();
 		
@@ -125,16 +160,17 @@ public class AudioPlayer implements NoteEventListener,FlowController
 			channels[i].allSoundOff();
 		}
 		
-		// match channels to AudioPlayerChannel objects, but don't add the active track
+		// match channels to AudioPlayerChannel objects
 		int currentChannel=0;
+		// instantiate percussion track ahead of time; assume there will always be one
 		this.percussionChannel=new AudioPlayerChannel(channels[PERCUSSION_INDEX]);
-		
 		this.percussionTrack=new Track("Reserved Percussion",0);
 		this.channelMap.put(this.percussionTrack,this.percussionChannel);
 		
 		// start off assuming we arent't suspended
 		this.suspended=false;
 		
+		// assign tracks to channels
 		for (Track track : songModel.getTracks())
 		{
 			// don't add unaccepted tracks, or an empty track
@@ -162,7 +198,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 						}
 						catch (ArrayIndexOutOfBoundsException e)
 						{
-							instrument=instrumentList[0]; // this is probably drums
+							instrument=instrumentList[0];
 							if (DEBUG) System.out.println("Defaulting instrument for "+track.getName());
 						}
 						
@@ -174,7 +210,6 @@ public class AudioPlayer implements NoteEventListener,FlowController
 						// add it to the map
 						this.channelMap.put(track,playerChannel);
 						
-						// don't forget to increment this... pretty sure someone did once
 						currentChannel++;
 					}
 				}
@@ -196,10 +231,15 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 */
 	public long getLatency()
 	{
-		// the division converts microseconds to milliseconds
+		// convert microseconds to milliseconds
 		return synth.getLatency()/1000;
 	}
 	
+	/**
+	 * A track that can be used for playing metronome ticks safely.
+	 * 
+	 * @return A track that can be used for playing metronome ticks safely.
+	 */
 	public Track getMetronomeTrack()
 	{
 		return this.percussionTrack;
@@ -212,14 +252,11 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	 */
 	public void handleNoteEvent(NoteEvent noteEvent)
 	{
-		// pull relevant information out
 		Note note=noteEvent.getNote();
 		NoteAction action=noteEvent.getAction();
 		Track track=note.getTrack();
 		
-		AudioPlayerChannel channel;
-		
-		channel=this.channelMap.get(track);
+		AudioPlayerChannel channel=this.channelMap.get(track);
 		
 		if (channel!=null)
 		{
@@ -329,10 +366,12 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		 */
 		public void playNote(Note note)
 		{
+			// play the note
 			int pitch=note.getPitch();
 			int velocity=note.getDynamic();
 			this.channel.noteOn(pitch,velocity);
 			
+			// if a note of this pitch was already playing, remove it from our list
 			for (Iterator<Note> iter=this.activeNotes.iterator(); iter.hasNext();)
 			{
 				Note iterNote=iter.next();

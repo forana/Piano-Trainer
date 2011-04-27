@@ -423,11 +423,11 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 		{
 			if(midiEvent.getAction()==ActionType.PRESS)
 			{
-				midiNotesPressed.add(midiEvent.getNote());
+				midiNotesPressed.add(new Integer(midiEvent.getNote()));
 			}
 			else
 			{
-				midiNotesPressed.remove(midiEvent.getNote());
+				midiNotesPressed.remove(new Integer(midiEvent.getNote()));
 			}
 		}
 

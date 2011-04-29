@@ -34,6 +34,9 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	// debug switch
 	private static final boolean DEBUG = false;
 	
+	// timer threshold for note aliasing (milliseconds)
+	private static final int ALIAS_THRESHOLD = 50;
+	
 	// file path for soundbank
 	private static final String SOUNDBANK_PATH = "resources/soundbank/soundbank-min.gm";
 	
@@ -341,6 +344,8 @@ public class AudioPlayer implements NoteEventListener,FlowController
 	{
 		private MidiChannel channel;
 		
+		private Map<Integer,Long> aliasMap;
+		
 		/**
 		 * Contains a list of active notes and their current velocities.
 		 * 
@@ -357,6 +362,7 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		{
 			this.channel=channel;
 			this.activeNotes=new LinkedList<Note>();
+			this.aliasMap=new HashMap<Integer,Long>();
 		}
 		
 		/**
@@ -381,6 +387,8 @@ public class AudioPlayer implements NoteEventListener,FlowController
 				}
 			}
 			this.activeNotes.add(note);
+			
+			this.aliasMap.put(note.getPitch(),System.currentTimeMillis());
 		}
 		
 		/**
@@ -390,10 +398,13 @@ public class AudioPlayer implements NoteEventListener,FlowController
 		 */
 		public void stopNote(Note note)
 		{
-			int pitch=note.getPitch();
-			this.channel.noteOff(pitch);
-			
-			this.activeNotes.remove(note);
+			if (aliasMap.get(note.getPitch())==null || System.currentTimeMillis()>aliasMap.get(note.getPitch())+ALIAS_THRESHOLD)
+			{
+				int pitch=note.getPitch();
+				this.channel.noteOff(pitch);
+				
+				this.activeNotes.remove(note);
+			}
 		}
 		
 		/**

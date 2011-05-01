@@ -50,7 +50,7 @@ public abstract class Drawable {
 		}
 		
 		
-		protected int yPositionOfNote(int pitch)
+		/*protected int yPositionOfNote(int pitch)
 		{
 			int toRet = 0;
 			
@@ -70,7 +70,7 @@ public abstract class Drawable {
 			if(pitch<60)toRet+=34;
 			
 			return toRet;
-		}
+		}*/
 		
 		
 }

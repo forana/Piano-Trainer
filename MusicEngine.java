@@ -207,7 +207,6 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		while (duration>beatsLeft)
 		{
 			ret.addAll(splitNote(note,beatsLeft,beatOffset));
-			System.out.println(note.getPitch());
 			beatOffset+=beatsLeft;
 			duration-=beatsLeft;
 			beatsLeft=this.beatsPerMeasure;

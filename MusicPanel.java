@@ -66,7 +66,9 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		this.grader=new LessonGrader();
 		this.player=new SongPlayer(model);
 		
-		this.engine=new MusicEngine(model,model.getTracks().get(item.getTrack()));
+		List<Track> trackList=new ArrayList<Track>();
+		trackList.add(model.getTracks().get(item.getTrack()));
+		this.engine=new MusicEngine(model,trackList);
 		this.add(this.engine);
 		this.playIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/play.png"));
 		this.stopIcon=new ImageIcon(Toolkit.getDefaultToolkit().createImage("resources/icons/stop.png"));

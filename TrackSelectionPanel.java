@@ -99,6 +99,7 @@ public class TrackSelectionPanel extends JScrollPane implements ActionListener {
 			c.gridwidth=GridBagConstraints.REMAINDER;
 			instruments[i]=new JComboBox(isn);
 			instruments[i].setSelectedIndex(track.getVoice());
+			instruments[i].setEnabled(track.getVoice()>=0);
 			form.add(instruments[i],c);
 		}
 		

@@ -25,6 +25,7 @@ import crescendo.base.NoteEvent;
 import crescendo.base.NoteEventListener;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
+import crescendo.base.EventDispatcher.ActionType;
 import crescendo.base.song.Creator;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
@@ -123,6 +124,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private boolean trebleNeeded;
 	private boolean bassNeeded;
 	
+	//state items
+	private boolean paused;
+	private BeatTimer timer;
+	
 	public MusicEngine(SongModel model,List<Track> activeTracks){
 		this(model,activeTracks,true);
 	}
@@ -141,6 +146,9 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		
 		this.barX=-1;
 		this.barY=-1;
+		
+		this.paused=true;
+		this.timer=null;
 		
 		// determine if treble and/or bass are needed, and calculate edges
 		int trebleCount=0;
@@ -626,19 +634,38 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		}
 		this.barX=MARGIN+CLEF_WIDTH+this.decoratorWidth;
 		this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0);
+		this.paused=false;
+		this.timer=new BeatTimer();
 	}
 
 	public void pause(){
+		this.paused=true;
 	}
 
 	public void stop(){
+		this.paused=true;
+		if (this.timer!=null)
+		{
+			this.timer.destroy();
+		}
+		this.timer=null;
 	}
 
 	public void resume(){
+		this.paused=false;
 	}
 	
-	public void suspend(){}
-	public void songEnd(){}
+	public void suspend()
+	{
+		this.paused=true;
+	}
+	
+	public void songEnd()
+	{
+		this.paused=true;
+		this.timer.destroy();
+		this.timer=null;
+	}
 	
 	public void handleNoteEvent(NoteEvent e) {
 		if (this.activeTracks.contains(e.getNote().getTrack()) && e.getAction()==NoteAction.BEGIN)
@@ -666,13 +693,27 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 
 	@Override
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
-		if (e.getExpectedNote().getAction()==NoteAction.BEGIN && e.getExpectedNote().getNote()!=null && this.noteMap.keySet().contains(e.getExpectedNote().getNote()))
+		if (e.getExpectedNote()!=null && e.getExpectedNote().getAction()==NoteAction.BEGIN && e.getExpectedNote().getNote()!=null && this.noteMap.keySet().contains(e.getExpectedNote().getNote()))
 		{
 			for (DrawableNote note : this.noteMap.get(e.getExpectedNote().getNote()))
 			{
 				note.setCorrect(e.isCorrect());
 				this.repaint();
 			}
+		}
+		
+		if (e.getPlayedNote()!=null && !e.isCorrect() && this.timer!=null && !this.paused &&e.getPlayedNote().getAction()==ActionType.PRESS)
+		{
+			double offset=this.timer.getBeatOffset();
+			double beatsLeft=2;
+			Note dummyNote=new Note(e.getPlayedNote().getNote(),1,100,null);
+			DrawableNote note=this.calculateNotes(dummyNote,beatsLeft,offset).get(0);
+			note.setCorrect(false);
+			synchronized(MusicEngine.class)
+			{
+				this.drawables.add(note);
+			}
+			this.repaint();
 		}
 	}
 	
@@ -752,6 +793,51 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		public int getShift()
 		{
 			return this.shift;
+		}
+	}
+	
+	private class BeatTimer
+	{
+		private Thread thread;
+		private long elapsedTime;
+		private long lastRun;
+		
+		public BeatTimer()
+		{
+			this.elapsedTime=0;
+			this.lastRun=0;
+			this.thread=new Thread(new Runnable() {
+				public void run() {
+					while (!Thread.interrupted())
+					{
+						long time=System.currentTimeMillis();
+						if (lastRun!=0 && !paused)
+						{
+							elapsedTime+=time-lastRun;
+						}
+						lastRun=time;
+						try
+						{
+							Thread.sleep(5);
+						}
+						catch (InterruptedException e)
+						{
+						}
+					}
+				}
+			});
+			this.thread.start();
+		}
+		
+		public void destroy()
+		{
+			this.thread.interrupt();
+		}
+		
+		public double getBeatOffset()
+		{
+			double beatsPerMS=model.getBPM()/60000.0;
+			return beatsPerMS*this.elapsedTime;
 		}
 	}
 }

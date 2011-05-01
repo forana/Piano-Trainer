@@ -108,7 +108,7 @@ public class SheetMusic extends Module{
 		adviceFeedbackFrame = new AdviceFrame(heuristics,songPlayer.getSongState());
 		score=new ScoreCalculator(careAboutPitch,careAboutDynamic,songPlayer.getSongState(),heuristics);
 		scoreFeedbackFrame = new ScoreFrame(score);
-		musicEngine = new MusicEngine(selectedSongModel,activeTracks.get(0));
+		musicEngine = new MusicEngine(selectedSongModel,activeTracks);
 		bottomBarContainer = new JPanel();
 		bottomBarContainer.setLayout(new GridLayout(1,2));
 		

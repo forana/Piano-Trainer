@@ -33,6 +33,6 @@ public class DottedNote extends DrawableNote {
 	
 	public void draw(Graphics g) {
 		this.wrappedNote.draw(g);
-		g.fillOval(x+this.wrappedNote.getWidth()+2,y,6,6);
+		g.fillOval(x+this.wrappedNote.getWidth()+2,y,5,5);
 	}
 }

@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
 
+import crescendo.base.ErrorHandler;
 import crescendo.base.FlowController;
 import crescendo.base.NoteAction;
 import crescendo.base.NoteEvent;
@@ -100,10 +102,12 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	
 	//data items
 	private SongModel model;
-	private Track activeTrack;
+	private List<Track> activeTracks;
 	private double beatsPerMeasure;
 	private double beatNote;
 	private int measureCount;
+	private List<TimingEdge> trebleEdges;
+	private List<TimingEdge> bassEdges;
 	
 	//alignment items
 	private boolean built;
@@ -119,13 +123,13 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	private boolean trebleNeeded;
 	private boolean bassNeeded;
 	
-	public MusicEngine(SongModel model,Track activeTrack){
-		this(model,activeTrack,true);
+	public MusicEngine(SongModel model,List<Track> activeTracks){
+		this(model,activeTracks,true);
 	}
 
-	public MusicEngine(SongModel model,Track activeTrack,boolean showTitle){
+	public MusicEngine(SongModel model,List<Track> activeTracks,boolean showTitle){
 		this.model=model;
-		this.activeTrack=activeTrack;
+		this.activeTracks=activeTracks;
 		this.titleShowing=showTitle;
 		this.addComponentListener(this);
 		
@@ -138,24 +142,69 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		this.barX=-1;
 		this.barY=-1;
 		
-		// determine if treble and/or bass are needed
+		// determine if treble and/or bass are needed, and calculate edges
 		int trebleCount=0;
 		int bassCount=0;
 		int total=0;
-		for (Note note : activeTrack.getNotes())
+		for (Track track : this.activeTracks)
 		{
-			total++;
-			if (isBassNote(note.getPitch()))
+			for (Note note : track.getNotes())
 			{
-				bassCount++;
-			}
-			else
-			{
-				trebleCount++;
+				if (note.isPlayable())
+				{
+					total++;
+					if (isBassNote(note.getPitch()))
+					{
+						bassCount++;
+					}
+					else
+					{
+						trebleCount++;
+					}
+				}
 			}
 		}
 		trebleNeeded=(trebleCount>total*CLEF_THRESHOLD);
 		bassNeeded=(bassCount>total*CLEF_THRESHOLD);
+		
+		// if zero notes are given, neither staff would be shown, which could be confusing
+		if (!trebleNeeded && !bassNeeded)
+		{
+			ErrorHandler.showNotification("Note","You've opened an empty song!");
+			trebleNeeded=true;
+		}
+		
+		// calculate edges
+		double beat;
+		this.trebleEdges=new LinkedList<TimingEdge>();
+		this.bassEdges=new LinkedList<TimingEdge>();
+		for (Track track : this.activeTracks)
+		{
+			beat=0;
+			for (Note note : track.getNotes())
+			{
+				if (note.isPlayable())
+				{
+					TimingEdge rising=new TimingEdge(beat,TimingEdge.RISING);
+					TimingEdge falling=new TimingEdge(beat+note.getDuration(),TimingEdge.FALLING);
+					
+					if ((isBassNote(note.getPitch()) && bassNeeded) || (!isBassNote(note.getPitch()) && !trebleNeeded))
+					{
+						bassEdges.add(rising);
+						bassEdges.add(falling);
+					}
+					else
+					{
+						trebleEdges.add(rising);
+						trebleEdges.add(falling);
+					}
+				}
+				beat+=note.getDuration();
+			}	
+		}
+		// sort edges
+		Collections.sort(trebleEdges);
+		Collections.sort(bassEdges);
 	}
 	
 	private void build()
@@ -180,16 +229,69 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			// add notes to list
 			this.noteMap=new HashMap<Note,List<DrawableNote>>();
 			this.drawables=new LinkedList<Drawable>();
-			double beatOffset=0;
-			double leftInMeasure=this.beatsPerMeasure;
-			for (Note note : activeTrack.getNotes())
+			for (Track track : this.activeTracks)
 			{
-				noteMap.put(note,calculateNotes(note,leftInMeasure,beatOffset));
-				beatOffset+=note.getDuration();
-				leftInMeasure-=note.getDuration();
-				while (leftInMeasure<0)
+				double beatOffset=0;
+				double leftInMeasure=this.beatsPerMeasure;
+				for (Note note : track.getNotes())
 				{
-					leftInMeasure+=this.beatsPerMeasure;
+					if (note.isPlayable())
+					{
+						noteMap.put(note,calculateNotes(note,leftInMeasure,beatOffset));
+					}
+					beatOffset+=note.getDuration();
+					leftInMeasure-=note.getDuration();
+					while (leftInMeasure<0)
+					{
+						leftInMeasure+=this.beatsPerMeasure;
+					}
+				}
+			}
+			
+			// determine if an extra rest is needed on the end of the measure
+			double actualLength=this.model.getDuration();
+			double fullLength=Math.ceil(actualLength/this.beatsPerMeasure)*this.beatsPerMeasure;
+			double endNoteLength=fullLength-actualLength;
+			
+			// add rests for both staves
+			if (trebleNeeded)
+			{
+				int level=0;
+				double lastTime=0;
+				for (TimingEdge edge : this.trebleEdges)
+				{
+					double duration=edge.getTime()-lastTime;
+					if (level==0 && duration>0)
+					{
+						this.drawables.addAll(createRests(lastTime,duration,false));
+					}
+					level+=edge.getShift();
+					lastTime=edge.getTime();
+				}
+				
+				if (endNoteLength>0)
+				{
+					this.drawables.addAll(createRests(lastTime,endNoteLength,false));
+				}
+			}
+			if (bassNeeded)
+			{
+				int level=0;
+				double lastTime=0;
+				for (TimingEdge edge : this.bassEdges)
+				{
+					double duration=edge.getTime()-lastTime;
+					if (level==0 && duration>0)
+					{
+						this.drawables.addAll(createRests(lastTime,duration,true));
+					}
+					level+=edge.getShift();
+					lastTime=edge.getTime();
+				}
+				
+				if (endNoteLength>0)
+				{
+					this.drawables.addAll(createRests(lastTime,endNoteLength,true));
 				}
 			}
 			
@@ -199,21 +301,31 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		this.repaint();
 	}
 	
+	private List<DrawableNote> createRests(double beatOffset,double length,boolean forceBass) {
+		Note dummyNote=new Note(0,length,0,null,false);
+		double beatsLeft=Math.ceil(beatOffset/this.beatsPerMeasure)*this.beatsPerMeasure-beatOffset;
+		return this.calculateNotes(dummyNote,beatsLeft,beatOffset,forceBass);
+	}
+	
 	private List<DrawableNote> calculateNotes(Note note,double beatsLeft,double beatOffset) {
+		return calculateNotes(note,beatsLeft,beatOffset,false);
+	}
+	
+	private List<DrawableNote> calculateNotes(Note note,double beatsLeft,double beatOffset,boolean forceBass) {
 		double originalBeatsLeft=beatsLeft;
 		double originalOffset=beatOffset;
 		List<DrawableNote> ret=new LinkedList<DrawableNote>();
 		double duration=note.getDuration();
 		while (duration>beatsLeft)
 		{
-			ret.addAll(splitNote(note,beatsLeft,beatOffset));
+			ret.addAll(splitNote(note,beatsLeft,beatOffset,forceBass));
 			beatOffset+=beatsLeft;
 			duration-=beatsLeft;
 			beatsLeft=this.beatsPerMeasure;
 		}
 		if (duration>0)
 		{
-			ret.addAll(splitNote(note,duration,beatOffset));
+			ret.addAll(splitNote(note,duration,beatOffset,forceBass));
 		}
 		
 		// add created notes to list of drawables, with modifiers added
@@ -262,7 +374,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		return ret;
 	}
 	
-	private List<DrawableNote> splitNote(Note note,double duration,double beatOffset) {
+	private List<DrawableNote> splitNote(Note note,double duration,double beatOffset,boolean forceBass) {
 		List<DrawableNote> ret=new LinkedList<DrawableNote>();
 		for (int i=0; i<NOTE_PROTOTYPES.length;)
 		{
@@ -275,7 +387,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			{
 				DrawableNote spawned=prototypeArray[i].spawn(note,
 					getX(beatOffset,prototypeArray[i].getBeatsCovered(),prototypeArray[i].getWidth()),
-					getY(note,beatOffset));
+					getY(note,beatOffset,forceBass));
 				// add dot if it comes out EXACTLY right, otherwise assume ties will be used
 				if (spawned.getBeatsCovered()*1.5==duration)
 				{
@@ -303,7 +415,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		return xb;
 	}
 	
-	private int getY(Note n,double beats) {
+	private int getY(Note n,double beats,boolean forceBass) {
 		int yb=MARGIN+STAFF_MARGIN+(this.titleShowing?HEADER_HEIGHT:0);
 		if (n.isPlayable())
 		{
@@ -325,7 +437,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 				}
 			}
 			// if both bass and treble are showing and this is a bass note, adjust the height to show on the proper staff
-			if (bass && this.trebleNeeded)
+			// (or if bass note is being forced)
+			if (bass && this.trebleNeeded || forceBass)
 			{
 				yb+=STAFF_HEIGHT+STAFF_MARGIN;
 			}
@@ -333,6 +446,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		else // it's a rest, just give it the middle of the staff
 		{
 			yb+=STAFF_HEIGHT/2;
+			if (forceBass)
+			{
+				yb+=STAFF_HEIGHT+STAFF_MARGIN;
+			}
 		}
 		int staffHeight=STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING;
 		if (this.trebleNeeded && this.bassNeeded)
@@ -524,7 +641,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	public void songEnd(){}
 	
 	public void handleNoteEvent(NoteEvent e) {
-		if (e.getNote().getTrack()==this.activeTrack && e.getAction()==NoteAction.BEGIN)
+		if (this.activeTracks.contains(e.getNote().getTrack()) && e.getAction()==NoteAction.BEGIN)
 		{
 			List<DrawableNote> noteList=this.noteMap.get(e.getNote());
 			if (noteList!=null)
@@ -605,5 +722,36 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	@Override
 	public int getScrollableUnitIncrement(Rectangle arg0, int arg1, int arg2) {
 		return 1;
+	}
+	
+	/** A data object representing a shift at a given time on an arbitrary scale. **/
+	private class TimingEdge implements Comparable<TimingEdge>
+	{
+		public static final int RISING=1;
+		public static final int FALLING=-1;
+		
+		private double time;
+		private int shift;
+		
+		public TimingEdge(double time,int shift)
+		{
+			this.time=time;
+			this.shift=shift;
+		}
+		
+		public int compareTo(TimingEdge other)
+		{
+			return (int) Math.signum(this.time-other.time);
+		}
+		
+		public double getTime()
+		{
+			return this.time;
+		}
+		
+		public int getShift()
+		{
+			return this.shift;
+		}
 	}
 }

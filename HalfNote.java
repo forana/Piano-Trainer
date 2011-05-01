@@ -38,7 +38,7 @@ public class HalfNote extends DrawableNote{
 		g.drawOval(x,y,8,8);
 		
 		//draw the line attached to it
-		if(note.getPitch()>=70 || (note.getPitch()<60 && note.getPitch()>=50))
+		if(note.getPitch()<79)
 			g.drawLine(x+8,y+4,x+8,y-16);
 		else
 			g.drawLine(x,y+4,x,y+24);

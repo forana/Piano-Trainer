@@ -11,7 +11,7 @@ public class Sharp extends DrawableModifier{
 	
 	public Sharp(DrawableNote n){
 		note = n;
-		x = n.getX()+n.getWidth();
+		x = n.getX()-MusicEngine.STAFF_LINE_HEIGHT;
 		y = n.getY();
 	}
 

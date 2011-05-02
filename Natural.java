@@ -11,7 +11,7 @@ public class Natural extends DrawableModifier{
 	
 	public Natural(DrawableNote n){
 		note = n;
-		x = n.getX()+n.getWidth();
+		x = n.getX()-MusicEngine.STAFF_LINE_HEIGHT;
 		y = n.getY();
 	}
 

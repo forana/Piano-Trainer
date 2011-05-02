@@ -419,7 +419,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		// place in proper measure
 		xb+=(int)(beats*this.beatWidth);
 		// center note in its allotted area
-		xb+=(int)(count*this.beatWidth+width)/2;
+		xb+=(int)(count*this.beatWidth)/2;
 		return xb;
 	}
 	

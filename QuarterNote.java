@@ -11,10 +11,6 @@ public class QuarterNote extends DrawableNote{
 	public QuarterNote(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
-		noteType = NoteType.QUARTERNOTE;
-		
-		
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

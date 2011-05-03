@@ -14,8 +14,6 @@ public class SixteenthNote extends DrawableNote{
 	public SixteenthNote(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
-		noteType = NoteType.SIXTEENTHNOTE;		
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

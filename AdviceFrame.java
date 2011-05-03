@@ -36,6 +36,7 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 	// list of patterns being used
 	private List<AdvicePattern> patterns;
 	
+	// song state variables
 	private HeuristicsModel heuristics;
 	private SongState state;
 	
@@ -88,6 +89,8 @@ public class AdviceFrame extends JPanel implements ProcessedNoteEventListener {
 	
 	/**
 	 * Pass the event to all patterns being considered.
+	 * 
+	 * @param e The event object
 	 */
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e) {
 		for (AdvicePattern pattern : this.patterns) {

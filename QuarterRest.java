@@ -17,8 +17,6 @@ public class QuarterRest extends DrawableNote{
 	public QuarterRest(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
-		noteType = NoteType.QUARTERNOTE;
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

@@ -11,8 +11,6 @@ public class HalfRest extends DrawableNote{
 	public HalfRest(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
-		noteType = NoteType.HALFNOTE;
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

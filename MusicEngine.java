@@ -277,6 +277,12 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					lastTime=edge.getTime();
 				}
 				
+				if (lastTime<model.getDuration())
+				{
+					double diff=model.getDuration()-lastTime;
+					this.drawables.addAll(createRests(lastTime,diff,false));
+				}
+				
 				if (endNoteLength>0)
 				{
 					this.drawables.addAll(createRests(lastTime,endNoteLength,false));
@@ -295,6 +301,12 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					}
 					level+=edge.getShift();
 					lastTime=edge.getTime();
+				}
+				
+				if (lastTime<model.getDuration())
+				{
+					double diff=model.getDuration()-lastTime;
+					this.drawables.addAll(createRests(lastTime,diff,true));
 				}
 				
 				if (endNoteLength>0)
@@ -419,7 +431,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		// place in proper measure
 		xb+=(int)(beats*this.beatWidth);
 		// center note in its allotted area
-		xb+=(int)(count*this.beatWidth)/2;
+		xb+=(int)(count*this.beatWidth-width)/2;
 		return xb;
 	}
 	
@@ -566,8 +578,13 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 				// draw line
 				if (this.barX>=0)
 				{
+					int barHeight=STAFF_HEIGHT+2*STAFF_MARGIN;
+					if (bassNeeded && trebleNeeded)
+					{
+						barHeight+=STAFF_HEIGHT+STAFF_MARGIN;
+					}
 					g.setColor(Color.RED);
-					g.drawLine(this.barX,this.barY,this.barX,this.barY+STAFF_HEIGHT+2*STAFF_MARGIN);
+					g.drawLine(this.barX,this.barY,this.barX,this.barY+barHeight);
 				}
 			}
 		}
@@ -673,20 +690,23 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			List<DrawableNote> noteList=this.noteMap.get(e.getNote());
 			if (noteList!=null)
 			{
-				DrawableNote note=noteList.get(0);
-				this.barX=note.getX()+note.getWidth()/2;
-				int staffHeight=STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING;
-				if (this.trebleNeeded && this.bassNeeded)
+				if (noteList.size()>0)
 				{
-					staffHeight+=STAFF_HEIGHT+STAFF_MARGIN;
+					DrawableNote note=noteList.get(0);
+					this.barX=note.getX()+note.getWidth()/2;
+					int staffHeight=STAFF_HEIGHT+2*STAFF_MARGIN+STAFF_SPACING;
+					if (this.trebleNeeded && this.bassNeeded)
+					{
+						staffHeight+=STAFF_HEIGHT+STAFF_MARGIN;
+					}
+					this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0)+((note.getY()-MARGIN-(this.titleShowing?HEADER_HEIGHT:0))/staffHeight*staffHeight);
+					// scroll to bar in view
+					// get measure in which note happened
+					int measureX=(this.barX-MARGIN)/this.measureWidth*this.measureWidth+MARGIN;
+					Rectangle view=new Rectangle(measureX,this.barY-STAFF_MARGIN,this.measureWidth*2,2*staffHeight);
+					this.scrollRectToVisible(view);
+					this.repaint();
 				}
-				this.barY=MARGIN+(this.titleShowing?HEADER_HEIGHT:0)+((note.getY()-MARGIN-(this.titleShowing?HEADER_HEIGHT:0))/staffHeight*staffHeight);
-				// scroll to bar in view
-				// get measure in which note happened
-				int measureX=(this.barX-MARGIN)/this.measureWidth*this.measureWidth+MARGIN;
-				Rectangle view=new Rectangle(measureX,this.barY-STAFF_MARGIN,this.measureWidth*2,2*staffHeight);
-				this.scrollRectToVisible(view);
-				this.repaint();
 			}
 		}
 	}

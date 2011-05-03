@@ -1,11 +1,6 @@
 package crescendo.sheetmusic;
 
-import java.awt.Color;
 import java.awt.Graphics;
-import java.util.List;
-
-import crescendo.base.ProcessedNoteEvent;
-import crescendo.base.song.Note;
 
 /**
  * DrawableModifier

@@ -11,9 +11,6 @@ public class SixteenthRest extends DrawableNote{
 	public SixteenthRest(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
-		noteType = NoteType.SIXTEENTHNOTE;
-		
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

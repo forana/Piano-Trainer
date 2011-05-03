@@ -11,10 +11,6 @@ public class WholeNote extends DrawableNote{
 	public WholeNote(Note n,int x,int y)
 	{
 		super(n,x,y);
-		
-		noteType = NoteType.WHOLENOTE;
-		
-		
 	}
 	
 	public DrawableNote spawn(Note n,int x,int y)

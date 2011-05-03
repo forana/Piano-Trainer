@@ -13,42 +13,62 @@ import crescendo.base.song.Note;
  * 	rendered to the screen.
  * 
  * @author groszc
- *
+ * @author forana
  */
 public abstract class DrawableNote extends Drawable{
 
 	
 	/** the Note this DrawableNote "wraps" **/
 	protected Note note;
-	protected NoteType noteType;
 	protected Color color;
 	
 	// Empty constructor - this allows good things for prototyping
 	public DrawableNote() {}
 	
 	/**
-	 * DrawableNote
-	 * 
-	 * Basic constructor, take a Note as a parameter.
-	 * 
-	 * @param n - the Note this DrawableNote "wraps"
+	 * @param n The Note object this note "wraps"
+	 * @param x The x-position of this note.
+	 * @param y The y-position of this note.
 	 */
 	protected DrawableNote(Note n,int x,int y)
 	{
 		color = Color.black;
 		note = n;
 		this.x = x;
-		this.y = y;//+yPositionOfNote(n.getPitch());
+		this.y = y;
 	}
 	
+	/**
+	 * Creates a new note of this object's type.
+	 * 
+	 * @param n The note to be wrapped.
+	 * @param x The x-position of the new note.
+	 * @param y The y-position of the new note.
+	 * 
+	 * @return DrawableNote
+	 */
 	public abstract DrawableNote spawn(Note n,int x,int y);
+	
+	/**
+	 * The number of beats this note represents.
+	 * @return double
+	 */
 	public abstract double getBeatsCovered();
 	
+	/**
+	 * The wrapped note object.
+	 * @return Note
+	 */
 	public Note getNote()
 	{
 		return note;
 	}
 	
+	/**
+	 * Sets this note's correctness.
+	 * 
+	 * @param b true if the note is correct, false otherwise.
+	 */
 	protected void setCorrect(boolean correct){
 		if(correct)
 			color = Color.green;
@@ -56,14 +76,15 @@ public abstract class DrawableNote extends Drawable{
 			color = Color.red;
 	}
 	
+	/**
+	 * Set this note's "correctness" back to neither correct nor incorrect.
+	 */
 	public void reset() {
 		color=Color.black;
 	}
 	
 	/**
-	 * draw
-	 * 
-	 * Draws this note to the given graphics context.
+	 * Draws this note to the given graphics context. Implementing classes should call super.
 	 * 
 	 * @param g - the graphics context to draw to.
 	 */
@@ -89,23 +110,6 @@ public abstract class DrawableNote extends Drawable{
 				}
 				flipper=!flipper;
 			}
-			/*offset=0;
-			for (int p=note.getPitch(); p<64; p++)
-			{
-				if (!MusicEngine.isAccidental(p))
-				{
-					offset++;
-				}
-			}
-			flipper=(offset%2==0);
-			for (int i=-1; i<offset; i++)
-			{
-				if (flipper)
-				{
-					g.drawLine(x-2,y-i*MusicEngine.STAFF_LINE_HEIGHT/2,x+getWidth()+2,y-i*MusicEngine.STAFF_LINE_HEIGHT/2);
-				}
-				flipper=!flipper;
-			}*/
 		}
 	}
 }

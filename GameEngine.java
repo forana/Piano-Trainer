@@ -1,10 +1,9 @@
 package crescendo.game;
 
-import java.util.List;
 
+import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-
 import crescendo.base.HeuristicsModel;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
@@ -39,6 +38,7 @@ public class GameEngine extends JPanel{
 				ProfileManager.getInstance().getActiveProfile().getIsPitchGraded());
 				
 		SongPlayer player=new SongPlayer(model);
+
 		SongValidator validator=new SongValidator(model,activeTracks,heuristics);
 		
 		ScoreCalculator calc=new ScoreCalculator(heuristics.listeningPitch(),heuristics.listeningVelocity(),player.getSongState(),heuristics);

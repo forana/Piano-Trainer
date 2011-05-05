@@ -120,7 +120,6 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 		timerThread = new Thread(timer);
 		timerThread.start();
 
-		//Play the song
 		songPlayer.play();
 	}
 

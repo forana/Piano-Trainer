@@ -17,6 +17,9 @@ public class GameModule extends Module {
 	
 	private String loadedSongPath;
 	
+	/** a reference to this module engine **/
+	GameEngine gameEngine;
+	
 	public GameModule() {
 		this.showSongSelectionPanel();
 	}
@@ -24,7 +27,8 @@ public class GameModule extends Module {
 	public void showGamePanel(SongModel model,List<Track> activeTracks,List<Track> audioTracks) {
 		EventDispatcher.getInstance().detachAllMidi();
 		this.removeAll();
-		this.add(new GameEngine(this,model,activeTracks,audioTracks));
+		gameEngine = new GameEngine(this,model,activeTracks,audioTracks);
+		this.add(gameEngine);
 		this.updateUI();
 	}
 	
@@ -53,6 +57,8 @@ public class GameModule extends Module {
 
 	@Override
 	public void cleanUp() {
+		if(gameEngine!=null)gameEngine.stop();
 		EventDispatcher.getInstance().detachAllMidi();
+		
 	}
 }

@@ -42,6 +42,9 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 
 	/** The SongModel for the song to display **/
 	private SongModel songModel;
+	
+	/** The SongPlayer to start **/
+	private SongPlayer songPlayer;
 
 	/** The Track of the song the user is to play **/
 	private List<Track> activeTracks;
@@ -92,7 +95,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 		lowestKey = 21;
 		highestKey = 108;
 
-		this.setPreferredSize(new Dimension(1024,768));
+		this.setPreferredSize(new Dimension(1024,620));
 
 		width = this.getWidth();
 		height = this.getHeight();
@@ -108,6 +111,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 
 		this.activeTracks = activeTracks;
 		songModel = model;
+		this.songPlayer = songPlayer;
 
 		//set up the AudioPlayer
 		audioPlayer = new AudioPlayer(model,audioTracks);
@@ -115,13 +119,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 		songPlayer.attach(this, 2000);
 		songPlayer.attach(audioPlayer,(int)audioPlayer.getLatency());
 
-		//Start repainting
-		timer = new UpdateTimer(this);
-		timerThread = new Thread(timer);
-		timerThread.start();
-
-		//Play the song
-		songPlayer.play();
+		
 	}
 
 	/**
@@ -239,8 +237,8 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 
 
 		//check to see if our dimensions have changed
-		width = this.getWidth();
-		height = this.getHeight();
+		width = 1024;//this.getWidth();
+		height = 768;// this.getHeight();
 
 
 		//count the white keys
@@ -358,7 +356,7 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 				if(deltaTime > 500)toRemove.add(k);
 				else
 				{
-					g.setFont(new Font("Georgia", Font.PLAIN, nY(12+deltaTime/50)));
+					g.setFont(new Font(Font.SERIF, Font.PLAIN, nY(12+deltaTime/50)));
 					if(k.isCorrect())
 					{
 						g.setColor(Color.green);
@@ -372,6 +370,14 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 				}
 			}
 			for(ProcessedNoteEvent e: toRemove)fallingResponse.remove(e);
+			
+			
+			g.setColor(Color.black);
+			g.setFont(new Font(Font.SERIF, Font.PLAIN, nY(24)));
+			String title;
+			if(songModel.getTitle().length()>=35)title = songModel.getTitle().substring(0, 35);
+			else title = songModel.getTitle();
+			g.drawString(title, nX(20), nY(50));
 		}
 	}
 
@@ -433,6 +439,33 @@ public class GameGraphicsPanel extends JPanel implements NoteEventListener, Proc
 
 	}
 
+	public void stop()
+	{
+		if (songPlayer!=null)
+		{
+			songPlayer.stop();
+		}
+		if (audioPlayer!=null)
+		{
+			audioPlayer.stop();
+		}
+		
+		//initialize member variables
+		midiNotesPressed = new ArrayList<Integer>();	
+		fallingNotes = new HashMap<Note,Long>();
+		fallingResponse = new HashMap<ProcessedNoteEvent,Integer>();
+	}
+	
+	public void play()
+	{
+		//Start repainting
+		timer = new UpdateTimer(this);
+		timerThread = new Thread(timer);
+		timerThread.start();
+
+		//Play the song
+		songPlayer.play();
+	}
 
 }
 

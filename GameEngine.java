@@ -1,14 +1,19 @@
 package crescendo.game;
 
+import java.awt.Button;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import crescendo.base.HeuristicsModel;
 import crescendo.base.SongPlayer;
 import crescendo.base.SongValidator;
 import crescendo.base.EventDispatcher.EventDispatcher;
+import crescendo.base.GUI.ProfileModule;
 import crescendo.base.profile.ProfileManager;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
@@ -21,7 +26,8 @@ public class GameEngine extends JPanel{
 	private GameGraphicsPanel graphicsPanel;
 	private GameScorePanel scorePanel;
 	
-	
+	private JButton playButton;
+	private JButton stopButton;
 	
 	/*
 	 * GameEngine
@@ -57,5 +63,41 @@ public class GameEngine extends JPanel{
 		
 		this.add(scorePanel);
 		this.add(graphicsPanel);
+		
+		playButton = new JButton("Play");
+		playButton.addActionListener(al);
+		
+		stopButton = new JButton("Stop");
+		stopButton.addActionListener(al);
+		
+		this.add(playButton);
+		this.add(stopButton);
 	}
+	
+	public void stop()
+	{
+		graphicsPanel.stop();
+	}
+	
+	public void play()
+	{
+		graphicsPanel.play();
+	}
+	
+	
+	private ActionListener al = new ActionListener(){
+		public void actionPerformed(ActionEvent e) {
+			
+			
+			if(e.getSource().equals(playButton))
+			{
+				GameEngine.this.play();
+			}
+			
+			if(e.getSource().equals(stopButton))
+			{
+				GameEngine.this.stop();
+			}
+		}
+	};
 }

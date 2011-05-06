@@ -26,6 +26,7 @@ import crescendo.base.NoteEventListener;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
 import crescendo.base.EventDispatcher.ActionType;
+import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.song.Creator;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
@@ -66,8 +67,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		new SixteenthRest()
 	};
 	
-	private static final Map<Integer,int[]> KEY_SIGNATURE_MAP=new HashMap<Integer,int[]>();
-	
+	private static final Map<Integer,int[]> KEY_SIGNATURE_MAP=new HashMap<Integer,int[]> ();
 	static {
 		// fill in the map
 		// according to http://en.wikipedia.org/wiki/File:Circle_of_fifths_deluxe_4.svg
@@ -86,7 +86,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		KEY_SIGNATURE_MAP.put(5,new int[] {0,3,-1,2,5});
 		KEY_SIGNATURE_MAP.put(6,new int[] {0,3,-1,2,5,1});
 		KEY_SIGNATURE_MAP.put(7,new int[] {0,3,-1,2,5,1,4});
-	}
+	};
 	
 	private static int[] PITCH_INDEXES=new int[] {3,3,2,2,1,0,0,6,6,5,5,4};
 	
@@ -682,6 +682,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		this.paused=true;
 		this.timer.destroy();
 		this.timer=null;
+		EventDispatcher.getInstance().detachAllMidi();
 	}
 	
 	public void handleNoteEvent(NoteEvent e) {
@@ -857,7 +858,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		public double getBeatOffset()
 		{
 			double beatsPerMS=model.getBPM()/60000.0;
-			return beatsPerMS*this.elapsedTime;
+			return beatsPerMS*this.elapsedTime-0.5;
 		}
 	}
 }

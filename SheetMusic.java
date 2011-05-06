@@ -88,7 +88,9 @@ public class SheetMusic extends Module{
 	}
 
 	public void loadSong(SongModel model,List<Track> activeTracks,List<Track> audioTracks){
-	
+		// just-in-case cleanup, if all goes well this call should never have any effect
+		EventDispatcher.getInstance().detachAllMidi();
+		
 		selectedSongModel = model;
 		this.activeTracks=activeTracks;
 		this.audioTracks=audioTracks;

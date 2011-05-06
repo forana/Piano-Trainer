@@ -41,9 +41,6 @@ public class SongPlayer implements FlowController,Updatable
 	/** Thread which holds our timer runnable */
 	private Thread timerContainer;
 
-	private boolean isPaused;
-	private boolean doContinue;
-
 	/** The number of milliseconds the song has been paused */
 	private long pauseOffset;
 
@@ -88,14 +85,11 @@ public class SongPlayer implements FlowController,Updatable
 	public void play() {
 		activeNotes = new HashMap<NoteEvent,List<NoteEventListener>>();
 		nextPoll = System.currentTimeMillis();
-		isPaused = false;
-		doContinue = true;
 		pauseOffset = 0;
 		timerContainer.start();
 	}
 
 	public void pause() {
-		isPaused = true;
 		timer.pause();
 		for(FlowController controller : controllers) {
 			controller.pause();
@@ -103,14 +97,15 @@ public class SongPlayer implements FlowController,Updatable
 	}
 
 	public void resume() {
-		isPaused = false;
+		pauseOffset = timer.getPausedDuration();
 		for(NoteEvent event : activeNotes.keySet()) {
-			event.setTimestamp(event.getTimestamp()+pauseOffset);
+			event.setTimestamp(event.getTimestamp()+ pauseOffset);
 		}
 		pauseOffset = 0;
 		for(FlowController controller : controllers) {
 			controller.resume();
 		}
+		nextPoll = System.currentTimeMillis();
 		timer.resume();
 	}
 
@@ -118,7 +113,6 @@ public class SongPlayer implements FlowController,Updatable
 		for(FlowController controller : controllers) {
 			controller.stop();
 		}
-		doContinue=false;
 		timer.stop();
 		try {
 			// 3/15/11 added interrupt; apparently just joining will just block
@@ -144,12 +138,10 @@ public class SongPlayer implements FlowController,Updatable
 			controller.songEnd();
 		}
 		timer.stop();
-		doContinue=false;
 	}
 
 	@Override
 	public void suspend() {
-		isPaused = true;
 		timer.pause();
 		for(FlowController controller : controllers) {
 			controller.suspend();

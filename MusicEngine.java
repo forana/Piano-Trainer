@@ -473,7 +473,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		else // it's a rest, just give it the middle of the staff
 		{
 			yb+=STAFF_HEIGHT/2;
-			if (forceBass && !this.trebleNeeded)
+			if (forceBass && this.trebleNeeded)
 			{
 				yb+=STAFF_HEIGHT+STAFF_MARGIN;
 			}

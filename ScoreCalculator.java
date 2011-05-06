@@ -12,14 +12,17 @@ import java.util.LinkedList;
 
 public class ScoreCalculator implements ProcessedNoteEventListener
 {
-	//private static final int STREAK_STEP = 10;
-	//private static final int STREAK_MAX = 5;
+	private static final int STREAK_STEP = 10;
+	private static final int STREAK_MAX = 5;
+	private static final double STREAK_MULTIPLIER = 0.2;
 	
 	private static final int SCORE_DYNAMIC_PERFECT=20;
 	private static final int SCORE_PITCH_PERFECT=90;
 	private static final int SCORE_TIMING_PERFECT=90;
 	private static final int SCORE_DYNAMIC_MAX_DISTANCE=40;
 	private static final int SCORE_PITCH_MAX_DISTANCE=3;
+	
+	private static final double SCORE_RELEASE_MOD=0.5;
 	
 	private static List<Grade> GRADES=null;
 	private static final Grade A = new Grade("A",85);
@@ -87,6 +90,7 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 			if (grade.getLowest()<=p)
 			{
 				name=grade.getName();
+				break;
 			}
 		}
 		return name;
@@ -99,7 +103,7 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 	
 	public void handleProcessedNoteEvent(ProcessedNoteEvent e)
 	{
-
+		int perfectChange=0;
 		if (e.isCorrect())
 		{
 			this.streak++;
@@ -113,7 +117,7 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 			int actual=0;
 			if (this.listeningDynamic)
 			{
-				this.perfectTotal+=SCORE_DYNAMIC_PERFECT;
+				perfectChange+=SCORE_DYNAMIC_PERFECT;
 				if (e.getPlayedNote()!=null)
 				{
 					int dynamicScore=(int)Math.round(1.0*(SCORE_DYNAMIC_MAX_DISTANCE
@@ -126,7 +130,7 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 			}
 			if (this.listeningPitch)
 			{
-				this.perfectTotal+=SCORE_PITCH_PERFECT;
+				perfectChange+=SCORE_PITCH_PERFECT;
 				if (e.getPlayedNote()!=null)
 				{
 					int pitchScore=(int)Math.round(1.0*(SCORE_PITCH_MAX_DISTANCE
@@ -137,7 +141,7 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 					actual+=pitchScore;
 				}
 			}
-			this.perfectTotal+=SCORE_TIMING_PERFECT;
+			perfectChange+=SCORE_TIMING_PERFECT;
 			int interval=(int)(this.model.getTimingInterval()/(1.0*this.songState.getBPM()/60/1000));
 			if (e.getPlayedNote()!=null)
 			{
@@ -149,8 +153,18 @@ public class ScoreCalculator implements ProcessedNoteEventListener
 				actual+=rhythmScore;
 			}
 			
-			//int streakMod=Math.min(Math.max(1,this.streak/STREAK_STEP),STREAK_MAX);
+			int streakMod=Math.min(Math.max(1,this.streak/STREAK_STEP),STREAK_MAX);
+			actual*=1+STREAK_MULTIPLIER*streakMod;
+			perfectChange*=1+STREAK_MULTIPLIER;
+			
+			if (e.getExpectedNote().getAction()==NoteAction.END)
+			{
+				actual*=SCORE_RELEASE_MOD;
+				perfectChange*=SCORE_RELEASE_MOD;
+			}
+			
 			this.actualTotal+=actual;
+			this.perfectTotal+=perfectChange;
 		}
 	}
 	

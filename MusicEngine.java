@@ -10,6 +10,7 @@ import java.awt.Toolkit;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -127,6 +128,8 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 	//state items
 	private boolean paused;
 	private BeatTimer timer;
+	private List<Drawable> drawPool;
+	private boolean pooling;
 	
 	public MusicEngine(SongModel model,List<Track> activeTracks){
 		this(model,activeTracks,true);
@@ -213,6 +216,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		// sort edges
 		Collections.sort(trebleEdges);
 		Collections.sort(bassEdges);
+		
+		// create drawing pool
+		this.drawPool=new LinkedList<Drawable>();
+		this.pooling=false;
 	}
 	
 	private void build()
@@ -466,7 +473,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		else // it's a rest, just give it the middle of the staff
 		{
 			yb+=STAFF_HEIGHT/2;
-			if (forceBass)
+			if (forceBass && !this.trebleNeeded)
 			{
 				yb+=STAFF_HEIGHT+STAFF_MARGIN;
 			}
@@ -571,9 +578,26 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					yb+=STAFF_MARGIN+STAFF_SPACING;
 				}
 				// draw notes
-				for (Drawable draw : this.drawables)
+				if (!this.pooling)
+				{	
+					this.drawables.addAll(drawPool);
+					drawPool.clear();
+				}
+				synchronized (this)
 				{
-					draw.draw(g);
+					try
+					{
+						for (Drawable draw : this.drawables)
+						{
+							draw.draw(g);
+						}
+					}
+					// this shouldn't be getting thrown. why is it?
+					// TODO figure out why this is happening (side effects are minimal right now)
+					catch (ConcurrentModificationException e)
+					{
+						System.err.println("ConcurrentModification again...");
+					}
 				}
 				// draw line
 				if (this.barX>=0)
@@ -704,7 +728,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 					// scroll to bar in view
 					// get measure in which note happened
 					int measureX=(this.barX-MARGIN)/this.measureWidth*this.measureWidth+MARGIN;
-					Rectangle view=new Rectangle(measureX,this.barY-STAFF_MARGIN,this.measureWidth*2,2*staffHeight);
+					Rectangle view=new Rectangle(measureX,this.barY-STAFF_MARGIN,this.measureWidth*2,3*staffHeight);
 					this.scrollRectToVisible(view);
 					this.repaint();
 				}
@@ -730,7 +754,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			Note dummyNote=new Note(e.getPlayedNote().getNote(),1,100,null);
 			DrawableNote note=this.calculateNotes(dummyNote,beatsLeft,offset).get(0);
 			note.setCorrect(false);
-			synchronized(MusicEngine.class)
+			synchronized (this)
 			{
 				this.drawables.add(note);
 			}
@@ -858,7 +882,7 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		public double getBeatOffset()
 		{
 			double beatsPerMS=model.getBPM()/60000.0;
-			return beatsPerMS*this.elapsedTime-0.5;
+			return beatsPerMS*this.elapsedTime-0.5; // TODO figure out why the 0.5 works
 		}
 	}
 }

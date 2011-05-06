@@ -98,7 +98,7 @@ public class SheetMusic extends Module{
 		// Initialize meta-things
 		boolean careAboutPitch=ProfileManager.getInstance().getActiveProfile().getIsPitchGraded();
 		boolean careAboutDynamic=ProfileManager.getInstance().getActiveProfile().getIsDynamicGraded();
-		HeuristicsModel heuristics=new HeuristicsModel(careAboutPitch,careAboutDynamic);
+		HeuristicsModel heuristics=new HeuristicsModel(0.75,HeuristicsModel.DEFAULT_VELOCITY_TOLERANCE,careAboutPitch,careAboutDynamic);
 		
 		//Hook up song processor pieces
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
@@ -134,9 +134,9 @@ public class SheetMusic extends Module{
 		
 		//Attach note events
 		songPlayer.attach(audioPlayer, (int)audioPlayer.getLatency());
-		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/songPlayer.getSongState().getBPM()*60000)/2);
+		songPlayer.attach(validator,(int)(heuristics.getTimingInterval()/(songPlayer.getSongState().getBPM()/60000.0))/2);
 		songPlayer.attach(bar,20);
-		songPlayer.attach(musicEngine,20); // assuming it takes 20 ms to render
+		songPlayer.attach(musicEngine,20); // assuming it takes 20 ms to render (not including LCD lag)
 		
 		//Attach flow controllers
 		songPlayer.attach(audioPlayer);

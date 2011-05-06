@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -74,6 +77,7 @@ public class PianoTrainerApplication {
 	
 	
 	private JMenuItem helpAbout;
+	private JMenuItem helpUpdate;
 	private JMenuItem helpItem;
 	private JPanel moduleFrame;
 	
@@ -185,6 +189,7 @@ public class PianoTrainerApplication {
 		
 		//set up the profile selection menu
 		profileMenu = new JMenu(profileManager.getActiveProfile().getName());
+		profileMenu.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage("resources/icons/arrow.png")));
 		updateProfileMenu();
 		
 		//add the profile selection menu to the menu bar
@@ -211,18 +216,21 @@ public class PianoTrainerApplication {
 		sheetMusicButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {
 				sheetMusicModule = new SheetMusic();
+				profileManager.getActiveProfile().setLastModule("SheetMusic");
 				switchModules(sheetMusicModule);	
 			}
 		});
 		
 		lessonButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
+				profileManager.getActiveProfile().setLastModule("Lesson");
 				switchModules(new LessonModule());
 			}
 		});
 		
 		gameButton.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
+				profileManager.getActiveProfile().setLastModule("Game");
 				switchModules(new GameModule());
 			}
 		});
@@ -247,10 +255,13 @@ public class PianoTrainerApplication {
 		helpMenu=new JMenu("?");
 		
 		helpAbout = new JMenuItem("About");
+		helpUpdate = new JMenuItem("Update");
 		helpItem = new JMenuItem("Help");
 		helpMenu.add(helpAbout);
+		helpMenu.add(helpUpdate);
 		helpMenu.add(helpItem);
 		helpAbout.addActionListener(al);
+		helpUpdate.addActionListener(al);
 		helpItem.addActionListener(al);
 		
 		//add the help/about menu button to the menu bar
@@ -297,8 +308,8 @@ public class PianoTrainerApplication {
 		//basically we remove everything from the profilemenu and
 		//	put everything back in fresh from the profilemanager
 		
-		
-		
+	
+
 		profileMenu.setText(profileManager.getActiveProfile().getName());
 		profileMenu.removeAll();
 		
@@ -320,6 +331,8 @@ public class PianoTrainerApplication {
 			profileMenu.add(p);
 		}
 		profileMenu.add(addProfileButton);
+		
+		
 	}
 	
 	/**
@@ -354,7 +367,13 @@ public class PianoTrainerApplication {
 			//if they chose to add a new profile
 			if(e.getSource().equals(addProfileButton))
 			{
-				String name = JOptionPane.showInputDialog("Enter Profile Name:");
+				
+				String name = "";
+				while(name!=null && name.length()<1)
+				{
+					name = JOptionPane.showInputDialog(addProfileButton,"Enter Profile Name:","New Profile",1);
+					if(name!=null && name.length()<1)JOptionPane.showMessageDialog(null, "Invalid name");
+				}
 				
 				if(name!=null)
 				{
@@ -372,14 +391,44 @@ public class PianoTrainerApplication {
 				if(e.getSource().equals(p))
 				{
 					profileManager.switchProfile(profileManager.getProfileByName(p.getText()));	
+					
+					if(profileManager.getActiveProfile().getLastModule().equals("Game"))
+					{
+						switchModules(new GameModule());
+					}
+					else if(profileManager.getActiveProfile().getLastModule().equals("Lesson"))
+					{
+						switchModules(new LessonModule());
+					}
+					else if(profileManager.getActiveProfile().getLastModule().equals("SheetMusic"))
+					{
+						switchModules(new SheetMusic());
+					}
+					else {
+						mainWindow.remove(moduleFrame);
+						
+						// "default" module for startup
+						moduleFrame = new JPanel();
+						moduleFrame.setBackground(Color.WHITE);
+						moduleFrame.add(new JLabel("Select a mode above to get started."));
+						
+						mainWindow.add(moduleFrame);
+					}
+					
 				}
 			}
 			
 			if(e.getSource().equals(helpAbout)){
-				JOptionPane.showMessageDialog(mainWindow, "Piano Trainer\nmade by Team Infinite Crescendo\n2010-2011\n\nAlex Foran\nNick Gartmann\nCorey Grosz\nPatrick Larkin");
+				JOptionPane.showMessageDialog(mainWindow, "Piano Trainer\nmade by Team Infinite Crescendo\n2010-2011\n\nAlex Foran\nNick Gartmann\nCorey Grosz\nPatrick Larkin\n\n<html><font color=\"#0000CF\"><u>http://www.infinitecrescendo.com/</u></font></html>","About Piano Trainer",1);
 			}
+			
+			if(e.getSource().equals(helpUpdate)){
+				//TODO: run the updater
+				JOptionPane.showMessageDialog(mainWindow, "Action currently unsupported","Update Piano Trainer",1);
+			}
+			
+			
 			//Launching HTML pages in the default browser.
-			//TODO change the system.out.JOptionPanes.
 			if(e.getSource().equals(helpItem)){
 				if( !Desktop.isDesktopSupported() ) {
 					System.err.println( "Desktop is not supported (fatal)" );
@@ -395,7 +444,7 @@ public class PianoTrainerApplication {
 				
 				URI uri;
 				try {
-					uri = new URI("http://examepl.com/help"); // TODO change this
+					uri = new URI("http://infinitecrescendo.com/manual.pdf"); // TODO change this
 					desktop.browse( uri );
 				} catch (Exception ex) {
 					ErrorHandler.showNotification("Error","Error opening link");

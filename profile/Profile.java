@@ -32,6 +32,8 @@ public class Profile implements Serializable,Comparable<Profile>{
 	private long secondsInLesson;
 	private long secondsInSheetMusic;
 	
+	private String lastModule;
+	
 	private String midiDeviceName;
 	
 	List<SongPreference> songPreferences;
@@ -68,6 +70,8 @@ public class Profile implements Serializable,Comparable<Profile>{
 		this.midiDeviceName=null;
 		
 		this.lastDirectoryFile=null;
+		
+		lastModule = "";
 	}
 	
 	public List<LessonData> getLessonData()
@@ -272,6 +276,29 @@ public class Profile implements Serializable,Comparable<Profile>{
 	{
 		secondsInSheetMusic = seconds;
 	}
+	
+	
+	
+	/**
+	 * getLastModule
+	 * 
+	 * @return a string representatino of the last module the user was in
+	 */
+	public String getLastModule()
+	{
+		return lastModule;
+	}
+	
+	/**
+	 * setSecondsInSheetMusic
+	 * 
+	 * @param seconds - total number of seconds user has spent in the sheet music module
+	 */
+	public void setLastModule(String lastMod)
+	{
+		lastModule = lastMod;
+	}
+	
 
 	@Override
 	public int compareTo(Profile arg0) {

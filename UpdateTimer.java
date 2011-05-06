@@ -9,6 +9,7 @@ public class UpdateTimer implements Runnable{
 	private long lastFrame = 0;
 	private boolean doContinue;
 	private boolean isPaused;
+	private long pauseDuration;
 	
 	public UpdateTimer(Updatable target){
 		super();
@@ -16,19 +17,26 @@ public class UpdateTimer implements Runnable{
 	}
 	
 	public void pause(){
+		pauseDuration = 0;
 		isPaused=true;
 	}
 	public void resume(){
 		isPaused=false;
+		
 	}
 	public void stop(){
 		doContinue=false;
+	}
+	
+	public long getPausedDuration(){
+		return pauseDuration;
 	}
 	
 	@Override
 	public void run() {
 		doContinue=true;
 		isPaused=false;
+	
 		while(doContinue) {
 			long now = System.currentTimeMillis();
 			if(!isPaused) {
@@ -47,6 +55,7 @@ public class UpdateTimer implements Runnable{
 					Thread.sleep(1); // Dont eat up all the processor
 				} 
 				catch (InterruptedException e) {}
+				pauseDuration+=(System.currentTimeMillis()-now);
 			}
 		}
 	}

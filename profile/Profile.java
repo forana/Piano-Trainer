@@ -12,304 +12,288 @@ import crescendo.lesson.LessonData;
 /**
  * Profile
  * 
- * 	This class represents a profile or user account of the application.
+ * This class represents a profile or user account of the application.
  * 
  * @author groszc
- *
+ * 
  */
-public class Profile implements Serializable,Comparable<Profile>{
+public class Profile implements Serializable, Comparable<Profile> {
 
 	private static final long serialVersionUID = -809118196452135843L;
-	
+
 	private boolean gradeDynamic;
 	private boolean gradePitch;
 	private boolean gradeTiming;
-	
+
 	/** name of profile **/
 	private String name;
-	
+
 	private long secondsInGame;
 	private long secondsInLesson;
 	private long secondsInSheetMusic;
-	
+
 	private String lastModule;
-	
+
 	private String midiDeviceName;
-	
-	List<SongPreference> songPreferences;
-	List<SongScore> gameScores;
-	SongPreference lastPlayedSong;
-	
-	List<LessonData> lessonDataList;
-	
-	File lastDirectoryFile;
-	
+
+	private List<SongPreference> songPreferences;
+	private List<SongScore> gameScores;
+	private SongPreference lastPlayedSong;
+
+	private List<LessonData> lessonDataList;
+
+	private File lastDirectoryFile;
+
 	/**
 	 * Profile
 	 * 
-	 * 	Constructor
+	 * Constructor
 	 * 
-	 * @param n - name of profile
+	 * @param n
+	 *            - name of profile
 	 */
-	public Profile(String n)
-	{
+	public Profile(String n) {
 		name = n;
-		secondsInGame=0;
-		secondsInLesson=0;
-		secondsInSheetMusic=0;
-		
-		gradeDynamic=true;
-		gradePitch=true;
-		gradeTiming=true;
-		
+		secondsInGame = 0;
+		secondsInLesson = 0;
+		secondsInSheetMusic = 0;
+
+		gradeDynamic = true;
+		gradePitch = true;
+		gradeTiming = true;
+
 		songPreferences = new ArrayList<SongPreference>();
 		gameScores = new LinkedList<SongScore>();
-		
-		lessonDataList=new LinkedList<LessonData>();
-		
-		this.midiDeviceName=null;
-		
-		this.lastDirectoryFile=null;
-		
+
+		lessonDataList = new LinkedList<LessonData>();
+
+		this.midiDeviceName = null;
+
+		this.lastDirectoryFile = null;
+
 		lastModule = "";
 	}
-	
-	public List<LessonData> getLessonData()
-	{
+
+	public List<LessonData> getLessonData() {
 		return this.lessonDataList;
 	}
-	
-	public String getMidiDeviceName()
-	{
+
+	public String getMidiDeviceName() {
 		return this.midiDeviceName;
 	}
-	
-	public void updateMidiDevice()
-	{
-		this.midiDeviceName=EventDispatcher.getInstance().getCurrentTransmitterDevice().getDeviceInfo().getName();
+
+	public void updateMidiDevice() {
+		this.midiDeviceName = EventDispatcher.getInstance()
+				.getCurrentTransmitterDevice().getDeviceInfo().getName();
 	}
-	
+
 	/**
 	 * getLastPlayedSong
 	 * 
 	 * @return the songpreference of the last played song
 	 */
-	public SongPreference getLastPlayedSong()
-	{
+	public SongPreference getLastPlayedSong() {
 		return lastPlayedSong;
 	}
-	
+
 	/**
 	 * setLastPlayedSong
 	 * 
-	 * @param lastPlayedSong - the songpreference of the last played song
+	 * @param lastPlayedSong
+	 *            - the songpreference of the last played song
 	 */
-	public void setLastPlayedSong(SongPreference lastPlayedSong)
-	{
+	public void setLastPlayedSong(SongPreference lastPlayedSong) {
 		this.lastPlayedSong = lastPlayedSong;
 	}
-	
+
 	/**
 	 * getSongPreferences
 	 * 
 	 * @return a list of song preferences
 	 */
-	public List<SongPreference> getSongPreferences()
-	{
+	public List<SongPreference> getSongPreferences() {
 		return songPreferences;
 	}
-	
-	public List<SongScore> getGameScores()
-	{
+
+	public List<SongScore> getGameScores() {
 		return gameScores;
 	}
-	
+
 	/**
 	 * getIsDynamicGraded
 	 * 
 	 * @return true if dynamic is graded
 	 */
-	public boolean getIsDynamicGraded()
-	{
+	public boolean getIsDynamicGraded() {
 		return gradeDynamic;
 	}
-	
+
 	/**
 	 * setIsDynamicGraded
 	 * 
 	 * @param true if dynamic should be graded
-	 * @return 
+	 * @return
 	 */
-	public void setIsDynamicGraded(boolean isGraded)
-	{
+	public void setIsDynamicGraded(boolean isGraded) {
 		gradeDynamic = isGraded;
 	}
-	
+
 	/**
 	 * getIsPitchGraded
 	 * 
 	 * @return true if pitch is graded
 	 */
-	public boolean getIsPitchGraded()
-	{
+	public boolean getIsPitchGraded() {
 		return gradePitch;
 	}
-	
+
 	/**
 	 * setIsTimingGraded
 	 * 
 	 * @param true if Timing should be graded
-	 * @return 
+	 * @return
 	 */
-	public void setIsTimingGraded(boolean isGraded)
-	{
+	public void setIsTimingGraded(boolean isGraded) {
 		gradeTiming = isGraded;
 	}
-	
+
 	/**
 	 * getIsTimingGraded
 	 * 
 	 * @return true if Timing is graded
 	 */
-	public boolean getIsTimingGraded()
-	{
+	public boolean getIsTimingGraded() {
 		return gradeTiming;
 	}
-	
+
 	/**
 	 * setIsPitchGraded
 	 * 
 	 * @param true if Pitch should be graded
-	 * @return 
+	 * @return
 	 */
-	public void setIsPitchGraded(boolean isGraded)
-	{
+	public void setIsPitchGraded(boolean isGraded) {
 		gradePitch = isGraded;
 	}
-	
+
 	/**
 	 * getName
 	 * 
 	 * @return name of profile
 	 */
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * setName
 	 * 
-	 * @param n - name of profile
+	 * @param n
+	 *            - name of profile
 	 */
-	public void setName(String n)
-	{
+	public void setName(String n) {
 		name = n;
 	}
-	
-	public File getLastDirectory()
-	{
+
+	public File getLastDirectory() {
 		return this.lastDirectoryFile;
 	}
-	
-	public void setLastDirectory(File dir)
-	{
-		this.lastDirectoryFile=dir;
+
+	public void setLastDirectory(File dir) {
+		this.lastDirectoryFile = dir;
 	}
-	
+
 	/**
 	 * getSecondsInGame
 	 * 
 	 * @return total number of seconds user has spent in the game module
 	 */
-	public long getSecondsInGame()
-	{
+	public long getSecondsInGame() {
 		return secondsInGame;
 	}
-	
+
 	/**
 	 * setSecondsInGame
 	 * 
-	 * @param seconds - total number of seconds user has spent in the game module
+	 * @param seconds
+	 *            - total number of seconds user has spent in the game module
 	 */
-	public void setSecondsInGame(long seconds)
-	{
+	public void setSecondsInGame(long seconds) {
 		secondsInGame = seconds;
 	}
-	
+
 	/**
 	 * getSecondsInLesson
 	 * 
 	 * @return total number of seconds user has spent in the lesson module
 	 */
-	public long getSecondsInLesson()
-	{
+	public long getSecondsInLesson() {
 		return secondsInLesson;
 	}
-	
+
 	/**
 	 * setSecondsInLesson
 	 * 
-	 * @param seconds - total number of seconds user has spent in the lesson module
+	 * @param seconds
+	 *            - total number of seconds user has spent in the lesson module
 	 */
-	public void setSecondsInLesson(long seconds)
-	{
+	public void setSecondsInLesson(long seconds) {
 		secondsInLesson = seconds;
 	}
-	
+
 	/**
 	 * getSecondsInSheetMusic
 	 * 
 	 * @return total number of seconds user has spent in the sheet music module
 	 */
-	public long getSecondsInSheetMusic()
-	{
+	public long getSecondsInSheetMusic() {
 		return secondsInLesson;
 	}
-	
+
 	/**
 	 * setSecondsInSheetMusic
 	 * 
-	 * @param seconds - total number of seconds user has spent in the sheet music module
+	 * @param seconds
+	 *            - total number of seconds user has spent in the sheet music
+	 *            module
 	 */
-	public void setSecondsInSheetMusic(long seconds)
-	{
+	public void setSecondsInSheetMusic(long seconds) {
 		secondsInSheetMusic = seconds;
 	}
-	
-	
-	
+
 	/**
 	 * getLastModule
 	 * 
 	 * @return a string representatino of the last module the user was in
 	 */
-	public String getLastModule()
-	{
+	public String getLastModule() {
 		return lastModule;
 	}
-	
+
 	/**
 	 * setSecondsInSheetMusic
 	 * 
-	 * @param seconds - total number of seconds user has spent in the sheet music module
+	 * @param seconds
+	 *            - total number of seconds user has spent in the sheet music
+	 *            module
 	 */
-	public void setLastModule(String lastMod)
-	{
+	public void setLastModule(String lastMod) {
 		lastModule = lastMod;
 	}
-	
 
 	@Override
 	public int compareTo(Profile arg0) {
 		int toRet = 0;
-		
-		if(!name.equals(arg0.name))toRet = 1;
-		if(secondsInGame != arg0.secondsInGame)toRet = 1;
-		if(secondsInLesson != arg0.secondsInLesson)toRet = 1;
-		if(secondsInSheetMusic != arg0.secondsInSheetMusic)toRet = 1;
-		
-		
+
+		if (!name.equals(arg0.name))
+			toRet = 1;
+		if (secondsInGame != arg0.secondsInGame)
+			toRet = 1;
+		if (secondsInLesson != arg0.secondsInLesson)
+			toRet = 1;
+		if (secondsInSheetMusic != arg0.secondsInSheetMusic)
+			toRet = 1;
+
 		return toRet;
 	}
 }

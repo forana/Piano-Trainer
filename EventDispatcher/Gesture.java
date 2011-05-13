@@ -6,6 +6,12 @@ package crescendo.base.EventDispatcher;
  * This class represents a shortcut keyboard code to a common
  * task in a module.
  * 
+ * TODO: The idea behind this is to give special piano key a meaning (like play song)
+ *       Please avoid getting into the details of this class since it was not implemented,
+ *       instead redesign a way to accomplish this task. 
+ *       
+ *       THIS IS NOT COMPLETE NOR RECOMMENDED
+ * 
  * @author groszc
  */
 public class Gesture {

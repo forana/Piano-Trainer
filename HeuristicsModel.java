@@ -12,12 +12,12 @@ public class HeuristicsModel {
 	/**
 	 * Default amount of time to allow for note expiration (in beats).
 	 */
-	private static double DEFAULT_TIMING_INTERVAL=0.5;
+	public static double DEFAULT_TIMING_INTERVAL=0.5;
 	
 	/**
 	 * Default tolerance for velocity.
 	 */
-	private static int DEFAULT_VELOCITY_TOLERANCE=30;
+	public static int DEFAULT_VELOCITY_TOLERANCE=30;
 	
 	// Timing interval in beats
 	private double timingInterval;

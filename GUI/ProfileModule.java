@@ -37,9 +37,7 @@ import crescendo.base.module.Module;
  */
 public class ProfileModule extends Module implements ActionListener{
 	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -505754189840407725L;
 	
 	//general app pref elements

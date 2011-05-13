@@ -120,7 +120,7 @@ public class ThreadPool {
 	 */
 	public void shutdown() {
 		for(Expirator e : expirators) {
-			e.stop();
+			e.shutdown();
 		}
 		expirators.clear();
 	}

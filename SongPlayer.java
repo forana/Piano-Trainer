@@ -119,7 +119,8 @@ public class SongPlayer implements FlowController,Updatable
 			timerContainer.interrupt();
 			timerContainer.join();
 		} catch (InterruptedException e) {}
-		timerContainer = new Thread(new UpdateTimer(this));
+		timer = new UpdateTimer(this);
+		timerContainer = new Thread(timer);
 		
 		//We have to do this here just in case the user presses play again
 		initializeIterators();

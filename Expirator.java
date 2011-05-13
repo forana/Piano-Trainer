@@ -133,11 +133,21 @@ public class Expirator implements Runnable{
 	}
 
 	/**
-	 * shut down this expirator (terminate)
+	 * Stop expiring the note currently being expired and throw it away 
 	 */
 	public void stop()
 	{
+		currentEvent = null;
+		isBusy=false;
+	}
+	
+	/**
+	 * shut down this expirator (terminate)
+	 */
+	public void shutdown()
+	{
 		doContinue=false;
+		currentEvent=null;
 		isBusy=false;
 	}
 	

@@ -36,6 +36,10 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.JButton;
 
+/**
+ * Represents the lesson module itself.
+ * @author forana
+ */
 public class LessonModule extends Module implements ActionListener,MouseListener
 {
 	private static final long serialVersionUID=1L;
@@ -46,6 +50,9 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 	private RootNode root;
 	private JScrollPane rightScroll;
 	
+	/**
+	 * 
+	 */
 	public LessonModule()
 	{
 		this.loadTree();
@@ -96,6 +103,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		});
 	}
 	
+	// Load tree entries from file
 	private void loadTree() {
 		this.books=new ArrayList<BookNode>();
 		for (LessonData data : ProfileManager.getInstance().getActiveProfile().getLessonData())
@@ -108,14 +116,17 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		}
 	}
 	
+	@Override
 	public String saveState() {
 		return "";
 	}
 	
+	@Override
 	public void cleanUp() {
 		LessonFactory.clean();
 	}
 	
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==this.loadButton)
 		{
@@ -143,6 +154,7 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 		}
 	}
 	
+	@Override
 	public void mouseClicked(MouseEvent e)
 	{
 		TreePath path=this.tree.getPathForLocation(e.getX(),e.getY());
@@ -189,6 +201,10 @@ public class LessonModule extends Module implements ActionListener,MouseListener
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
 	
+	/**
+	 * Class to represent the root node without erroring.
+	 * @author forana
+	 */
 	private class RootNode implements TreeNode
 	{
 		public TreeNode getChildAt(int childIndex) {

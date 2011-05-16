@@ -3,10 +3,10 @@ package crescendo.lesson;
 import crescendo.base.ProcessedNoteEvent;
 import crescendo.base.ProcessedNoteEventListener;
 
-
-
 /**
- * @author Alex
+ * Tallies totals for lesson grading.
+ * 
+ * @author forana
  * @version 1.0
  * @created 20-Feb-2011 2:00:09 PM
  */

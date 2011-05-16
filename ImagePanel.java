@@ -10,9 +10,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
+/**
+ * Panel view of an ImageItem.
+ * @author forana
+ */
 public class ImagePanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
+	/**
+	 * @param item The ImageItem from which to pull data.
+	 */
 	public ImagePanel(ImageItem item) {
 		this.setBackground(Color.WHITE);
 		Font font=new Font(Font.SERIF,Font.PLAIN,12);

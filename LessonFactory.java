@@ -24,6 +24,10 @@ import org.xml.sax.SAXException;
 
 import crescendo.base.HeuristicsModel;
 
+/**
+ * Factory class to load a lesson book from a file.
+ * @author forana
+ */
 public class LessonFactory
 {
 	private static final List<Grade> DEFAULT_GRADES = new LinkedList<Grade>();
@@ -43,16 +47,29 @@ public class LessonFactory
 		DEFAULT_SCALE=new GradingScale(DEFAULT_GRADES);
 	}
 	
+	/**
+	 * Build a lesson book from a file.
+	 * @param filepath
+	 * @return The book.
+	 * @throws IOException if the file does not exist or is invalid.
+	 */
 	public static LessonBook createLessonBook(String filepath) throws IOException
 	{
 		return createLessonBook(filepath,null);
 	}
 	
+	/**
+	 * Build a lesson book from cached data.
+	 * @param data
+	 * @return The book.
+	 * @throws IOException If the path remembered by the data is invalid.
+	 */
 	public static LessonBook createLessonBook(LessonData data) throws IOException
 	{
 		return createLessonBook(data.getPath(),data);
 	}
 	
+	// build the book
 	private static LessonBook createLessonBook(String path,LessonData data) throws IOException
 	{
 		// step 1 - create zip input stream (will fail if the file doesn't exist)
@@ -457,6 +474,9 @@ public class LessonFactory
 		return new MusicItem(source,heuristics,usedScale,track,null);
 	}
 	
+	/**
+	 * Clear out unused temporary folders from this session.
+	 */
 	public static void clean()
 	{
 		for (File file : tempFiles)

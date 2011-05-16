@@ -35,21 +35,37 @@ import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.sheetmusic.MusicEngine;
 
+/**
+ * Panel view of a MusicItem.
+ * @author forana
+ * @author gartmannn
+ */
 public class MusicPanel extends JPanel implements ActionListener,FlowController {
 	private static final long serialVersionUID=1L;
 	
+	// icons for buttons
 	private Icon playIcon;
 	private Icon stopIcon;
+	// sheet music engine
 	private MusicEngine engine;
+	// buttons
 	private JButton actionButton;
 	private JButton previewButton;
 	private JLabel scoreLabel;
+	// flow items
 	private SongPlayer player;
 	private LessonGrader grader;
 	private AudioPlayer audio;
+	// the music item
 	private MusicItem item;
+	// the calling module
 	private JComponent module;
-
+	
+	/**
+	 * @param item The MusicItem from which to load data.
+	 * @param module The calling module
+	 * @throws IOException If the song data does not exist or is invalid
+	 */
 	public MusicPanel(MusicItem item,JComponent module) throws IOException {
 		final String PREVIEW_TEXT = "Preview";
 		this.item=item;
@@ -101,6 +117,7 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		panel.add(music,c);
 		this.add(panel);
 		
+		// assemble flow
 		List<Track> activeTracks = new ArrayList<Track>();
 		activeTracks.add(model.getTracks().get(item.getTrack()));
 		SongValidator validator=new SongValidator(model,activeTracks,item.getHeuristics());
@@ -125,6 +142,9 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		this.previewButton.addActionListener(this);
 	}
 	
+	/**
+	 * Set the text of the score label.
+	 */
 	private void setScoreText()
 	{
 		LessonGrade grade=this.item.getLessonData().getGrade(this.item.getCode());
@@ -142,6 +162,9 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		this.module.updateUI();
 	}
 	
+	/**
+	 * Tick off a measure
+	 */
 	private void playIntro(){
 		Note n = new Note(60, 1, 90, this.audio.getMetronomeTrack());
 		NoteEvent bne = new NoteEvent(n, NoteAction.BEGIN,0 );
@@ -157,6 +180,9 @@ public class MusicPanel extends JPanel implements ActionListener,FlowController 
 		}
 	}
 	
+	/**
+	 * Action handler
+	 */
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("preview")){
 			//Preview the music snippet before practicing it

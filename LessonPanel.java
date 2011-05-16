@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -19,6 +20,7 @@ public class LessonPanel extends JPanel implements ComponentListener,Scrollable 
 	private static final long serialVersionUID = 1L;
 
 	public LessonPanel(Lesson lesson,JComponent module) {
+		this.setBorder(BorderFactory.createLineBorder(Color.WHITE,20));
 		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 		this.setBackground(Color.WHITE);
 		JPanel header=new JPanel();

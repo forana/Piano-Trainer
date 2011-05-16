@@ -19,28 +19,44 @@ import javax.swing.tree.TreeNode;
 import crescendo.base.ErrorHandler;
 
 /**
- *
+ * A JTree node that represents a lesson book to the user.
  */
 public class BookNode implements LessonTreeNode,Comparable<BookNode> {
-
+	
+	// the book itself
 	private LessonBook book;
+	// the data via which the book can be loaded
 	private LessonData data;
 	
+	/**
+	 * @param data A LessonData instance from which the can be loaded.
+	 */
 	public BookNode(LessonData data){
 		this.data=data;
 		this.book=null;
 	}
 	
+	/**
+	 * @param book The book itself.
+	 */
 	public BookNode(LessonBook book){
 		this.data=book.getData();
 		this.book=book;
 	}
 	
+	/**
+	 * @return The data instance from which this book can be loaded.
+	 */
 	public LessonData getData() {
 		return this.data;
 	}
-
+	
+	/**
+	 * @param module The calling module.
+	 * @return An instance of a JPanel to show for this node.
+	 */
 	public JPanel getPanel(JComponent module){
+		// if the book hasn't been loaded yet, load it
 		if (this.book==null) {
 			try {
 				this.book=LessonFactory.createLessonBook(this.data);
@@ -51,6 +67,7 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 			}
 		}
 		
+		// inner class to ease label making
 		class LabelPanel extends JPanel {
 			private static final long serialVersionUID=1L;
 			
@@ -70,16 +87,21 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 			}
 		}
 		
+		// create the panel to be returned
 		JPanel panel=new JPanel();
 		panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
 		panel.setBackground(Color.WHITE);
 		
+		// title
 		panel.add(new LabelPanel(this.book.getTitle(),true,32));
+		// author
 		if (this.book.getAuthor()!=null) {
 			panel.add(new LabelPanel(this.book.getAuthor(),true,18));
 		}
+		// license
 		if (this.book.getLicense()!=null) {
 			JPanel license=new LabelPanel(this.book.getLicense(),false,16,this.book.getLicenseURL()!=null);
+			// linkify the license
 			if (this.book.getLicenseURL()!=null) {
 				license.addMouseListener(new MouseAdapter() {
 						public void mouseClicked(MouseEvent e) {
@@ -98,6 +120,7 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 			}
 			panel.add(license);
 		}
+		// website
 		if (this.book.getWebsite()!=null) {
 			JPanel website=new LabelPanel(this.book.getWebsite(),false,16,true);
 			website.addMouseListener(new MouseAdapter() {
@@ -120,14 +143,23 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 		return panel;
 	}
 
+	/**
+	 * @return The child node at the specified index.
+	 */
 	public TreeNode getChildAt(int childIndex) {
 		return this.book.getContents().get(childIndex);
 	}
 	
+	/**
+	 * @return Whether or not this node can have children.
+	 */
 	public boolean isLeaf() {
 		return false;
 	}
 	
+	/**
+	 * @return How many children this node has.
+	 */
 	public int getChildCount() {
 		if (this.book==null) {
 			try {
@@ -141,13 +173,18 @@ public class BookNode implements LessonTreeNode,Comparable<BookNode> {
 		return this.book.getContents().size();
 	}
 	
+	@Override
 	public int compareTo(BookNode other) {
 		return this.data.getTitle().compareToIgnoreCase(other.data.getTitle());
 	}
 	
+	/**
+	 * @return The title of this node with the score added.
+	 */
 	public String toString() {
 		String title=this.data.getTitle();
 		
+		// if there's a score entry for this book, append it
 		if (this.data.getGradeMap().keySet().size()>0)
 		{
 			title+=" - ";

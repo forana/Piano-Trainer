@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * Storage mechanism for lesson books and lesson scores.
+ * @author forana
+ */
 public class LessonData implements Serializable
 {
 	private static final long serialVersionUID=100000L;
@@ -14,6 +18,12 @@ public class LessonData implements Serializable
 	private Map<Integer,LessonGrade> gradeMap;
 	private GradingScale scale;
 	
+	/**
+	 * @param filePath
+	 * @param title
+	 * @param scale
+	 * @param music
+	 */
 	public LessonData(String filePath,String title,GradingScale scale,List<MusicItem> music)
 	{
 		this.filePath=filePath;

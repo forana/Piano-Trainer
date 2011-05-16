@@ -2,6 +2,10 @@ package crescendo.lesson;
 
 import java.io.Serializable;
 
+/**
+ * Data storage for a particular score and the grade that was assigned to it.
+ * @author forana
+ */
 public class LessonGrade implements Serializable
 {
 	private static final long serialVersionUID=1L;

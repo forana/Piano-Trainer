@@ -34,12 +34,15 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import crescendo.base.ErrorHandler;
+import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.module.Module;
 import crescendo.base.profile.Profile;
 import crescendo.base.profile.ProfileManager;
 import crescendo.game.GameModule;
 import crescendo.lesson.LessonModule;
 import crescendo.sheetmusic.SheetMusic;
+import crescendo.tester.MockMidiDevice;
+import crescendo.tester.MockTransmitter;
 
 /**
  * PianoTrainerApplication
@@ -91,6 +94,8 @@ public class PianoTrainerApplication {
 	private JButton sheetMusicButton;
 
 	private SheetMusic sheetMusicModule;
+	
+	
 
 	/**
 	 * @param args
@@ -103,7 +108,33 @@ public class PianoTrainerApplication {
 		} catch (InstantiationException e) {
 		} catch (IllegalAccessException e) {
 		}
+		try{
+		if(args[0].equals("debug")){
+			initDebug(args);
+		}
+		}catch(ArrayIndexOutOfBoundsException e){
+			System.out.println("This is a Test");
+			//Debugmode is not set
+		}
+		
 		PianoTrainerApplication.getInstance();
+	}
+
+	private static void initDebug(String[] args) {
+		EventDispatcher.getInstance().setDebug();
+		List<Integer> indeces = new ArrayList<Integer>();
+		List<String> modifiers = new ArrayList<String>();
+		List<Integer> amounts = new ArrayList<Integer>();
+		for(int i = 1; i<args.length;i+=3){
+			indeces.add(Integer.parseInt(args[i]));
+			modifiers.add(args[i+1]);
+			amounts.add(Integer.parseInt(args[i+2]));
+			
+		}
+		MockTransmitter.getInstance().setIndexes(indeces);
+		MockTransmitter.getInstance().setVariables(modifiers);
+		MockTransmitter.getInstance().setAmounts(amounts);
+		
 	}
 
 	/**

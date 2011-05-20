@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import crescendo.base.EventDispatcher.EventDispatcher;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
 import crescendo.base.song.Track.TrackIterator;
 import crescendo.base.song.modifier.NoteModifier;
+import crescendo.tester.MockMidiDevice;
+import crescendo.tester.MockTransmitter;
 
 /**
  * A SongPlayer does the actual running through the song and propagation of events.
@@ -48,10 +51,12 @@ public class SongPlayer implements FlowController,Updatable
 
 	private Map<Track,TrackIterator> iterators;
 	private long nextPoll;
-	
+
 	/** The object that tracks chaning meta-info */
 	private SongState songState;
 	
+	private MockTransmitter transmitter;
+
 	/**
 	 * Create a song player for the given song model. 
 	 * Initializes the lists of controllers and listeners, and creates the timer
@@ -67,8 +72,13 @@ public class SongPlayer implements FlowController,Updatable
 		timerContainer = new Thread(timer);
 		this.songState=new SongState(songModel.getBPM(),songModel.getTimeSignature(),songModel.getKeySignature());
 		initializeIterators();
+		//NOTE
+		if(EventDispatcher.getInstance().isDebug()){
+			transmitter = MockTransmitter.getInstance();
+			attach(transmitter,1);
+		}
 	}
-	
+
 	/**
 	 * Get the object that tracks song meta-info.
 	 * @return The held SongState instance.
@@ -121,7 +131,7 @@ public class SongPlayer implements FlowController,Updatable
 		} catch (InterruptedException e) {}
 		timer = new UpdateTimer(this);
 		timerContainer = new Thread(timer);
-		
+
 		//We have to do this here just in case the user presses play again
 		initializeIterators();
 	}
@@ -132,7 +142,7 @@ public class SongPlayer implements FlowController,Updatable
 			iterators.put(track, track.iterator());
 		}
 	}
-	
+
 	@Override
 	public void songEnd() {
 		for(FlowController controller : controllers) {
@@ -187,6 +197,7 @@ public class SongPlayer implements FlowController,Updatable
 	 */
 	public void detach(NoteEventListener listener) {
 		listeners.remove(listener);
+		System.out.println(listener.toString());
 	}
 
 	/**
@@ -309,7 +320,7 @@ public class SongPlayer implements FlowController,Updatable
 				}
 			}
 		}
-		
+
 		// check if song is done
 		if (iterators.size()==0 && activeNotes.size()==0)
 		{

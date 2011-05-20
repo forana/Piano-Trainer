@@ -17,6 +17,7 @@ import javax.sound.midi.MidiUnavailableException;
 
 import crescendo.base.ErrorHandler;
 import crescendo.base.profile.ProfileManager;
+import crescendo.tester.MockMidiDevice;
 
 /**
  * EventDispatcher
@@ -53,8 +54,11 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	
 	/** holds the current event modifiers (if any) **/
 	private Modifier currentModifer;
+	/** sets whether the automated tester is being used.*/
+	private boolean debugSwitch;
+	private MockMidiDevice mockMidi;
 	
-	
+
 	/**
 	 * EventDispatcher
 	 * 
@@ -64,14 +68,15 @@ public class EventDispatcher implements KeyListener,MouseListener {
 	{
 		midiListeners = new LinkedList<MidiEventListener>();
 		inputListeners = new LinkedList<InputEventListener>();
-		
+		debugSwitch = false;
+
 		// instantiate the receiver object
 		this.midiReceiver=new MidiReceiver();
 		// load the device list
 		this.loadTransmitterDevices();
 		// default to the first device's transmitter
 		this.midiDevice=null;
-		
+
 		// attempt to load device from preferences
 		String deviceName=ProfileManager.getInstance().getActiveProfile().getMidiDeviceName();
 		for (MidiDevice device : this.transmitterDevices)
@@ -151,6 +156,12 @@ public class EventDispatcher implements KeyListener,MouseListener {
 					i--;
 				}
 			}
+		}
+		//NOTE
+		if(this.debugSwitch){
+			mockMidi = MockMidiDevice.getInstance();
+			transmitterDevices.add(mockMidi);
+			System.out.println("Mock Midi Added");
 		}
 	}
 	
@@ -537,7 +548,20 @@ public class EventDispatcher implements KeyListener,MouseListener {
 			}
 		}
 	}
-	
+	/**
+	 * Set the app to debug mode for automated testing
+	 */
+	public void setDebug(){
+		debugSwitch = true;
+	}
+	/**
+	 * Returns the value of the debug switch to see if the program is in debug mode.
+	 * @return
+	 */
+	public boolean isDebug(){
+		return debugSwitch;
+	}
+
 	/**
 	 * Provides a receiver intended to be added to multiple transmitters that will set the transmitter of the
 	 * calling EventDispatcher when a key press is detected.

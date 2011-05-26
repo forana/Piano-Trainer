@@ -75,7 +75,7 @@ public class SongPlayer implements FlowController,Updatable
 		//NOTE
 		if(EventDispatcher.getInstance().isDebug()){
 			transmitter = MockTransmitter.getInstance();
-			attach(transmitter,1);
+			attach(transmitter,80);
 		}
 	}
 

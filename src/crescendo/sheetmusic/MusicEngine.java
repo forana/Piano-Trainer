@@ -742,7 +742,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 		{
 			for (DrawableNote note : this.noteMap.get(e.getExpectedNote().getNote()))
 			{
-				note.setCorrect(e.isCorrect());
+				if(e.isCorrect())
+					note.setNoteState(NoteState.CORRECT);
+				else
+					note.setNoteState(NoteState.INCORRECT);
 				this.repaint();
 			}
 		}
@@ -753,7 +756,10 @@ public class MusicEngine extends JPanel implements ProcessedNoteEventListener,Co
 			double beatsLeft=2;
 			Note dummyNote=new Note(e.getPlayedNote().getNote(),1,100,null);
 			DrawableNote note=this.calculateNotes(dummyNote,beatsLeft,offset).get(0);
-			note.setCorrect(false);
+			if(e.getExpectedNote()==null)
+				note.setNoteState(NoteState.UNMATCHED);
+			else
+				note.setNoteState(NoteState.INCORRECT);
 			synchronized (this)
 			{
 				this.drawables.add(note);

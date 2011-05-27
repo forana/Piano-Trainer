@@ -42,12 +42,12 @@ public class DottedNote extends DrawableNote {
 	}
 	
 	/**
-	 * Sets this note's correctness.
-	 * 
-	 * @param b true if the note is correct, false otherwise.
+	 * Sets the state of the note, whether it is correct, incorrect, or could not be 
+	 * matched to an actual note
+	 * @param state
 	 */
-	public void setCorrect(boolean b) {
-		this.wrappedNote.setCorrect(b);
+	public void setNoteState(NoteState state){
+		this.wrappedNote.setNoteState(state);
 	}
 	
 	/**

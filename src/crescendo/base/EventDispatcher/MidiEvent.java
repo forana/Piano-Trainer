@@ -20,7 +20,7 @@ public class MidiEvent
 	/**
 	 * The time in milliseconds at which this event occurred.
 	 */
-	private long timestamp;
+	protected long timestamp;
 	
 	/**
 	 * The action associated with this event.

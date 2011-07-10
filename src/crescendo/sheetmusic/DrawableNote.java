@@ -76,6 +76,23 @@ public abstract class DrawableNote extends Drawable{
 			color = Color.red;
 	}
 	
+	protected void setNoteState(NoteState state){
+		switch(state){
+		case CORRECT:
+			color = Color.green;
+			break;
+		case INCORRECT:
+			color = Color.red;
+			break;
+		case UNMATCHED:
+			color = Color.ORANGE;
+			break;
+		default:
+			color = Color.red;
+			break;
+		}
+	}
+	
 	/**
 	 * Set this note's "correctness" back to neither correct nor incorrect.
 	 */

@@ -20,6 +20,7 @@ import crescendo.base.profile.ProfileManager;
 import crescendo.base.song.Note;
 import crescendo.base.song.SongModel;
 import crescendo.base.song.Track;
+import crescendo.tester.MockTransmitter;
 
 public class SheetMusic extends Module{
 	private static final long serialVersionUID = 1L;
@@ -104,6 +105,9 @@ public class SheetMusic extends Module{
 		EventDispatcher dispatcher = EventDispatcher.getInstance();
 		songPlayer = new SongPlayer(selectedSongModel);
 		SongValidator validator = new SongValidator(selectedSongModel,activeTracks,heuristics);
+		if(EventDispatcher.getInstance().isDebug()){
+			MockTransmitter.getInstance().setValidator(validator);
+		}
 		audioPlayer = new AudioPlayer(selectedSongModel,audioTracks);
 		
 		//Initialize UI Pieces

@@ -17,7 +17,7 @@ import crescendo.base.EventDispatcher.MidiEventListener;
 
 
 public class MockTransmitter implements Transmitter,NoteEventListener {
-
+	//debug 4 pitch 4 8 pitch 4 12 pitch 4 16 pitch 4 20 pitch 4 24 pitch 4 28 pitch 4 32 pitch 4 36 pitch 4 40 pitch 4 44 pitch 4 48 pitch 4 52 pitch 4 56 pitch 4 60 pitch 4 64 pitch 4
 	private Receiver receiver;
 	private static MockTransmitter instance;
 	private static boolean isCreated = false;
@@ -82,9 +82,11 @@ public class MockTransmitter implements Transmitter,NoteEventListener {
 						e.getNote().getDynamic(),
 						(e.getAction()==NoteAction.BEGIN?ActionType.PRESS:ActionType.RELEASE));
 				message.setTimestamp(e.getTimestamp());
+				System.out.println("one");
 			}else{
 				message = new MockMidiEvent(e.getNote().getPitch(), e.getNote().getDynamic(),(e.getAction()==NoteAction.BEGIN?ActionType.PRESS:ActionType.RELEASE));
 				message.setTimestamp(e.getTimestamp());
+				System.out.println("Two");
 			}
 			
 		}
@@ -92,7 +94,9 @@ public class MockTransmitter implements Transmitter,NoteEventListener {
 		{
 			message = new MockMidiEvent(e.getNote().getPitch(), e.getNote().getDynamic(),(e.getAction()==NoteAction.BEGIN?ActionType.PRESS:ActionType.RELEASE));
 			message.setTimestamp(e.getTimestamp());
+			System.out.println("Three");
 		}
+		System.out.println(message.getNote()+":Note");
 		this.validator.handleMidiEvent(message);
 		
 		if(count == 64){
@@ -113,6 +117,10 @@ public class MockTransmitter implements Transmitter,NoteEventListener {
 		amounts = amts;
 	}
 	
+	public void setValidator(SongValidator validator) {
+		this.validator = validator;
+	}
+	
 	/**
 	 * 
 	 * @author larkinp
@@ -131,9 +139,7 @@ public class MockTransmitter implements Transmitter,NoteEventListener {
 
 	}
 
-	public void setValidator(SongValidator validator) {
-		this.validator = validator;
-	}
+	
 
 
 
